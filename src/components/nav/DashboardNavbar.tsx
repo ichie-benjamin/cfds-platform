@@ -49,6 +49,7 @@ const GROUPS: NavGroup[] = [
     key: "wallet",
     items: [
       { label: "Wallet", to: "/main/wallet" },
+      { label: "Accounts", to: "/main/accounts" },
       { label: "Funds", to: "/main/withdrawal" },
       { label: "Deposit History", to: "/main/deposit-history" },
       { label: "Savings", to: "/main/savings" },
@@ -69,9 +70,11 @@ const GROUPS: NavGroup[] = [
     label: "More",
     key: "more",
     items: [
+      { label: "Personal Info", to: "/main/personal" },
       { label: "Fund Protection", to: "/main/fund-protection" },
       { label: "Social Responsibility", to: "/main/social-responsibility" },
       { label: "Security", to: "/main/security" },
+      { label: "KYC Partners", to: "/main/kyc-partners" },
       { label: "Settings", to: "/main/settings" },
       { label: "Support", to: "/main/chat" },
     ],

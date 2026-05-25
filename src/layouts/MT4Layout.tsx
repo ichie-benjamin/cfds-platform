@@ -6,7 +6,12 @@ import { Outlet } from "react-router-dom";
 
 const MT4Layout = () =>{
     return (
-      <div className="h-screen bg-[#1C2030] text-white flex flex-col overflow-hidden">
+      <div
+        className="h-screen text-[#eef2f7] flex flex-col overflow-hidden font-[Inter,-apple-system,sans-serif]"
+        style={{
+          background: "linear-gradient(135deg,#07080c 0%,#0a0d15 100%)",
+        }}
+      >
         <AssetPriceStreamInitializer />
         {/* Header - Full width at top */}
         <Header />

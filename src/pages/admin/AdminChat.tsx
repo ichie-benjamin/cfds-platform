@@ -127,20 +127,20 @@ export default function AdminChat() {
         if (connectionStatus === 'connected') {
             return {
                 text: 'Connected',
-                className: 'text-green-500',
-                icon: <span className="w-2 h-2 bg-green-500 rounded-full inline-block mr-2" />
+                className: 'text-[#00dfa2]',
+                icon: <span className="w-2 h-2 bg-[#00dfa2] rounded-full inline-block mr-2 shadow-[0_0_8px_rgba(0,223,162,0.6)]" />
             };
         } else if (isPolling) {
             return {
                 text: 'Reconnecting...',
-                className: 'text-yellow-500',
-                icon: <span className="w-2 h-2 bg-yellow-500 rounded-full inline-block mr-2 animate-pulse" />
+                className: 'text-[#F0B429]',
+                icon: <span className="w-2 h-2 bg-[#F0B429] rounded-full inline-block mr-2 animate-pulse" />
             };
         } else {
             return {
                 text: 'Disconnected',
-                className: 'text-red-500',
-                icon: <span className="w-2 h-2 bg-red-500 rounded-full inline-block mr-2" />
+                className: 'text-[#f43f5e]',
+                icon: <span className="w-2 h-2 bg-[#f43f5e] rounded-full inline-block mr-2" />
             };
         }
     };
@@ -148,15 +148,20 @@ export default function AdminChat() {
     const status = getConnectionStatus();
 
     return (
-        <div className="h-screen flex flex-col bg-background">
-            {/* Admin Chat Header */}
-            <div className="flex items-center justify-between border-b border-border p-4 lg:hidden">
-                <h1 className="text-lg font-semibold">Admin Chat</h1>
+        <div
+            className="h-screen flex flex-col text-[#eef2f7] font-[Inter,-apple-system,sans-serif]"
+            style={{
+                background: "linear-gradient(135deg,#07080c 0%,#0a0d15 100%)",
+            }}
+        >
+            {/* Admin Chat Header (mobile) */}
+            <div className="flex items-center justify-between border-b border-white/[0.06] bg-[rgba(7,8,12,0.75)] backdrop-blur p-4 lg:hidden">
+                <h1 className="font-[Outfit,sans-serif] text-[1.15rem] font-extrabold tracking-[-0.02em] text-[#eef2f7]">Admin Chat</h1>
                 <Button
                     variant="ghost"
                     size="icon"
                     onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                    className="lg:hidden"
+                    className="lg:hidden h-9 w-9 rounded-[10px] border border-white/[0.06] bg-[rgba(255,255,255,0.02)] text-[#8b97a8] hover:text-[#eef2f7] hover:bg-[rgba(255,255,255,0.06)]"
                 >
                     {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
                 </Button>
@@ -167,14 +172,14 @@ export default function AdminChat() {
                 {/* Mobile Overlay */}
                 {isMobileMenuOpen && (
                     <div
-                        className="fixed inset-0 bg-background/80 backdrop-blur-sm z-40 lg:hidden"
+                        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden"
                         onClick={() => setIsMobileMenuOpen(false)}
                     />
                 )}
 
                 {/* User List - Sidebar */}
                 <div className={cn(
-                    "fixed lg:relative inset-y-0 left-0 z-50 w-80 bg-background border-r border-border transform transition-transform duration-300 ease-in-out lg:transform-none",
+                    "fixed lg:relative inset-y-0 left-0 z-50 w-80 border-r border-white/[0.06] transform transition-transform duration-300 ease-in-out lg:transform-none",
                     isMobileMenuOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
                 )}>
                     <UserList
@@ -194,47 +199,68 @@ export default function AdminChat() {
                     {selectedUser ? (
                         <>
                             {/* Chat Header */}
-                            <div className="flex items-center justify-between border-b border-border p-4 bg-card">
+                            <div
+                                className="flex items-center justify-between border-b border-white/[0.06] px-5 py-3"
+                                style={{
+                                    background:
+                                        "linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01))",
+                                }}
+                            >
                                 <div className="flex items-center min-w-0">
                                     <Button
                                         variant="ghost"
                                         size="icon"
-                                        className="lg:hidden mr-2 flex-shrink-0"
+                                        className="lg:hidden mr-2 flex-shrink-0 h-9 w-9 rounded-[10px] border border-white/[0.06] bg-[rgba(255,255,255,0.02)] text-[#8b97a8] hover:text-[#eef2f7] hover:bg-[rgba(255,255,255,0.06)]"
                                         onClick={() => setIsMobileMenuOpen(true)}
                                     >
                                         <Menu className="h-5 w-5" />
                                     </Button>
-                                    <Avatar className="h-10 w-10 mr-3 flex-shrink-0">
-                                        <AvatarImage src={selectedUser.avatar} alt={`${selectedUser.first_name} ${selectedUser.last_name}`} />
-                                        <AvatarFallback className="bg-muted">
-                                            {selectedUser.first_name[0]}{selectedUser.last_name[0]}
-                                        </AvatarFallback>
-                                    </Avatar>
+                                    <div className="relative flex-shrink-0">
+                                        <Avatar className="h-10 w-10 mr-3 border border-white/[0.06]">
+                                            <AvatarImage src={selectedUser.avatar} alt={`${selectedUser.first_name} ${selectedUser.last_name}`} />
+                                            <AvatarFallback className="bg-[rgba(0,223,162,0.1)] text-[#00dfa2] text-[0.78rem] font-bold">
+                                                {selectedUser.first_name[0]}{selectedUser.last_name[0]}
+                                            </AvatarFallback>
+                                        </Avatar>
+                                        {selectedUser.is_online && (
+                                            <div className="absolute bottom-0 right-3 h-3 w-3 rounded-full bg-[#00dfa2] border-2 border-[#0a0d15] shadow-[0_0_8px_rgba(0,223,162,0.6)]"></div>
+                                        )}
+                                    </div>
                                     <div className="min-w-0">
-                                        <div className="font-medium truncate">
+                                        <div className="text-[0.95rem] font-extrabold text-[#eef2f7] truncate">
                                             {selectedUser.first_name} {selectedUser.last_name}
                                         </div>
-                                        <div className="text-sm text-muted-foreground">
-                                            {selectedUser.is_online ? 'Online' : 'Offline'}
+                                        <div className="text-[0.75rem] text-[#8b97a8] flex items-center gap-1.5">
+                                            {selectedUser.is_online ? (
+                                                <>
+                                                    <span className="h-1.5 w-1.5 rounded-full bg-[#00dfa2]" />
+                                                    Online
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <span className="h-1.5 w-1.5 rounded-full bg-[#4a5468]" />
+                                                    Offline
+                                                </>
+                                            )}
                                         </div>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-4">
-                                    <div className={`hidden sm:flex items-center text-xs ${status.className}`}>
+                                    <div className={`hidden sm:flex items-center text-[0.72rem] font-bold ${status.className}`}>
                                         {status.icon}
                                         {status.text}
                                     </div>
-                                    <div className="hidden sm:block text-sm text-muted-foreground flex-shrink-0">
+                                    <div className="hidden sm:block text-[0.72rem] text-[#4a5468] font-mono flex-shrink-0">
                                         ID: {selectedUser.account_id}
                                     </div>
                                 </div>
                             </div>
 
                             {/* Chat Messages */}
-                            <div className="flex-1 overflow-y-auto p-4">
+                            <div className="flex-1 overflow-y-auto p-4 bg-[rgba(255,255,255,0.01)]">
                                 {chatLoading && messages.length === 0 ? (
                                     <div className="flex justify-center items-center h-full">
-                                        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                                        <Loader2 className="h-6 w-6 animate-spin text-[#00dfa2]" />
                                     </div>
                                 ) : (
                                     <ChatMessageList
@@ -248,7 +274,7 @@ export default function AdminChat() {
                             </div>
 
                             {/* Chat Input */}
-                            <div className="border-t border-border p-4 bg-card">
+                            <div className="border-t border-white/[0.06] bg-[rgba(255,255,255,0.02)] p-4">
                                 <ChatInput
                                     value={messageText}
                                     onChange={(e) => setMessageText(e.target.value)}
@@ -259,12 +285,12 @@ export default function AdminChat() {
                                     onFileRemove={removeFile}
                                 />
                                 {isPolling && (
-                                    <div className="text-xs text-yellow-500 mt-1">
+                                    <div className="text-[0.72rem] text-[#F0B429] mt-2">
                                         Using backup connection - messages may be slightly delayed
                                     </div>
                                 )}
                                 {chatError && (
-                                    <div className="mt-2 text-xs text-destructive">
+                                    <div className="mt-2 text-[0.72rem] text-[#f43f5e] bg-[rgba(244,63,94,0.08)] border border-[rgba(244,63,94,0.2)] rounded-[8px] px-3 py-2">
                                         {chatError}
                                     </div>
                                 )}
@@ -272,15 +298,19 @@ export default function AdminChat() {
                         </>
                     ) : (
                         // No user selected placeholder
-                        <div className="flex flex-col items-center justify-center h-full p-4 text-center">
-                            <MessageCircle className="h-16 w-16 mb-4 text-muted-foreground" />
-                            <h3 className="text-xl font-medium mb-2">Select a user to start chatting</h3>
-                            <p className="text-muted-foreground max-w-md">
+                        <div className="flex flex-col items-center justify-center h-full p-6 text-center">
+                            <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-[rgba(0,223,162,0.1)]">
+                                <MessageCircle className="h-7 w-7 text-[#00dfa2]" />
+                            </div>
+                            <h3 className="font-[Outfit,sans-serif] text-[1.45rem] font-extrabold tracking-[-0.02em] text-[#eef2f7] mb-2">
+                                Select a user to start chatting
+                            </h3>
+                            <p className="text-[0.87rem] text-[#8b97a8] max-w-md leading-relaxed">
                                 Choose a user from the list to view their conversation and send messages.
                             </p>
                             <Button
                                 variant="outline"
-                                className="mt-4 lg:hidden"
+                                className="mt-5 lg:hidden bg-[rgba(255,255,255,0.02)] border-white/[0.08] text-[#eef2f7] hover:bg-[rgba(255,255,255,0.06)] rounded-xl"
                                 onClick={() => setIsMobileMenuOpen(true)}
                             >
                                 Show Users

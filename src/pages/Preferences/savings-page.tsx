@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { ChevronDown, ChevronUp, Loader2 } from "lucide-react";
+import { ChevronDown, ChevronUp, Loader2, Menu } from "lucide-react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -19,6 +19,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Form } from "@/components/ui/form";
+import { TickerBar } from "@/components/dashboard/TickerBar";
+import DashboardNavbar from "@/components/nav/DashboardNavbar";
+import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 
 // Form schema
 const savingsFormSchema = z.object({
@@ -43,6 +46,64 @@ export default function SavingsPage() {
   const user = useUserStore((state) => state.user);
   const [expandedCurrency, setExpandedCurrency] = React.useState<string>("");
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = React.useState(false);
+
+  // Hide MainLayout chrome while this page is mounted (matches security/settings pattern)
+  React.useEffect(() => {
+    document.body.classList.add("savings-active");
+    return () => {
+      document.body.classList.remove("savings-active");
+    };
+  }, []);
+
+  const shellStyles = (
+    <style>{`
+      body.savings-active .fixed.top-0.left-0.right-0.z-20,
+      body.savings-active .fixed.top-\\[60px\\].left-0.bottom-0 {
+        display: none !important;
+      }
+      body.savings-active .flex.flex-1.pt-\\[90px\\] {
+        padding-top: 0 !important;
+      }
+      body.savings-active .flex-1.md\\:ml-\\[80px\\] {
+        margin-left: 0 !important;
+      }
+    `}</style>
+  );
+
+  const renderShell = (children: React.ReactNode) => (
+    <>
+      {shellStyles}
+      <div
+        className="fixed inset-0 z-30 flex flex-col font-[Inter,-apple-system,sans-serif]"
+        style={{
+          background: "linear-gradient(135deg,#07080c 0%,#0a0d15 100%)",
+          color: "#eef2f7",
+        }}
+      >
+        <TickerBar />
+        <DashboardNavbar />
+        <div className="grid flex-1 grid-cols-1 md:grid-cols-[60px_1fr] min-h-0">
+          <DashboardSidebar
+            isOpen={isSidebarOpen}
+            onClose={() => setIsSidebarOpen(false)}
+          />
+          <main className="overflow-y-auto px-4 py-7 md:px-8" style={{ maxHeight: "100%" }}>
+            <div className="md:hidden mb-4">
+              <button
+                onClick={() => setIsSidebarOpen(true)}
+                aria-label="Open navigation"
+                className="flex h-9 w-9 items-center justify-center rounded-[10px] border border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.03)] text-[#8b97a8] transition-colors hover:bg-[rgba(255,255,255,0.06)] hover:text-[#eef2f7]"
+              >
+                <Menu className="h-[1.05rem] w-[1.05rem]" />
+              </button>
+            </div>
+            {children}
+          </main>
+        </div>
+      </div>
+    </>
+  );
 
   const toAccounts =
     user?.accounts.filter((acc) => acc.transfer_type === "to") || [];
@@ -152,23 +213,23 @@ export default function SavingsPage() {
   };
 
   if (isLoading) {
-    return (
-      <div className="flex justify-center items-center min-h-screen">
+    return renderShell(
+      <div className="flex justify-center items-center min-h-[60vh]">
         Loading...
       </div>
     );
   }
 
   if (error) {
-    return (
-      <div className="flex justify-center items-center min-h-screen text-red-500">
+    return renderShell(
+      <div className="flex justify-center items-center min-h-[60vh] text-red-500">
         {error}
       </div>
     );
   }
 
-  return (
-    <div className="flex flex-col gap-8 p-6 bg-background text-foreground min-h-screen">
+  return renderShell(
+    <div className="flex flex-col gap-8 text-foreground">
       <h1 className="text-2xl font-bold text-center">SAVINGS</h1>
 
       <div className="space-y-4">
@@ -431,3 +492,4 @@ export default function SavingsPage() {
     </div>
   );
 }
+

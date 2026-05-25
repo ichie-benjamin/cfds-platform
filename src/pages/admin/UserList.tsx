@@ -58,15 +58,22 @@ export function UserList({
     });
 
     return (
-        <div className="flex flex-col h-full bg-card">
+        <div
+            className="flex flex-col h-full font-[Inter,-apple-system,sans-serif]"
+            style={{
+                background: "linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01))",
+            }}
+        >
             {/* Header */}
-            <div className="p-4 border-b border-border space-y-4">
-                <h2 className="text-lg font-semibold hidden lg:block">Admin Chat</h2>
+            <div className="p-4 border-b border-white/[0.06] space-y-4 bg-[rgba(255,255,255,0.02)]">
+                <h2 className="hidden lg:block font-[Outfit,sans-serif] text-[1.25rem] font-extrabold tracking-[-0.02em] text-[#eef2f7]">
+                    Admin Chat
+                </h2>
                 <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-[#4a5468]" />
                     <Input
                         placeholder="Search users..."
-                        className="pl-9 bg-background"
+                        className="pl-9 h-10 rounded-[10px] bg-[rgba(255,255,255,0.02)] border-white/[0.06] text-[#eef2f7] placeholder:text-[#4a5468] focus-visible:border-[#00dfa2] focus-visible:ring-[rgba(0,223,162,0.1)]"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                     />
@@ -76,10 +83,25 @@ export function UserList({
                     onValueChange={(value) => setSelectedTab(value as "all" | "online" | "unread")}
                     className="w-full"
                 >
-                    <TabsList className="grid grid-cols-3">
-                        <TabsTrigger value="all">All</TabsTrigger>
-                        <TabsTrigger value="online">Online</TabsTrigger>
-                        <TabsTrigger value="unread">Unread</TabsTrigger>
+                    <TabsList className="grid grid-cols-3 bg-[rgba(255,255,255,0.02)] border border-white/[0.06] h-9 rounded-[10px] p-0.5">
+                        <TabsTrigger
+                            value="all"
+                            className="rounded-[8px] text-[0.78rem] font-bold text-[#8b97a8] data-[state=active]:bg-[rgba(0,223,162,0.1)] data-[state=active]:text-[#00dfa2] data-[state=active]:shadow-none"
+                        >
+                            All
+                        </TabsTrigger>
+                        <TabsTrigger
+                            value="online"
+                            className="rounded-[8px] text-[0.78rem] font-bold text-[#8b97a8] data-[state=active]:bg-[rgba(0,223,162,0.1)] data-[state=active]:text-[#00dfa2] data-[state=active]:shadow-none"
+                        >
+                            Online
+                        </TabsTrigger>
+                        <TabsTrigger
+                            value="unread"
+                            className="rounded-[8px] text-[0.78rem] font-bold text-[#8b97a8] data-[state=active]:bg-[rgba(0,223,162,0.1)] data-[state=active]:text-[#00dfa2] data-[state=active]:shadow-none"
+                        >
+                            Unread
+                        </TabsTrigger>
                     </TabsList>
                 </Tabs>
             </div>
@@ -87,49 +109,53 @@ export function UserList({
             {/* User List */}
             <div className="flex-1 overflow-y-auto">
                 {isInitialLoading ? (
-                    <div className="flex flex-col items-center justify-center h-full p-4">
-                        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-                        <p className="mt-2 text-muted-foreground">Loading users...</p>
+                    <div className="flex flex-col items-center justify-center h-full p-4 gap-2">
+                        <Loader2 className="h-7 w-7 animate-spin text-[#00dfa2]" />
+                        <p className="text-[0.82rem] text-[#8b97a8]">Loading users...</p>
                     </div>
                 ) : filteredUsers.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center h-full p-4">
-                        <MessageCircle className="h-10 w-10 mb-2 text-muted-foreground" />
-                        <p className="text-center text-muted-foreground">No users found</p>
+                    <div className="flex flex-col items-center justify-center h-full p-4 gap-3">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[rgba(255,255,255,0.04)]">
+                            <MessageCircle className="h-5 w-5 text-[#4a5468]" />
+                        </div>
+                        <p className="text-center text-[0.82rem] text-[#8b97a8]">No users found</p>
                     </div>
                 ) : (
-                    <div className="divide-y divide-border">
+                    <div className="divide-y divide-white/[0.04]">
                         {filteredUsers.map(user => (
                             <button
                                 key={user.id}
                                 className={cn(
-                                    "w-full flex items-center p-4 hover:bg-accent/50 transition-colors",
-                                    selectedUser?.id === user.id && "bg-accent"
+                                    "w-full flex items-center px-4 py-3 hover:bg-[rgba(255,255,255,0.04)] transition-colors duration-150 border-l-2",
+                                    selectedUser?.id === user.id
+                                        ? "bg-[rgba(0,223,162,0.08)] border-l-[#00dfa2]"
+                                        : "border-l-transparent"
                                 )}
                                 onClick={() => setSelectedUser(user)}
                             >
                                 <div className="relative flex-shrink-0">
-                                    <Avatar className="h-10 w-10">
+                                    <Avatar className="h-10 w-10 border border-white/[0.06]">
                                         <AvatarImage src={user.avatar} alt={`${user.first_name} ${user.last_name}`} />
-                                        <AvatarFallback className="bg-primary/10 text-primary">
+                                        <AvatarFallback className="bg-[rgba(0,223,162,0.1)] text-[#00dfa2] text-[0.78rem] font-bold">
                                             {user.first_name[0]}{user.last_name[0]}
                                         </AvatarFallback>
                                     </Avatar>
                                     {user.is_online && (
-                                        <div className="absolute bottom-0 right-0 h-3 w-3 rounded-full bg-green-500 border-2 border-background"></div>
+                                        <div className="absolute bottom-0 right-0 h-3 w-3 rounded-full bg-[#00dfa2] border-2 border-[#0a0d15] shadow-[0_0_8px_rgba(0,223,162,0.6)]"></div>
                                     )}
                                 </div>
                                 <div className="ml-3 flex-1 min-w-0 text-left">
-                                    <div className="flex items-center justify-between">
-                                        <div className="font-medium truncate">
+                                    <div className="flex items-center justify-between gap-2">
+                                        <div className="text-[0.88rem] font-extrabold text-[#eef2f7] truncate">
                                             {user.first_name} {user.last_name}
                                         </div>
                                         {user.unread_count && user.unread_count > 0 && (
-                                            <Badge variant="destructive" className="ml-2">
+                                            <Badge className="ml-2 bg-[rgba(244,63,94,0.12)] text-[#f43f5e] border border-[rgba(244,63,94,0.25)] text-[0.62rem] font-bold px-1.5 py-0">
                                                 {user.unread_count}
                                             </Badge>
                                         )}
                                     </div>
-                                    <div className="text-sm text-muted-foreground truncate">
+                                    <div className="text-[0.72rem] text-[#4a5468] truncate font-mono">
                                         {user.account_id} • {user.email}
                                     </div>
                                 </div>

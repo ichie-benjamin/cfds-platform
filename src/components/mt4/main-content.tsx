@@ -50,10 +50,16 @@ export default function MainContent() {
 
     // For non-implemented panels, show a generic panel
     return (
-      <div className="w-[300px] border-r border-border">
-        <Card className="bg-[#1C2030] text-slate-300 border-slate-800">
-          <CardHeader className="bg-slate-700 flex flex-row items-center justify-between py-4 px-4 border-b border-slate-800">
-            <CardTitle className="text-sm font-medium text-slate-200">
+      <div className="w-[300px] border-r border-white/[0.06]">
+        <Card
+          className="rounded-none border-0 py-0 text-[#eef2f7] shadow-none"
+          style={{
+            background:
+              "linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01))",
+          }}
+        >
+          <CardHeader className="flex flex-row items-center justify-between py-3 px-4 border-b border-white/[0.06] bg-[rgba(255,255,255,0.02)]">
+            <CardTitle className="text-[0.78rem] font-extrabold uppercase tracking-[0.06em] text-[#eef2f7]">
               {activePanel
                 .split("-")
                 .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
@@ -62,16 +68,18 @@ export default function MainContent() {
             <Button
               variant="ghost"
               size="icon"
-              className="h-6 w-6 text-slate-400 hover:text-slate-100"
+              className="h-7 w-7 rounded-[8px] text-[#8b97a8] hover:text-[#eef2f7] hover:bg-[rgba(255,255,255,0.06)]"
               onClick={() => setActivePanel(null)}
             >
               <X className="h-4 w-4" />
             </Button>
           </CardHeader>
-          <CardContent className="p-4">
-            <p className="text-muted-foreground">
-              This panel is under development
-            </p>
+          <CardContent className="p-5">
+            <div className="rounded-[10px] border border-white/[0.04] bg-[rgba(255,255,255,0.02)] p-4 text-center">
+              <p className="text-[0.82rem] text-[#8b97a8] leading-relaxed">
+                This panel is under development.
+              </p>
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -111,8 +119,7 @@ export default function MainContent() {
         {/* Toggle Button */}
         <button
           onClick={() => setIsRightPanelVisible(!isRightPanelVisible)}
-          className="absolute right-0 top-8 z-50 bg-slate-700 hover:bg-slate-600 
-            text-slate-300 p-1 rounded-l-md shadow-lg border border-slate-600"
+          className="absolute right-0 top-8 z-50 bg-[rgba(255,255,255,0.04)] hover:bg-[rgba(255,255,255,0.08)] text-[#8b97a8] hover:text-[#eef2f7] p-1.5 rounded-l-md shadow-[0_4px_16px_rgba(0,0,0,0.45)] border border-white/[0.08] transition-colors duration-150"
         >
           {isRightPanelVisible ? (
             <ChevronRight className="h-4 w-4" />

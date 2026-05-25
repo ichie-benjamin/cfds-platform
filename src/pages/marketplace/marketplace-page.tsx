@@ -1,6 +1,6 @@
-import { useMemo, useCallback } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Search } from "lucide-react";
+import { Search, Menu } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,9 @@ import useUserStore from "@/store/userStore";
 import MarketplaceCard from "@/components/marketplace/marketplace-card";
 import MarketplaceFilters from "@/components/marketplace/marketplace-filters";
 // import LoadingScreen from "@/components/loading-screen";
+import { TickerBar } from "@/components/dashboard/TickerBar";
+import DashboardNavbar from "@/components/nav/DashboardNavbar";
+import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 
 // Types and constants
 import type { MarketplaceItem, CategoryFilter, SecondaryFilter } from "@/types/marketplace";
@@ -42,11 +45,69 @@ type ExpertAdvisorApiItem = {
 
 export default function MarketplacePage() {
     const [searchParams, setSearchParams] = useSearchParams();
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+    // Hide MainLayout chrome while this page is mounted (matches security/settings pattern)
+    useEffect(() => {
+        document.body.classList.add("marketplace-active");
+        return () => {
+            document.body.classList.remove("marketplace-active");
+        };
+    }, []);
 
     // State management
     const searchTerm = searchParams.get("search") || "";
     const selectedCategory = (searchParams.get("category") as CategoryFilter) || DEFAULT_CATEGORY;
     const selectedSecondary = (searchParams.get("filter") as SecondaryFilter) || DEFAULT_SECONDARY;
+
+    const shellStyles = (
+        <style>{`
+            body.marketplace-active .fixed.top-0.left-0.right-0.z-20,
+            body.marketplace-active .fixed.top-\\[60px\\].left-0.bottom-0 {
+              display: none !important;
+            }
+            body.marketplace-active .flex.flex-1.pt-\\[90px\\] {
+              padding-top: 0 !important;
+            }
+            body.marketplace-active .flex-1.md\\:ml-\\[80px\\] {
+              margin-left: 0 !important;
+            }
+        `}</style>
+    );
+
+    const renderShell = (children: React.ReactNode) => (
+        <>
+            {shellStyles}
+            <div
+                className="fixed inset-0 z-30 flex flex-col font-[Inter,-apple-system,sans-serif]"
+                style={{
+                    background: "linear-gradient(135deg,#07080c 0%,#0a0d15 100%)",
+                    color: "#eef2f7",
+                }}
+            >
+                <TickerBar />
+                <DashboardNavbar />
+                <div className="grid flex-1 grid-cols-1 md:grid-cols-[60px_1fr] min-h-0">
+                    <DashboardSidebar
+                        isOpen={isSidebarOpen}
+                        onClose={() => setIsSidebarOpen(false)}
+                    />
+                    <main className="overflow-y-auto px-4 py-7 md:px-8" style={{ maxHeight: "100%" }}>
+                        <div className="md:hidden mb-4">
+                            <button
+                                onClick={() => setIsSidebarOpen(true)}
+                                aria-label="Open navigation"
+                                className="flex h-9 w-9 items-center justify-center rounded-[10px] border border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.03)] text-[#8b97a8] transition-colors hover:bg-[rgba(255,255,255,0.06)] hover:text-[#eef2f7]"
+                            >
+                                <Menu className="h-[1.05rem] w-[1.05rem]" />
+                            </button>
+                        </div>
+                        {children}
+                    </main>
+                </div>
+            </div>
+        </>
+    );
 
     // Fetch expert advisors using React Query
     const { data: apiItems, isLoading, error } = useQuery({
@@ -144,40 +205,54 @@ export default function MarketplacePage() {
 
     // Loading state
     if (isLoading) {
-        return (
-            <div className="flex justify-center items-center min-h-screen">
-                Loading...
+        return renderShell(
+            <div className="flex flex-col gap-3 justify-center items-center min-h-[60vh] text-[#8b97a8]">
+                <div className="h-10 w-10 rounded-full border-2 border-[#00dfa2]/30 border-t-[#00dfa2] animate-spin" />
+                <p className="text-[0.87rem]">Loading marketplace…</p>
             </div>
         );
     }
 
     // Error state
     if (error) {
-        return (
-            <div className="min-h-screen bg-background flex flex-col items-center justify-center">
-                <p className="text-red-500 mb-4">Failed to load marketplace items</p>
-                <Button variant="outline" onClick={() => window.location.reload()}>
+        return renderShell(
+            <div className="min-h-[60vh] flex flex-col items-center justify-center text-center">
+                <div className="rounded-2xl border border-[rgba(244,63,94,0.2)] bg-[rgba(244,63,94,0.06)] px-6 py-5 mb-5">
+                    <p className="text-[#f43f5e] text-[0.95rem] font-extrabold mb-1">Failed to load marketplace items</p>
+                    <p className="text-[#8b97a8] text-[0.82rem]">Please retry, or check back in a moment.</p>
+                </div>
+                <Button
+                    variant="outline"
+                    className="bg-[rgba(255,255,255,0.02)] border-white/[0.08] text-[#eef2f7] hover:bg-[rgba(255,255,255,0.06)] rounded-xl"
+                    onClick={() => window.location.reload()}
+                >
                     Retry
                 </Button>
             </div>
         );
     }
 
-    return (
-        <div className="min-h-screen bg-background">
-            <div className="container- mx-auto px-6 py-8">
+    return renderShell(
+        <div>
+            <div className="container- mx-auto py-2">
                 {/* Header */}
-                <div className="mb-8">
-                    <h1 className="text-2xl font-bold text-foreground mb-2">MARKET PLACE</h1>
+                <div className="mb-7 flex items-center gap-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#00dfa2]/10">
+                        <Search className="h-5 w-5 text-[#00dfa2]" />
+                    </div>
+                    <div>
+                        <h1 className="font-[Outfit,sans-serif] text-[1.65rem] font-extrabold tracking-[-0.03em] text-[#eef2f7]">Marketplace</h1>
+                        <p className="mt-0.5 text-[0.87rem] text-[#4a5468]">Discover and purchase Expert Advisors built for your trading strategy</p>
+                    </div>
                 </div>
 
                 {/* Search Bar */}
                 <div className="mb-6">
                     <div className="relative max-w-md">
-                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-[#4a5468]" />
                         <Input
-                            placeholder="Search market place"
-                            className="pl-10 bg-background border-border"
+                            placeholder="Search marketplace"
+                            className="pl-10 h-11 rounded-[12px] bg-[rgba(255,255,255,0.02)] border-white/[0.06] text-[#eef2f7] placeholder:text-[#4a5468] focus-visible:border-[#00dfa2] focus-visible:ring-[rgba(0,223,162,0.1)]"
                             value={searchTerm}
                             onChange={(e) => handleSearchChange(e.target.value)}
                         />
@@ -195,7 +270,7 @@ export default function MarketplacePage() {
                 />
 
                 {/* Items Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
                     {filteredItems.map((item) => (
                         <MarketplaceCard
                             key={item.id}
@@ -207,11 +282,16 @@ export default function MarketplacePage() {
 
                 {/* No Results */}
                 {filteredItems.length === 0 && (
-                    <div className="text-center py-12">
-                        <p className="text-muted-foreground">No items found matching your criteria.</p>
+                    <div className="text-center py-16 rounded-2xl border border-white/[0.06] mt-6"
+                         style={{ background: "linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01))" }}>
+                        <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-[rgba(255,255,255,0.04)]">
+                            <Search className="h-5 w-5 text-[#4a5468]" />
+                        </div>
+                        <p className="text-[#eef2f7] text-[0.95rem] font-extrabold mb-1">No items found</p>
+                        <p className="text-[#8b97a8] text-[0.82rem] mb-5">Try adjusting your search or filters.</p>
                         <Button
                             variant="outline"
-                            className="mt-4"
+                            className="bg-[rgba(255,255,255,0.02)] border-white/[0.08] text-[#eef2f7] hover:bg-[rgba(255,255,255,0.06)] rounded-xl"
                             onClick={() => {
                                 handleSearchChange("");
                                 handleCategoryChange(DEFAULT_CATEGORY);

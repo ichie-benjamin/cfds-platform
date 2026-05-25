@@ -40,7 +40,6 @@ const TradingDashboard = lazy(
 const WithdrawalForm = lazy(
   () => import("./pages/Preferences/withdrawal-form"),
 );
-const Verification = lazy(() => import("./pages/Preferences/verification"));
 const AccountsPage = lazy(() => import("./pages/Preferences/accounts-page"));
 const LiveChat = lazy(() => import("./pages/Preferences/live-chat"));
 const SettingsPage = lazy(() => import("./pages/Preferences/settings-page"));
@@ -181,7 +180,7 @@ const App = () => {
                     />
                     <Route
                       path="/main/verification"
-                      element={<Verification />}
+                      element={<Navigate to="/main/kyc" replace />}
                     />
                     <Route
                       path="/main/kyc-partners"
