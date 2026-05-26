@@ -249,10 +249,10 @@ export default function MarketplacePage() {
                 {/* Search Bar */}
                 <div className="mb-6">
                     <div className="relative max-w-md">
-                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-[#4a5468]" />
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-[#4a5468] z-10 pointer-events-none" />
                         <Input
                             placeholder="Search marketplace"
-                            className="pl-10 h-11 rounded-[12px] bg-[rgba(255,255,255,0.02)] border-white/[0.06] text-[#eef2f7] placeholder:text-[#4a5468] focus-visible:border-[#00dfa2] focus-visible:ring-[rgba(0,223,162,0.1)]"
+                            className="pl-10 h-11 rounded-[12px] bg-[rgba(255,255,255,0.02)] dark:bg-[rgba(255,255,255,0.02)] border border-white/[0.06] text-[#eef2f7] placeholder:text-[#4a5468] shadow-none transition-colors duration-150 hover:bg-[rgba(255,255,255,0.04)] hover:border-[rgba(255,255,255,0.12)] focus-visible:border-[#00dfa2] focus-visible:ring-[rgba(0,223,162,0.1)]"
                             value={searchTerm}
                             onChange={(e) => handleSearchChange(e.target.value)}
                         />
