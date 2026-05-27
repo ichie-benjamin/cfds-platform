@@ -150,7 +150,7 @@ const App = () => {
                       path="/main/deposit/*"
                       element={
                         <Navigate
-                          to="/main/withdrawal?tab=deposit"
+                          to="/main/wallet?tab=deposit"
                           replace
                         />
                       }

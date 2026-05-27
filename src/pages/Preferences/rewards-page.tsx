@@ -1639,7 +1639,7 @@ export default function RewardsPage() {
                               const Icon = c.icon;
                               const ctaTo =
                                 c.cta?.label === "Deposit Now"
-                                  ? "/main/withdrawal?tab=deposit"
+                                  ? "/main/wallet?tab=deposit"
                                   : "/trading";
                               return (
                                 <div key={i} className="rw-task-card">

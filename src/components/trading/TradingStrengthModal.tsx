@@ -51,7 +51,7 @@ export default function TradingStrengthModal({ open, onOpenChange }: TradingStre
 
         {/* Actions */}
         <div className="flex gap-3">
-          <Link to="/main/withdrawal?tab=deposit" className="flex-1">
+          <Link to="/main/wallet?tab=deposit" className="flex-1">
             <Button className="w-full bg-emerald-500 hover:bg-emerald-600 text-background font-extrabold">
               Add Funds
             </Button>

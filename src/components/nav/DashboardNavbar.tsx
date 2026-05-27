@@ -541,7 +541,7 @@ export default function DashboardNavbar() {
           <Link to="/main/market" className="dn-icon-btn" aria-label="Markets / Search">
             <Search className="h-3.5 w-3.5" />
           </Link>
-          <Link to="/main/withdrawal?tab=deposit" className="dn-deposit">
+          <Link to="/main/wallet?tab=deposit" className="dn-deposit">
             Deposit
           </Link>
           <Link to="/main/wallet" className="dn-quick">

@@ -2124,7 +2124,7 @@ export default function ManagedPortfolioPage() {
                   </div>
                 </div>
                 <Link
-                  to="/main/withdrawal?tab=deposit"
+                  to="/main/wallet?tab=deposit"
                   className="mp-btn mp-btn-accent"
                   style={{ width: "100%" }}
                 >
@@ -2303,7 +2303,7 @@ export default function ManagedPortfolioPage() {
                           </td>
                           <td>
                             <Link
-                              to="/main/withdrawal?tab=deposit"
+                              to="/main/wallet?tab=deposit"
                               className="mp-btn mp-btn-outline"
                               style={{ padding: "8px 14px", fontSize: "0.78rem" }}
                             >
@@ -3048,7 +3048,7 @@ export default function ManagedPortfolioPage() {
               Talk to Support
               <ArrowRight className="h-4 w-4" />
             </Link>
-            <Link to="/main/withdrawal?tab=deposit" className="mp-btn mp-btn-outline">
+            <Link to="/main/wallet?tab=deposit" className="mp-btn mp-btn-outline">
               Fund Account
             </Link>
           </motion.div>

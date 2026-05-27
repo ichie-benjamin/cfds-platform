@@ -8,7 +8,7 @@ import {
 } from "lucide-react";
 
 const LINKS = [
-  { to: "/main/withdrawal?tab=deposit", icon: ArrowDownCircle, label: "Deposit Funds" },
+  { to: "/main/wallet?tab=deposit", icon: ArrowDownCircle, label: "Deposit Funds" },
   { to: "/main/withdrawal", icon: ArrowUpCircle, label: "Withdraw Funds" },
   { to: "/main/accounts", icon: LayoutGrid, label: "Accounts" },
   { to: "/main/wallet", icon: Wallet, label: "Wallet" },

@@ -7,7 +7,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
 import DepositFunds from "./deposit-funds/DepositFunds";
 import useUserStore from "@/store/userStore";
 import { useCurrency } from "@/hooks/useCurrency";
-import useSiteSettingsStore from "@/store/siteSettingStore";
 import AccountPlansModal from "./AccountPlanModal";
 import DepositPromptModal from "./DepositPromptModal";
 
@@ -21,9 +20,6 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar }) => {
   const [isDepositModalOpen, setIsDepositModalOpen] = useState(false);
   const [isPlansModalOpen, setIsPlansModalOpen] = useState(false);
   const user = useUserStore((state) => state.user);
-  const useDepositModal = useSiteSettingsStore(
-    (state) => state.settings?.use_deposit_modal === true,
-  );
 
   const { formatCurrency } = useCurrency();
   const balance = user?.balance || 0;
@@ -53,18 +49,12 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar }) => {
         </Button>
 
         <Button
-          onClick={() =>
-            useDepositModal
-              ? setIsDepositModalOpen(true)
-              : navigate("/main/withdrawal?tab=deposit")
-          }
+          onClick={() => navigate("/main/wallet?tab=deposit")}
           className="text-white flex items-center gap-2 p-2 lg:px-4"
           title="Deposit Funds"
         >
           <Wallet className="h-4 w-4" />
-          <span className="hidden lg:inline">
-            {useDepositModal ? "Deposit Funds" : "Deposit"}
-          </span>
+          <span className="hidden lg:inline">Deposit</span>
         </Button>
 
         {/* Mobile Balance Display */}
@@ -147,12 +137,8 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar }) => {
         onOpenChange={setIsPlansModalOpen}
       />
 
-      <DepositPromptModal 
-        onDeposit={() =>
-          useDepositModal
-            ? setIsDepositModalOpen(true)
-            : navigate("/main/withdrawal?tab=deposit")
-        } 
+      <DepositPromptModal
+        onDeposit={() => navigate("/main/wallet?tab=deposit")}
       />
     </header>
   );
