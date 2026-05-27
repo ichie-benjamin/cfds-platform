@@ -3,7 +3,6 @@ import { UserCircle, Menu } from "lucide-react";
 import { PersonalInfoForm } from "@/components/personal/PersonalInfoForm";
 import { TickerBar } from "@/components/dashboard/TickerBar";
 import { AccountsSidebar } from "@/components/accounts/AccountsSidebar";
-import { ProfileHeroCard } from "@/components/personal/ProfileHeroCard";
 import { ProfileCompletionCard } from "@/components/personal/ProfileCompletionCard";
 import { ProfileIdentityCard } from "@/components/personal/ProfileIdentityCard";
 import { ProfileContactCard } from "@/components/personal/ProfileContactCard";
@@ -87,17 +86,11 @@ export default function PersonalInformation() {
             </div>
 
             {/* Two-column content */}
-            <div className="grid items-start gap-5 xl:grid-cols-[1fr_340px]">
-              {/* ── LEFT COLUMN: hero, completion, form ── */}
-              <div className="flex flex-col gap-5">
-                <ProfileHeroCard
-                  firstName={user?.first_name}
-                  lastName={user?.last_name}
-                  email={user?.email}
-                  avatar={user?.avatar}
-                  planTitle={user?.account_type?.title}
-                  verificationStatus={user?.verification_status}
-                />
+            <div className="grid items-start gap-6 xl:grid-cols-[1fr_320px]">
+              {/* ── LEFT COLUMN: form (with integrated hero), completion ── */}
+              <div className="flex flex-col gap-6">
+                {/* Existing form — UNCHANGED logic; renders integrated avatar hero at top */}
+                <PersonalInfoForm />
 
                 <ProfileCompletionCard
                   fields={{
@@ -111,13 +104,10 @@ export default function PersonalInformation() {
                     avatar: user?.avatar,
                   }}
                 />
-
-                {/* Existing form — UNCHANGED */}
-                <PersonalInfoForm />
               </div>
 
               {/* ── RIGHT COLUMN: identity, contact, tips, quick links ── */}
-              <div className="flex flex-col gap-5">
+              <div className="flex flex-col gap-4">
                 <ProfileIdentityCard
                   accountId={user?.account_id}
                   planTitle={user?.account_type?.title}

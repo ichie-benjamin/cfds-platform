@@ -1,4 +1,3 @@
-import { PhotoGuidelines } from "@/components/personal-info/photo-guidelines";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -16,8 +15,9 @@ import {
   Mail,
   Phone,
   Shield,
-  Upload,
   Camera,
+  ShieldCheck,
+  AlertCircle,
 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -180,20 +180,101 @@ export function PersonalInfoForm({
       onSubmit={handleSubmit(onSubmit)}
       className="flex flex-col gap-6 w-full"
     >
-      {/* Personal Details Card */}
+      {/* Integrated profile hero — avatar IS the upload trigger */}
+      {showProfilePhoto && (
+        <div
+          className={`group/hero flex flex-col items-center gap-4 px-1 pt-1 sm:flex-row sm:items-center sm:gap-5 ${
+            isDragging ? "rounded-2xl ring-2 ring-[#00dfa2]/30" : ""
+          }`}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+        >
+          {/* Avatar — click or drop to upload */}
+          <button
+            type="button"
+            onClick={handleClick}
+            aria-label="Upload profile photo"
+            className={`group relative shrink-0 cursor-pointer rounded-full transition-transform focus:outline-none focus-visible:ring-2 focus-visible:ring-[#00dfa2]/40 ${
+              isDragging ? "scale-105" : "hover:scale-[1.02]"
+            }`}
+          >
+            <div
+              className="relative flex h-[96px] w-[96px] items-center justify-center rounded-full"
+              style={{
+                background:
+                  "radial-gradient(circle, rgba(0,223,162,0.16) 0%, rgba(0,223,162,0.02) 60%, transparent 80%)",
+              }}
+            >
+              <div className="flex h-[84px] w-[84px] items-center justify-center overflow-hidden rounded-full bg-[#0a0d15] ring-1 ring-white/[0.06]">
+                {image ? (
+                  <img
+                    src={image}
+                    alt="Profile"
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <User className="h-9 w-9 text-[#4a5468]" />
+                )}
+              </div>
+            </div>
+            {/* Floating camera badge */}
+            <span className="absolute bottom-0 right-0 flex h-7 w-7 items-center justify-center rounded-full bg-[#00dfa2] text-[#07080c] shadow-[0_4px_12px_rgba(0,223,162,0.35)] ring-2 ring-[#0a0d15] transition-transform group-hover:scale-110">
+              <Camera className="h-3.5 w-3.5" />
+            </span>
+          </button>
+
+          {/* Identity */}
+          <div className="min-w-0 flex-1 text-center sm:text-left">
+            <h2 className="truncate font-[Outfit,sans-serif] text-[1.05rem] font-extrabold tracking-[-0.01em] text-[#eef2f7]">
+              {[user?.first_name, user?.last_name].filter(Boolean).join(" ") ||
+                "Unnamed User"}
+            </h2>
+            <p className="truncate text-[11px] font-semibold text-[#5f6b82]">
+              {user?.email || "—"}
+            </p>
+            <div className="mt-2 flex flex-wrap items-center justify-center gap-1.5 sm:justify-start">
+              <span className="inline-flex items-center gap-1 rounded-full bg-[#00dfa2]/[0.08] px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.06em] text-[#00dfa2]">
+                {user?.account_type?.title || "Basic Plan"}
+              </span>
+              <span
+                className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.06em] ${
+                  user?.verification_status === "verified"
+                    ? "bg-[#00dfa2]/[0.08] text-[#00dfa2]"
+                    : "bg-[#FF9800]/[0.08] text-[#FF9800]"
+                }`}
+              >
+                {user?.verification_status === "verified" ? (
+                  <ShieldCheck className="h-3 w-3" />
+                ) : (
+                  <AlertCircle className="h-3 w-3" />
+                )}
+                {user?.verification_status || "unverified"}
+              </span>
+              <span className="text-[10px] font-semibold text-[#4a5468]">
+                {isDragging
+                  ? "Drop image to upload"
+                  : "Click avatar to change photo"}
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Personal Details Card — primary surface */}
       <div
-        className="relative rounded-2xl border border-white/[0.06] p-5 shadow-[0_8px_32px_rgba(0,0,0,0.35),inset_0_1px_0_rgba(255,255,255,0.04)] md:p-7"
+        className="relative rounded-2xl border border-white/[0.05] p-5 shadow-[0_8px_32px_rgba(0,0,0,0.35),inset_0_1px_0_rgba(255,255,255,0.04)] md:p-7"
         style={{
           background:
-            "linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01))",
+            "linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.005))",
         }}
       >
-        {/* Section header with accent top border */}
+        {/* Section header */}
         <div className="flex items-center gap-2 mb-6">
           <span className="text-[11px] font-bold uppercase tracking-[0.08em] text-[#00dfa2]">
             Account Details
           </span>
-          <div className="flex-1 h-px bg-white/[0.06]" />
+          <div className="flex-1 h-px bg-white/[0.05]" />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-5 gap-y-4">
@@ -206,7 +287,7 @@ export function PersonalInfoForm({
             <Input
               id="first_name"
               {...register("first_name")}
-              className="h-10 !bg-[#14161c] border-[1.5px] border-white/[0.08] rounded-lg text-sm text-[#eef2f7] placeholder:text-[#3a4556] focus:border-[#00dfa2]/50 focus:ring-1 focus:ring-[#00dfa2]/10 transition-all"
+              className="h-10 !bg-[#14161c] border-[1.5px] border-white/[0.08] rounded-lg text-sm text-gray-400 placeholder:text-gray-600 focus:border-[#00dfa2]/50 focus:ring-1 focus:ring-[#00dfa2]/10 transition-all"
             />
           </FieldGroup>
 
@@ -219,7 +300,7 @@ export function PersonalInfoForm({
             <Input
               id="last_name"
               {...register("last_name")}
-              className="h-10 !bg-[#14161c] border-[1.5px] border-white/[0.08] rounded-lg text-sm text-[#eef2f7] placeholder:text-[#3a4556] focus:border-[#00dfa2]/50 focus:ring-1 focus:ring-[#00dfa2]/10 transition-all"
+              className="h-10 !bg-[#14161c] border-[1.5px] border-white/[0.08] rounded-lg text-sm text-gray-400 placeholder:text-[#3a4556] focus:border-[#00dfa2]/50 focus:ring-1 focus:ring-[#00dfa2]/10 transition-all"
             />
           </FieldGroup>
 
@@ -232,7 +313,7 @@ export function PersonalInfoForm({
             <Input
               id="address"
               {...register("address")}
-              className="h-10 !bg-[#14161c] border-[1.5px] border-white/[0.08] rounded-lg text-sm text-[#eef2f7] placeholder:text-[#3a4556] focus:border-[#00dfa2]/50 focus:ring-1 focus:ring-[#00dfa2]/10 transition-all"
+              className="h-10 !bg-[#14161c] border-[1.5px] border-white/[0.08] rounded-lg text-sm text-gray-400 placeholder:text-[#3a4556] focus:border-[#00dfa2]/50 focus:ring-1 focus:ring-[#00dfa2]/10 transition-all"
             />
           </FieldGroup>
 
@@ -246,7 +327,7 @@ export function PersonalInfoForm({
               defaultValue={user?.country || "maldives"}
               onValueChange={(value) => setValue("country", value)}
             >
-              <SelectTrigger className="h-10 !bg-[#14161c] border-[1.5px] border-white/[0.08] rounded-lg text-sm text-[#eef2f7] focus:border-[#00dfa2]/50 focus:ring-1 focus:ring-[#00dfa2]/10 transition-all">
+              <SelectTrigger className="h-10 !bg-[#14161c] border-[1.5px] border-white/[0.08] rounded-lg text-sm text-gray-400 focus:border-[#00dfa2]/50 focus:ring-1 focus:ring-[#00dfa2]/10 transition-all">
                 <SelectValue placeholder="Select a country" />
               </SelectTrigger>
               <SelectContent className="bg-[#0f1220] border-white/[0.08]">
@@ -269,7 +350,7 @@ export function PersonalInfoForm({
               id="birth_date"
               type="date"
               {...register("birth_date")}
-              className="h-10 !bg-[#14161c] border-[1.5px] border-white/[0.08] rounded-lg text-sm text-[#eef2f7] placeholder:text-[#3a4556] focus:border-[#00dfa2]/50 focus:ring-1 focus:ring-[#00dfa2]/10 transition-all [color-scheme:dark]"
+              className="h-10 !bg-[#14161c] border-[1.5px] border-white/[0.08] rounded-lg text-sm text-gray-400 placeholder:text-[#3a4556] focus:border-[#00dfa2]/50 focus:ring-1 focus:ring-[#00dfa2]/10 transition-all [color-scheme:dark]"
             />
           </FieldGroup>
 
@@ -283,7 +364,7 @@ export function PersonalInfoForm({
               id="email"
               type="email"
               {...register("email")}
-              className="h-10 !bg-[#14161c] border-[1.5px] border-white/[0.08] rounded-lg text-sm text-[#eef2f7] placeholder:text-[#3a4556] focus:border-[#00dfa2]/50 focus:ring-1 focus:ring-[#00dfa2]/10 transition-all"
+              className="h-10 !bg-[#14161c] border-[1.5px] border-white/[0.08] rounded-lg text-sm text-gray-400 placeholder:text-[#3a4556] focus:border-[#00dfa2]/50 focus:ring-1 focus:ring-[#00dfa2]/10 transition-all"
             />
           </FieldGroup>
 
@@ -297,7 +378,7 @@ export function PersonalInfoForm({
               id="phone"
               type="tel"
               {...register("phone")}
-              className="h-10 !bg-[#14161c] border-[1.5px] border-white/[0.08] rounded-lg text-sm text-[#eef2f7] placeholder:text-[#3a4556] focus:border-[#00dfa2]/50 focus:ring-1 focus:ring-[#00dfa2]/10 transition-all"
+              className="h-10 !bg-[#14161c] border-[1.5px] border-white/[0.08] rounded-lg text-sm text-gray-400 placeholder:text-[#3a4556] focus:border-[#00dfa2]/50 focus:ring-1 focus:ring-[#00dfa2]/10 transition-all"
             />
           </FieldGroup>
 
@@ -311,7 +392,7 @@ export function PersonalInfoForm({
               id="account_type"
               value={user?.account_type?.title || "Basic Plan"}
               disabled
-              className="h-10 !bg-[#14161c] border-[1.5px] border-white/[0.08] rounded-lg text-sm text-[#eef2f7] cursor-not-allowed transition-all"
+              className="h-10 !bg-[#14161c] border-[1.5px] border-white/[0.08] rounded-lg text-sm text-gray-400 cursor-not-allowed transition-all"
             />
           </FieldGroup>
         </div>
@@ -341,79 +422,6 @@ export function PersonalInfoForm({
         </div>
       </div>
 
-      {/* Profile Photo Card (optional — hidden inside KYC flow) */}
-      {showProfilePhoto && (
-        <div
-          className="relative rounded-2xl border border-white/[0.06] p-5 shadow-[0_8px_32px_rgba(0,0,0,0.35),inset_0_1px_0_rgba(255,255,255,0.04)] md:p-7"
-          style={{
-            background:
-              "linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01))",
-          }}
-        >
-          <div className="flex items-center gap-2 mb-6">
-            <span className="text-[11px] font-bold uppercase tracking-[0.08em] text-[#00dfa2]">
-              Profile Photo
-            </span>
-            <div className="flex-1 h-px bg-white/[0.06]" />
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Upload Zone */}
-            <div
-              className={`group relative flex flex-col items-center justify-center rounded-xl border-2 border-dashed p-8 min-h-[340px] cursor-pointer transition-all duration-200 ${
-                isDragging
-                  ? "border-[#00dfa2]/60 bg-[#00dfa2]/[0.04]"
-                  : "border-white/[0.08] bg-white/[0.02] hover:border-white/[0.14] hover:bg-white/[0.03]"
-              }`}
-              onDragOver={handleDragOver}
-              onDragLeave={handleDragLeave}
-              onDrop={handleDrop}
-              onClick={handleClick}
-            >
-              {/* Avatar circle */}
-              <div
-                className={`relative flex items-center justify-center w-48 h-48 rounded-full mb-5 transition-transform duration-200 ${
-                  isDragging ? "scale-105" : "group-hover:scale-[1.02]"
-                }`}
-                style={{
-                  background:
-                    "radial-gradient(circle, rgba(0,223,162,0.12) 0%, rgba(0,223,162,0.02) 60%, transparent 80%)",
-                }}
-              >
-                <div className="w-40 h-40 rounded-full overflow-hidden border-2 border-white/[0.08] bg-[#0a0d15] flex items-center justify-center">
-                  {image ? (
-                    <img
-                      src={image || "/placeholder.svg"}
-                      alt="Profile"
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <User className="w-16 h-16 text-[#4a5468]" />
-                  )}
-                </div>
-                {/* Camera overlay badge */}
-                <div className="absolute bottom-1 right-1 flex items-center justify-center w-9 h-9 rounded-full bg-[#00dfa2] shadow-[0_4px_12px_rgba(0,223,162,0.3)]">
-                  <Camera className="h-4 w-4 text-[#07080c]" />
-                </div>
-              </div>
-
-              {/* Upload text */}
-              <div className="flex items-center gap-2 text-[#8b97a8] mb-1">
-                <Upload className="h-4 w-4" />
-                <span className="text-sm font-semibold">
-                  {isDragging ? "Drop to upload" : "Click or drag to upload"}
-                </span>
-              </div>
-              <p className="text-[11px] text-[#4a5468] font-medium">
-                JPG, GIF or PNG. Max 5 MB.
-              </p>
-            </div>
-
-            {/* Photo Guidelines */}
-            <PhotoGuidelines />
-          </div>
-        </div>
-      )}
     </form>
   );
 }

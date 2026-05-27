@@ -37,17 +37,17 @@ export function ProfileCompletionCard({ fields }: ProfileCompletionCardProps) {
 
   return (
     <div
-      className="relative rounded-2xl border border-white/[0.06] p-5 shadow-[0_8px_32px_rgba(0,0,0,0.35),inset_0_1px_0_rgba(255,255,255,0.04)] md:p-7"
+      className="relative rounded-2xl border border-white/[0.04] p-4 shadow-[0_4px_16px_rgba(0,0,0,0.25),inset_0_1px_0_rgba(255,255,255,0.03)] md:p-5"
       style={{
         background:
-          "linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01))",
+          "linear-gradient(180deg, rgba(255,255,255,0.025), rgba(255,255,255,0.005))",
       }}
     >
-      <div className="mb-5 flex items-center gap-2">
-        <span className="text-[11px] font-bold uppercase tracking-[0.08em] text-[#00dfa2]">
+      <div className="mb-4 flex items-center gap-2">
+        <span className="text-[10px] font-bold uppercase tracking-[0.1em] text-[#5f6b82]">
           Profile Completion
         </span>
-        <div className="h-px flex-1 bg-white/[0.06]" />
+        <div className="h-px flex-1 bg-white/[0.04]" />
         <span className="text-xs font-extrabold text-[#eef2f7]">{percent}%</span>
       </div>
 
@@ -66,7 +66,7 @@ export function ProfileCompletionCard({ fields }: ProfileCompletionCardProps) {
           return (
             <div
               key={key}
-              className="flex items-center gap-2 rounded-lg border-[1.5px] border-white/[0.08] bg-[#14161c] px-3 py-2 text-[#d7dde5]"
+              className="flex items-center gap-2 rounded-lg bg-white/[0.02] px-3 py-2 text-[#d7dde5]"
             >
               {filled ? (
                 <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-[#00dfa2]" />
