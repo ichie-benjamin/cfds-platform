@@ -1,0 +1,1236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Settings — 1 Trade Market</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+:root{
+--accent:#00dfa2;--accent-light:#00ffc3;--accent-dark:#00b881;
+--accent-dim:rgba(0,223,162,0.08);--accent-glow:rgba(0,223,162,0.2);
+--bg:#07080c;--bg2:#0a0d15;--bg3:#0e1119;
+--surface:rgba(255,255,255,0.035);--surface-hover:rgba(255,255,255,0.06);
+--border:rgba(255,255,255,0.06);--border-hover:rgba(255,255,255,0.12);
+--t1:#eef2f7;--t2:#8b97a8;--t3:#4a5468;--t4:#3a4556;
+--green:#1ED760;--green-dim:rgba(30,215,96,.08);
+--red:#f43f5e;--red-dim:rgba(244,63,94,.08);
+--orange:#FF9800;--orange-dim:rgba(255,152,0,.06);
+--sans:'Inter',-apple-system,sans-serif;--heading:'Outfit',sans-serif;--mono:'JetBrains Mono',monospace;
+--radius:8px;--radius-lg:12px;--radius-xl:16px;
+}
+/* ═══ LIGHT MODE ═══ */
+.light{--bg:#f5f6fa;--bg2:#eceef4;--bg3:#ffffff;--surface:rgba(0,0,0,0.03);--surface-hover:rgba(0,0,0,0.05);--border:rgba(0,0,0,0.08);--border-hover:rgba(0,0,0,0.14);--t1:#1a1d26;--t2:#5a6478;--t3:#8892a4;--t4:#b0b8c8;--accent-dim:rgba(0,180,130,0.08);--green-dim:rgba(30,180,80,.08);--red-dim:rgba(220,50,80,.06);--orange-dim:rgba(200,130,0,.06);}
+.light .gc{background:rgba(255,255,255,.8)!important;border-color:rgba(0,0,0,.06)!important;box-shadow:0 2px 12px rgba(0,0,0,.06),0 0 0 1px rgba(0,0,0,.03)!important;}
+.light .gc::before{background:linear-gradient(175deg,rgba(255,255,255,.5),transparent 50%)!important;}
+.light nav{background:rgba(255,255,255,.85)!important;border-color:rgba(0,0,0,.06)!important;}
+.light .sidebar{background:rgba(255,255,255,.6)!important;border-color:rgba(0,0,0,.06)!important;}
+.light .sb-icon:hover{background:rgba(0,0,0,.05)!important;}
+.light .sb-icon.on{background:rgba(255,255,255,.9)!important;border-color:rgba(80,140,240,0.5)!important;box-shadow:0 0 14px rgba(80,140,240,0.2),0 2px 8px rgba(0,0,0,.08)!important;color:var(--t1)!important;}
+.light .sb-icon .tip{background:rgba(255,255,255,.95)!important;border-color:rgba(0,0,0,.1)!important;color:var(--t1)!important;box-shadow:0 4px 12px rgba(0,0,0,.1)!important;}
+.light .ticker-bar{background:rgba(255,255,255,.8)!important;border-color:rgba(0,0,0,.04)!important;}
+.light .field-input{background:rgba(0,0,0,.03)!important;border-color:rgba(0,0,0,.08)!important;color:var(--t1)!important;box-shadow:inset 0 1px 2px rgba(0,0,0,.04)!important;}
+.light .field-input:focus{border-color:var(--accent)!important;box-shadow:0 0 0 3px rgba(0,200,140,.1)!important;}
+.light .radio-item{border-color:rgba(0,0,0,.08)!important;background:rgba(0,0,0,.01)!important;}
+.light .radio-item.sel{background:rgba(0,200,140,.06)!important;border-color:rgba(0,200,140,.3)!important;}
+.light .opt-pill{border-color:rgba(0,0,0,.1)!important;background:rgba(0,0,0,.02)!important;color:var(--t3)!important;}
+.light .opt-pill.on{background:rgba(0,200,140,.08)!important;border-color:rgba(0,200,140,.3)!important;color:var(--accent)!important;}
+.light .toggle{background:rgba(0,0,0,.12)!important;}
+.light .toggle.on{background:linear-gradient(135deg,var(--accent),var(--accent-dark))!important;}
+.light .btn-g{background:rgba(0,0,0,.04)!important;border-color:rgba(0,0,0,.1)!important;color:var(--t2)!important;}
+.light .tab-btn{color:var(--t3)!important;}.light .tab-btn.active{color:var(--accent)!important;}
+.light .side-tip::before{box-shadow:0 0 4px rgba(0,180,130,.2)!important;}
+
+html{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;}
+body{font-family:var(--sans);background:linear-gradient(180deg,var(--bg) 0%,var(--bg2) 100%);color:var(--t1);min-height:100vh;line-height:1.6;overflow-x:hidden;transition:background .3s,color .3s;}
+a{color:inherit;text-decoration:none;}
+::-webkit-scrollbar{width:4px;}::-webkit-scrollbar-track{background:transparent;}::-webkit-scrollbar-thumb{background:rgba(255,255,255,.06);border-radius:2px;}
+
+/* ═══ ANIMATIONS ═══ */
+@keyframes tickerScroll{0%{transform:translateX(0);}100%{transform:translateX(-50%);}}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
+@keyframes fade-up{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}
+@keyframes shimmer{0%{left:-100%;}100%{left:200%;}}
+@keyframes glow{0%,100%{box-shadow:0 0 12px rgba(0,223,162,.1);}50%{box-shadow:0 0 24px rgba(0,223,162,.2);}}
+
+/* ═══ TICKER ═══ */
+.ticker-bar{background:rgba(7,8,12,.8);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);overflow:hidden;white-space:nowrap;height:32px;display:flex;align-items:center;z-index:500;transition:background .3s;}
+.ticker-track{display:inline-flex;animation:tickerScroll 50s linear infinite;gap:0;}
+.ticker-track:hover{animation-play-state:paused;}
+.ticker-item{display:inline-flex;align-items:center;gap:8px;padding:0 24px;font-size:.67rem;font-weight:600;border-right:1px solid rgba(255,255,255,.03);}
+.ti-dot{width:4px;height:4px;border-radius:50%;}
+.ti-dot.up{background:var(--accent);}
+.ti-dot.dn{background:var(--red);}
+.ti-sym{font-family:var(--mono);font-weight:700;color:var(--t1);letter-spacing:.03em;font-size:.65rem;}
+.ti-price{font-family:var(--mono);color:var(--t2);font-size:.65rem;}
+.ti-chg{font-family:var(--mono);font-size:.62rem;font-weight:700;}
+.ti-up{color:var(--accent);}.ti-dn{color:var(--red);}
+
+/* ═══ NAVBAR ═══ */
+nav{background:linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.01));backdrop-filter:blur(40px);border-bottom:1px solid var(--border);padding:0 28px;display:flex;align-items:center;height:60px;position:sticky;top:0;z-index:400;gap:0;transition:background .3s;}
+.nav-brand{display:flex;align-items:center;gap:10px;margin-right:32px;}
+.nav-logo{width:36px;height:36px;background:linear-gradient(135deg,var(--accent-light),var(--accent),var(--accent-dark));border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:.72rem;color:#07080c;font-family:var(--heading);letter-spacing:-.02em;flex-shrink:0;}
+.nav-name{font-family:var(--heading);font-size:.95rem;font-weight:800;color:var(--t1);white-space:nowrap;}
+.nav-links{display:flex;gap:2px;flex:1;}
+.nlink{font-size:.82rem;font-weight:500;color:var(--t3);padding:8px 14px;border-radius:8px;transition:all .15s;cursor:pointer;}
+.nlink:hover{color:var(--t1);background:var(--surface-hover);}
+.nlink.active{color:var(--t1);font-weight:600;}
+.nlink .dd{font-size:.5rem;margin-left:3px;opacity:.5;}
+.nav-right{display:flex;align-items:center;gap:12px;margin-left:auto;}
+.nav-dep{padding:8px 20px;background:linear-gradient(135deg,var(--accent),var(--accent-dark));color:#07080c;border:none;border-radius:20px;font-size:.78rem;font-weight:700;font-family:var(--sans);cursor:pointer;transition:all .15s;}
+.nav-dep:hover{box-shadow:0 4px 16px rgba(0,223,162,.25);}
+.nav-wallet{display:flex;align-items:center;gap:6px;font-size:.8rem;font-weight:600;color:var(--t2);cursor:pointer;padding:6px 12px;border-radius:8px;transition:all .15s;}
+.nav-wallet:hover{color:var(--t1);background:var(--surface-hover);}
+.nav-wallet i{font-size:.75rem;}
+.nav-avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent-dark));display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.7rem;color:#07080c;cursor:pointer;}
+.nav-notif{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--t3);font-size:.82rem;transition:all .15s;position:relative;}
+.nav-notif:hover{color:var(--t1);background:var(--surface-hover);}
+.nav-notif .dot{position:absolute;top:6px;right:7px;width:6px;height:6px;background:var(--accent);border-radius:50%;border:1.5px solid var(--bg);}
+
+/* ═══ LAYOUT ═══ */
+.layout{display:grid;grid-template-columns:64px 1fr;min-height:calc(100vh - 92px);}
+@media(max-width:768px){.layout{grid-template-columns:1fr;}}
+
+/* ═══ SIDEBAR ═══ */
+.sidebar{background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.005));border-right:1px solid rgba(255,255,255,0.04);display:flex;flex-direction:column;align-items:center;padding:14px 0;gap:2px;transition:background .3s;}
+@media(max-width:768px){.sidebar{display:none;}}
+.sb-icon{width:42px;height:42px;display:flex;align-items:center;justify-content:center;border-radius:12px;cursor:pointer;color:var(--t3);font-size:.88rem;transition:all .2s;position:relative;}
+.sb-icon:hover{background:rgba(255,255,255,0.06);color:var(--t1);}
+.sb-icon.on{background:rgba(255,255,255,0.1);color:var(--t1);border:1.5px solid rgba(100,160,255,0.6);box-shadow:0 0 14px rgba(100,160,255,0.25),0 0 4px rgba(100,160,255,0.15);}
+.sb-icon .tip{position:absolute;left:54px;background:rgba(10,13,21,.95);border:1px solid rgba(255,255,255,.1);color:var(--t1);font-size:.68rem;font-weight:600;padding:4px 10px;border-radius:6px;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .15s;z-index:400;}
+.sb-icon:hover .tip{opacity:1;}
+.sb-div{width:26px;height:1px;background:rgba(255,255,255,0.06);margin:6px 0;}
+.sb-spacer{flex:1;}
+
+/* ═══ MAIN ═══ */
+.main{padding:28px 36px;overflow-y:auto;max-height:calc(100vh - 92px);}
+@media(max-width:768px){.main{padding:16px;}}
+
+/* ═══ GLASS CARD ═══ */
+.gc{background:linear-gradient(145deg,rgba(255,255,255,0.05),rgba(255,255,255,0.015));border:1px solid var(--border);border-radius:var(--radius-xl);backdrop-filter:blur(40px);-webkit-backdrop-filter:blur(40px);box-shadow:0 4px 24px rgba(0,0,0,.2);position:relative;overflow:hidden;transition:background .3s,border-color .3s;}
+.gc::before{content:'';position:absolute;top:0;left:0;right:0;height:100%;background:linear-gradient(175deg,rgba(255,255,255,.025),transparent 40%);pointer-events:none;border-radius:var(--radius-xl);}
+
+/* ═══ PAGE HEADER ═══ */
+.pg-hdr{margin-bottom:24px;}
+.pg-hdr h1{font-family:var(--heading);font-size:1.55rem;font-weight:800;letter-spacing:-.03em;}
+.pg-hdr p{font-size:.82rem;color:var(--t3);margin-top:2px;}
+
+/* ═══ USER CARD ═══ */
+.user-card{padding:20px 24px;margin-bottom:24px;display:flex;align-items:center;gap:16px;}
+.uc-avatar{width:58px;height:58px;border-radius:50%;background:linear-gradient(135deg,var(--accent-dim),rgba(0,223,162,.15));display:grid;place-items:center;font-family:var(--heading);font-weight:900;font-size:1.05rem;color:var(--accent);flex-shrink:0;position:relative;cursor:pointer;overflow:hidden;transition:all .2s;}
+.uc-avatar:hover{box-shadow:0 0 0 3px rgba(0,223,162,.2);}
+.uc-avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%;display:block;}
+.uc-avatar .initials{display:flex;align-items:center;justify-content:center;width:100%;height:100%;}
+.uc-avatar .cam-overlay{position:absolute;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .2s;border-radius:50%;}
+.uc-avatar:hover .cam-overlay{opacity:1;}
+.uc-avatar .cam-overlay i{color:#fff;font-size:.85rem;}
+.uc-avatar .dot{position:absolute;bottom:2px;right:2px;width:11px;height:11px;background:var(--accent);border-radius:50%;border:2px solid var(--bg);box-shadow:0 0 8px var(--accent-glow);z-index:2;}
+.uc-info{flex:1;}
+.uc-name{font-family:var(--heading);font-size:1rem;font-weight:700;}
+.uc-email{font-size:.72rem;color:var(--t3);}
+.uc-badges{display:flex;gap:8px;margin-top:6px;}
+.badge{font-size:.57rem;font-weight:700;padding:3px 10px;border-radius:16px;letter-spacing:.04em;text-transform:uppercase;}
+.badge.accent{background:var(--accent-dim);color:var(--accent);}
+.badge.warn{background:var(--orange-dim);color:var(--orange);}
+.uc-actions{display:flex;gap:10px;margin-left:auto;}
+.uc-act{width:44px;height:44px;border-radius:12px;background:var(--surface);border:1px solid var(--border);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;transition:all .2s;color:var(--t3);}
+.uc-act:hover{background:var(--accent-dim);color:var(--accent);border-color:rgba(0,223,162,.15);}
+.uc-act i{font-size:.82rem;}
+.uc-act span{font-size:.42rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;}
+
+/* ═══ TABS ═══ */
+.tab-bar{display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:28px;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+.tab-bar::-webkit-scrollbar{display:none;}
+.tab-btn{padding:13px 20px;font-size:.82rem;font-weight:500;color:var(--t3);cursor:pointer;border:none;background:none;font-family:var(--sans);position:relative;white-space:nowrap;transition:color .15s;}
+.tab-btn:hover{color:var(--t1);}
+.tab-btn.active{color:var(--accent);font-weight:600;}
+.tab-btn.active::after{content:'';position:absolute;bottom:-1px;left:0;right:0;height:2px;background:var(--accent);border-radius:2px 2px 0 0;}
+.tab-content{display:none;animation:fade-up .25s ease;}
+.tab-content.active{display:block;}
+
+/* ═══ CONTENT ═══ */
+.cg{display:grid;grid-template-columns:1fr 300px;gap:24px;}
+@media(max-width:1200px){.cg{grid-template-columns:1fr;}}
+
+/* ═══ SECTIONS ═══ */
+.sec{padding:24px;margin-bottom:18px;}
+.sec-hd{display:flex;align-items:center;gap:10px;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid var(--border);}
+.sec-hd i{color:var(--accent);font-size:.85rem;width:20px;text-align:center;}
+.sec-hd h3{font-family:var(--heading);font-size:.95rem;font-weight:700;flex:1;}
+.sec-hd .tag{font-size:.55rem;font-weight:700;padding:3px 10px;border-radius:16px;background:var(--accent-dim);color:var(--accent);letter-spacing:.04em;text-transform:uppercase;}
+.sec-label{font-size:.6rem;font-weight:700;color:var(--accent);letter-spacing:.08em;text-transform:uppercase;margin-bottom:14px;display:flex;align-items:center;gap:6px;}
+
+/* ═══ FORMS ═══ */
+.fg{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+@media(max-width:600px){.fg{grid-template-columns:1fr;}}
+.fg.col3{grid-template-columns:1fr 1fr 1fr;}
+.fgrp{}
+.fgrp.full{grid-column:1/-1;}
+.flbl{display:flex;align-items:center;gap:6px;font-size:.67rem;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px;}
+.flbl i{font-size:.55rem;color:var(--accent);opacity:.5;}
+.field-input{width:100%;padding:12px 15px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--t1);font-family:var(--sans);font-size:.84rem;font-weight:500;transition:all .2s;outline:none;}
+.field-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,223,162,.06);}
+.field-input::placeholder{color:var(--t4);}
+.field-input[readonly]{opacity:.4;cursor:not-allowed;}
+.iw{position:relative;}
+.iw .eye{position:absolute;right:12px;top:50%;transform:translateY(-50%);color:var(--t4);cursor:pointer;font-size:.75rem;padding:4px;transition:color .15s;}
+.iw .eye:hover{color:var(--t1);}
+select.field-input{-webkit-appearance:none;appearance:none;cursor:pointer;padding-right:32px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' fill='%234a5468'%3E%3Cpath d='M5 7L0 2h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;}
+
+/* ═══ BUTTONS ═══ */
+.btn-row{display:flex;gap:10px;margin-top:18px;}
+.btn-p{padding:10px 22px;background:linear-gradient(135deg,var(--accent),var(--accent-dark));color:#07080c;border:none;border-radius:var(--radius);font-size:.78rem;font-weight:700;font-family:var(--sans);cursor:pointer;display:inline-flex;align-items:center;gap:7px;transition:all .15s;}
+.btn-p:hover{box-shadow:0 4px 16px rgba(0,223,162,.25);transform:translateY(-1px);}
+.btn-g{padding:10px 22px;background:var(--surface);border:1px solid var(--border);color:var(--t2);border-radius:var(--radius);font-size:.78rem;font-weight:600;font-family:var(--sans);cursor:pointer;transition:all .15s;}
+.btn-g:hover{border-color:var(--border-hover);color:var(--t1);}
+.btn-o{padding:8px 18px;background:transparent;border:1px solid;border-radius:var(--radius);font-size:.74rem;font-weight:600;font-family:var(--sans);cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:6px;}
+.btn-o.accent{border-color:rgba(0,223,162,.2);color:var(--accent);}.btn-o.accent:hover{background:var(--accent-dim);}
+.btn-o.warn{border-color:rgba(255,152,0,.2);color:var(--orange);}.btn-o.warn:hover{background:var(--orange-dim);}
+.btn-o.danger{border-color:rgba(244,63,94,.2);color:var(--red);}.btn-o.danger:hover{background:var(--red-dim);}
+
+/* ═══ SIDEBAR CARDS ═══ */
+.sc{padding:20px;margin-bottom:14px;}
+.sc-title{font-size:.58rem;font-weight:700;color:var(--accent);letter-spacing:.08em;text-transform:uppercase;margin-bottom:14px;}
+.sc-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;font-size:.76rem;border-bottom:1px solid rgba(255,255,255,.025);}
+.sc-row:last-child{border-bottom:none;}
+.sc-row-l{color:var(--t3);font-weight:500;}
+.sc-row-v{color:var(--t1);font-weight:600;font-family:var(--mono);font-size:.72rem;}
+.sc-row-v.warn{color:var(--orange);}
+.sc-row-v.ok{color:var(--accent);}
+.sc-link{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:var(--radius);font-size:.78rem;font-weight:500;color:var(--t3);cursor:pointer;transition:all .15s;margin-bottom:1px;}
+.sc-link:hover{background:var(--surface-hover);color:var(--accent);}
+.sc-link i{font-size:.7rem;width:16px;text-align:center;color:var(--t4);}
+.sc-link:hover i{color:var(--accent);}
+.sc-tip{display:flex;gap:9px;padding:7px 0;font-size:.71rem;color:var(--t3);line-height:1.5;border-bottom:1px solid rgba(255,255,255,.02);}
+.sc-tip:last-child{border-bottom:none;}
+.sc-tip::before{content:'';width:4px;height:4px;border-radius:50%;background:var(--accent);flex-shrink:0;margin-top:7px;box-shadow:0 0 6px var(--accent-glow);}
+
+/* ═══ RADIOS ═══ */
+.rg{display:grid;grid-template-columns:repeat(6,1fr);gap:7px;}
+@media(max-width:900px){.rg{grid-template-columns:repeat(3,1fr);}}
+@media(max-width:500px){.rg{grid-template-columns:repeat(2,1fr);}}
+.ri{display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:var(--radius);border:1px solid var(--border);cursor:pointer;transition:all .2s;font-size:.76rem;color:var(--t3);font-weight:500;}
+.ri:hover{border-color:var(--border-hover);background:var(--surface-hover);}
+.ri.sel{border-color:rgba(0,223,162,.3);background:var(--accent-dim);color:var(--accent);font-weight:600;}
+.rdot{width:13px;height:13px;border-radius:50%;border:2px solid var(--t4);flex-shrink:0;transition:all .2s;}
+.ri.sel .rdot{border-color:var(--accent);background:var(--accent);box-shadow:inset 0 0 0 2.5px var(--bg2);}
+.rflag{font-size:.95rem;line-height:1;}
+
+/* ═══ TOGGLES ═══ */
+.trow{display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--border);}
+.trow:last-child{border-bottom:none;}
+.trow-info{display:flex;align-items:center;gap:12px;}
+.trow-info i{font-size:.78rem;color:var(--t4);width:18px;text-align:center;}
+.trow-label{font-size:.84rem;font-weight:600;}
+.trow-desc{font-size:.66rem;color:var(--t3);margin-top:1px;}
+.tgl{width:42px;height:23px;border-radius:12px;background:rgba(255,255,255,.08);cursor:pointer;position:relative;transition:all .25s;flex-shrink:0;}
+.tgl.on{background:linear-gradient(135deg,var(--accent),var(--accent-dark));}
+.tgl::after{content:'';position:absolute;top:3px;left:3px;width:17px;height:17px;border-radius:50%;background:#fff;transition:transform .2s;box-shadow:0 1px 4px rgba(0,0,0,.2);}
+.tgl.on::after{transform:translateX(19px);}
+.tgl.locked{opacity:.4;cursor:not-allowed;}
+
+/* ═══ 2FA ═══ */
+.tfa-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px;}
+@media(max-width:900px){.tfa-grid{grid-template-columns:1fr;}}
+.tfa{padding:22px 18px;text-align:center;}
+.tfa-ico{width:44px;height:44px;border-radius:12px;background:var(--surface);border:1px solid var(--border);display:grid;place-items:center;margin:0 auto 12px;font-size:1rem;color:var(--accent);transition:all .2s;}
+.tfa:hover .tfa-ico{background:var(--accent-dim);border-color:rgba(0,223,162,.15);}
+.tfa-name{font-family:var(--heading);font-size:.88rem;font-weight:700;margin-bottom:4px;}
+.tfa-desc{font-size:.68rem;color:var(--t3);line-height:1.5;margin-bottom:12px;}
+.tfa-st{display:inline-flex;align-items:center;gap:5px;font-size:.62rem;font-weight:700;margin-bottom:14px;padding:3px 10px;border-radius:12px;}
+.tfa-st.off{background:var(--red-dim);color:var(--red);}
+.tfa-st.on{background:var(--green-dim);color:var(--green);}
+.tfa-st .d{width:5px;height:5px;border-radius:50%;background:currentColor;}
+.tfa-btn{width:100%;padding:9px;border-radius:var(--radius);font-size:.76rem;font-weight:600;font-family:var(--sans);cursor:pointer;border:1px solid rgba(0,223,162,.2);background:transparent;color:var(--accent);transition:all .15s;}
+.tfa-btn:hover{background:var(--accent-dim);border-color:rgba(0,223,162,.3);}
+.tfa-btn.dis{border-color:rgba(244,63,94,.2);color:var(--red);}.tfa-btn.dis:hover{background:var(--red-dim);border-color:rgba(244,63,94,.3);}
+.tfa.enabled{border-color:rgba(0,223,162,.15)!important;}
+.tfa.enabled .tfa-ico{background:var(--accent-dim);border-color:rgba(0,223,162,.2);box-shadow:0 0 16px rgba(0,223,162,.08);}
+
+/* ═══ 2FA MODAL ═══ */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);backdrop-filter:blur(8px);z-index:9000;display:none;align-items:center;justify-content:center;animation:fade-up .2s ease;}
+.modal-overlay.show{display:flex;}
+.modal-box{background:linear-gradient(145deg,rgba(20,24,36,.98),rgba(12,15,24,.99));border:1px solid var(--border);border-radius:var(--radius-xl);width:440px;max-width:92vw;max-height:90vh;overflow-y:auto;box-shadow:0 24px 80px rgba(0,0,0,.6);position:relative;animation:fade-up .25s ease;}
+.light .modal-box{background:rgba(255,255,255,.97)!important;border-color:rgba(0,0,0,.08)!important;box-shadow:0 24px 80px rgba(0,0,0,.15)!important;}
+.modal-hdr{display:flex;align-items:center;gap:12px;padding:22px 24px 0;margin-bottom:4px;}
+.modal-hdr i{width:40px;height:40px;border-radius:12px;background:var(--accent-dim);border:1px solid rgba(0,223,162,.15);display:grid;place-items:center;font-size:1rem;color:var(--accent);}
+.modal-hdr h3{font-family:var(--heading);font-size:1.05rem;font-weight:700;flex:1;}
+.modal-close{width:32px;height:32px;border-radius:8px;display:grid;place-items:center;cursor:pointer;color:var(--t3);font-size:.85rem;transition:all .15s;background:none;border:none;}
+.modal-close:hover{background:var(--surface-hover);color:var(--t1);}
+.modal-body{padding:18px 24px 24px;}
+.modal-body p{font-size:.78rem;color:var(--t3);line-height:1.6;margin-bottom:16px;}
+.modal-step{display:none;}.modal-step.active{display:block;}
+.modal-step-num{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:var(--accent);color:#07080c;font-size:.65rem;font-weight:800;margin-right:8px;}
+.modal-step-title{font-size:.82rem;font-weight:700;margin-bottom:14px;display:flex;align-items:center;}
+.modal-input{width:100%;padding:12px 15px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--t1);font-family:var(--mono);font-size:.9rem;font-weight:600;letter-spacing:.3em;text-align:center;transition:all .2s;outline:none;}
+.modal-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,223,162,.06);}
+.modal-input::placeholder{color:var(--t4);letter-spacing:.1em;font-weight:400;}
+.light .modal-input{background:rgba(0,0,0,.03)!important;border-color:rgba(0,0,0,.08)!important;color:var(--t1)!important;}
+.qr-box{width:180px;height:180px;margin:0 auto 16px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);display:grid;place-items:center;position:relative;overflow:hidden;}
+.qr-box canvas{width:160px!important;height:160px!important;}
+.qr-box .placeholder{color:var(--t4);font-size:.7rem;text-align:center;padding:16px;}
+.secret-key{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:10px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:16px;}
+.secret-key code{font-family:var(--mono);font-size:.75rem;font-weight:600;color:var(--accent);letter-spacing:.12em;word-break:break-all;}
+.secret-key button{background:none;border:none;color:var(--t3);cursor:pointer;font-size:.78rem;padding:4px;transition:color .15s;flex-shrink:0;}
+.secret-key button:hover{color:var(--accent);}
+.modal-info{background:var(--accent-dim);border:1px solid rgba(0,223,162,.1);border-radius:var(--radius);padding:12px 14px;margin-bottom:16px;display:flex;gap:10px;align-items:flex-start;}
+.modal-info i{color:var(--accent);font-size:.72rem;margin-top:2px;flex-shrink:0;}
+.modal-info span{font-size:.7rem;color:var(--t2);line-height:1.5;}
+.modal-warn{background:var(--orange-dim);border:1px solid rgba(255,152,0,.1);border-radius:var(--radius);padding:12px 14px;margin-bottom:16px;display:flex;gap:10px;align-items:flex-start;}
+.modal-warn i{color:var(--orange);font-size:.72rem;margin-top:2px;flex-shrink:0;}
+.modal-warn span{font-size:.7rem;color:var(--t2);line-height:1.5;}
+.modal-btns{display:flex;gap:10px;margin-top:20px;}
+.modal-btns .btn-p{flex:1;justify-content:center;}
+.modal-btns .btn-g{flex:1;text-align:center;}
+.phone-input-wrap{display:flex;gap:8px;margin-bottom:16px;}
+.phone-prefix{width:80px;padding:12px 10px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--t1);font-family:var(--sans);font-size:.82rem;text-align:center;outline:none;}
+.phone-prefix:focus{border-color:var(--accent);}
+.phone-num{flex:1;padding:12px 15px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--t1);font-family:var(--sans);font-size:.84rem;outline:none;}
+.phone-num:focus{border-color:var(--accent);}
+.light .phone-prefix,.light .phone-num{background:rgba(0,0,0,.03)!important;border-color:rgba(0,0,0,.08)!important;color:var(--t1)!important;}
+.resend-row{display:flex;align-items:center;justify-content:space-between;margin-top:10px;}
+.resend-row span{font-size:.68rem;color:var(--t3);}
+.resend-btn{background:none;border:none;color:var(--accent);font-size:.72rem;font-weight:600;cursor:pointer;font-family:var(--sans);}
+.resend-btn:hover{text-decoration:underline;}
+.resend-btn:disabled{color:var(--t4);cursor:not-allowed;text-decoration:none;}
+
+/* ═══ PW REQS ═══ */
+.pw-reqs{display:grid;grid-template-columns:1fr 1fr;gap:6px 14px;margin-top:12px;padding:12px 16px;background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);}
+.pw-req{display:flex;align-items:center;gap:8px;font-size:.72rem;color:var(--t4);font-weight:500;transition:color .2s;}
+.pw-req i{font-size:.62rem;width:14px;text-align:center;transition:color .2s;}
+.pw-req.met{color:var(--accent);font-weight:600;}
+.pw-req.met i{color:var(--accent);}
+.pw-req.fail{color:var(--red);font-weight:600;}
+.pw-req.fail i{color:var(--red);}
+
+/* ═══ EMPTY ═══ */
+.empty{text-align:center;padding:32px 16px;}
+.empty-ico{width:48px;height:48px;border-radius:12px;background:var(--surface);border:1px solid var(--border);display:grid;place-items:center;margin:0 auto 14px;font-size:1.1rem;color:var(--t4);}
+.empty-t{font-size:.85rem;font-weight:600;color:var(--t2);margin-bottom:3px;}
+.empty-d{font-size:.7rem;color:var(--t3);}
+
+/* ═══ ACTIONS ═══ */
+.arow{display:flex;align-items:center;justify-content:space-between;padding:16px 0;border-bottom:1px solid var(--border);gap:14px;}
+.arow:last-child{border-bottom:none;}
+.arow-left{display:flex;align-items:center;gap:12px;flex:1;}
+.arow-left i{font-size:.78rem;width:18px;text-align:center;}
+.arow-left i.accent{color:var(--accent);}
+.arow-left i.warn{color:var(--orange);}
+.arow-left i.danger{color:var(--red);}
+.arow h4{font-size:.85rem;font-weight:600;margin-bottom:1px;}
+.arow p{font-size:.68rem;color:var(--t3);}
+
+/* ═══ LOG TABLE ═══ */
+.log-hdr{display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr .8fr;gap:12px;padding:10px 14px;background:var(--surface);border-radius:var(--radius);font-size:.6rem;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;}
+
+/* ═══ TRUST ═══ */
+.trust{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;}
+.trust span{font-size:.66rem;font-weight:600;padding:6px 14px;border-radius:20px;border:1px solid rgba(0,223,162,.15);color:var(--accent);background:var(--accent-dim);display:inline-flex;align-items:center;gap:6px;}
+.trust span i{font-size:.55rem;}
+
+/* ═══ PROGRESS ═══ */
+.prg{margin-bottom:16px;}
+.prg-top{display:flex;justify-content:space-between;font-size:.7rem;margin-bottom:6px;}
+.prg-top .l{color:var(--t3);font-weight:600;text-transform:uppercase;font-size:.6rem;letter-spacing:.06em;}
+.prg-top .v{color:var(--accent);font-weight:700;font-family:var(--mono);}
+.prg-bar{height:6px;background:var(--surface);border-radius:3px;overflow:hidden;}
+.prg-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent-light));border-radius:3px;}
+
+/* ═══ PROFILE HERO ═══ */
+.prof-hero{display:flex;align-items:center;gap:24px;padding:28px;margin-bottom:20px;}
+@media(max-width:600px){.prof-hero{flex-direction:column;text-align:center;}}
+.prof-avatar-wrap{position:relative;flex-shrink:0;}
+.prof-avatar{width:88px;height:88px;border-radius:50%;background:linear-gradient(135deg,var(--accent-dim),rgba(0,223,162,.12));display:grid;place-items:center;font-family:var(--heading);font-weight:900;font-size:1.6rem;color:var(--accent);cursor:pointer;overflow:hidden;position:relative;transition:all .2s;border:2px solid rgba(0,223,162,.15);}
+.prof-avatar:hover{border-color:var(--accent);box-shadow:0 0 24px rgba(0,223,162,.15);}
+.prof-avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
+.prof-avatar .cam{position:absolute;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:4px;opacity:0;transition:opacity .2s;border-radius:50%;}
+.prof-avatar:hover .cam{opacity:1;}
+.prof-avatar .cam i{color:#fff;font-size:.9rem;}
+.prof-avatar .cam span{color:rgba(255,255,255,.7);font-size:.55rem;font-weight:600;text-transform:uppercase;letter-spacing:.04em;}
+.prof-avatar-badge{position:absolute;bottom:2px;right:2px;width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent-dark));display:grid;place-items:center;border:2.5px solid var(--bg);z-index:2;}
+.prof-avatar-badge i{color:#07080c;font-size:.55rem;}
+.prof-meta{flex:1;}
+.prof-name{font-family:var(--heading);font-size:1.25rem;font-weight:800;margin-bottom:2px;}
+.prof-email{font-size:.78rem;color:var(--t3);margin-bottom:10px;}
+.prof-tags{display:flex;gap:8px;flex-wrap:wrap;}
+.prof-tag{font-size:.6rem;font-weight:700;padding:4px 12px;border-radius:20px;letter-spacing:.03em;text-transform:uppercase;display:inline-flex;align-items:center;gap:5px;}
+.prof-tag.lv{background:var(--accent-dim);color:var(--accent);border:1px solid rgba(0,223,162,.12);}
+.prof-tag.id{background:var(--surface);color:var(--t2);border:1px solid var(--border);}
+.prof-tag.id code{font-family:var(--mono);font-weight:600;}
+.prof-pct{display:flex;flex-direction:column;align-items:center;gap:6px;flex-shrink:0;}
+.prof-ring{width:64px;height:64px;position:relative;}
+.prof-ring svg{width:64px;height:64px;transform:rotate(-90deg);}
+.prof-ring circle{fill:none;stroke-width:4;stroke-linecap:round;}
+.prof-ring .bg{stroke:var(--surface);}
+.prof-ring .fg{stroke:var(--accent);transition:stroke-dashoffset .6s ease;}
+.prof-ring-val{position:absolute;inset:0;display:grid;place-items:center;font-family:var(--mono);font-size:.82rem;font-weight:800;color:var(--accent);}
+.prof-pct-label{font-size:.55rem;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.06em;}
+
+/* ═══ PROFILE CHECKLIST ═══ */
+.pc-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:18px;}
+@media(max-width:900px){.pc-grid{grid-template-columns:repeat(2,1fr);}}
+@media(max-width:500px){.pc-grid{grid-template-columns:1fr;}}
+.pc-item{display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:var(--radius-lg);background:var(--surface);border:1px solid var(--border);transition:all .2s;cursor:default;}
+.pc-item.done{border-color:rgba(0,223,162,.1);background:rgba(0,223,162,.03);}
+.pc-item.missing{border-color:rgba(244,63,94,.1);background:rgba(244,63,94,.03);}
+.pc-item .pc-ico{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;flex-shrink:0;font-size:.62rem;transition:all .2s;}
+.pc-item.done .pc-ico{background:var(--accent-dim);color:var(--accent);}
+.pc-item.pending .pc-ico{background:var(--surface);color:var(--t4);border:1px dashed var(--border);}
+.pc-item.missing .pc-ico{background:var(--red-dim);color:var(--red);}
+.pc-item .pc-txt{font-size:.74rem;font-weight:600;color:var(--t2);}
+.pc-item.done .pc-txt{color:var(--accent);}
+.pc-item.pending .pc-txt{color:var(--t3);}
+.pc-item.missing .pc-txt{color:var(--red);}
+
+/* ═══ FORM SECTIONS ═══ */
+.form-sec{margin-bottom:24px;}
+.form-sec-hd{display:flex;align-items:center;gap:10px;margin-bottom:16px;}
+.form-sec-hd .fs-ico{width:32px;height:32px;border-radius:10px;background:var(--accent-dim);border:1px solid rgba(0,223,162,.1);display:grid;place-items:center;font-size:.72rem;color:var(--accent);}
+.form-sec-hd h4{font-family:var(--heading);font-size:.88rem;font-weight:700;}
+.form-sec-hd p{font-size:.68rem;color:var(--t3);margin-left:auto;}
+
+/* ═══ CHECKLIST ═══ */
+.chk-grid{display:grid;grid-template-columns:1fr 1fr;gap:3px;}
+.chk{display:flex;align-items:center;gap:8px;font-size:.76rem;color:var(--t3);padding:7px 10px;border-radius:var(--radius);}
+.chk i{font-size:.65rem;width:14px;text-align:center;}
+.chk.done{color:var(--accent);}
+
+/* ═══ VERIFY STEPS ═══ */
+.vs{display:flex;align-items:center;gap:14px;padding:16px 18px;border-radius:var(--radius-lg);background:var(--surface);border:1px solid var(--border);margin-bottom:8px;transition:all .15s;}
+.vs:hover{border-color:var(--border-hover);}
+.vs-num{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;font-size:.72rem;font-weight:700;flex-shrink:0;}
+.vs-num.done{background:var(--accent-dim);color:var(--accent);}
+.vs-num.pend{background:var(--orange-dim);color:var(--orange);}
+.vs-num.lock{background:var(--surface);color:var(--t4);}
+.vs-info{flex:1;}
+.vs-t{font-size:.84rem;font-weight:600;}
+.vs-d{font-size:.68rem;color:var(--t3);}
+.vs-badge{font-size:.58rem;font-weight:700;padding:3px 10px;border-radius:12px;}
+.vs-badge.done{background:var(--green-dim);color:var(--green);}
+.vs-badge.pend{background:var(--orange-dim);color:var(--orange);}
+
+/* ═══ BENEFITS ═══ */
+.ben-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.ben{padding:18px;border-radius:var(--radius-lg);background:var(--surface);border:1px solid var(--border);text-align:center;transition:all .15s;}
+.ben:hover{border-color:var(--border-hover);background:var(--surface-hover);}
+.ben i{font-size:1rem;color:var(--accent);margin-bottom:8px;display:block;}
+.ben span{font-size:.78rem;font-weight:600;}
+
+/* ═══ PILLS ═══ */
+.optg{margin-bottom:18px;}
+.optg-l{font-size:.62rem;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;}
+.opts{display:flex;gap:6px;flex-wrap:wrap;}
+.opt{padding:8px 16px;border-radius:var(--radius);font-size:.76rem;font-weight:600;border:1px solid var(--border);background:transparent;color:var(--t3);cursor:pointer;font-family:var(--sans);transition:all .2s;display:inline-flex;align-items:center;gap:5px;}
+.opt:hover{border-color:var(--border-hover);color:var(--t2);}
+.opt.on{border-color:rgba(0,223,162,.3);background:var(--accent-dim);color:var(--accent);font-weight:700;}
+
+/* ═══ CONTACT ═══ */
+.ct-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);}
+.ct-row:last-child{border-bottom:none;}
+.ct-row i{font-size:.72rem;color:var(--t4);width:16px;text-align:center;}
+.ct-val{flex:1;font-size:.76rem;font-weight:500;}
+.ct-badge{font-size:.5rem;font-weight:700;padding:2px 7px;border-radius:8px;background:var(--accent-dim);color:var(--accent);letter-spacing:.04em;}
+
+/* ═══ QA ═══ */
+.qa{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+.qa-b{display:flex;align-items:center;gap:7px;padding:9px 10px;border-radius:var(--radius);background:var(--surface);border:1px solid var(--border);font-size:.68rem;font-weight:600;color:var(--t3);cursor:pointer;transition:all .15s;}
+.qa-b:hover{background:var(--accent-dim);color:var(--accent);border-color:rgba(0,223,162,.12);}
+.qa-b i{font-size:.62rem;color:var(--t4);}.qa-b:hover i{color:var(--accent);}
+
+/* ═══ STAT MINI ═══ */
+.stat-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:16px;}
+.stat-mini{padding:16px;border-radius:var(--radius-lg);background:var(--surface);border:1px solid var(--border);text-align:center;transition:all .15s;}
+.stat-mini:hover{border-color:var(--border-hover);}
+.stat-mini .label{font-size:.58rem;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px;}
+.stat-mini .val{font-family:var(--heading);font-size:.92rem;font-weight:800;}
+.stat-mini .val.ok{color:var(--accent);}
+.stat-mini .val.warn{color:var(--orange);}
+.stat-mini .sub{font-size:.58rem;color:var(--t4);margin-top:2px;}
+
+/* ═══ INFO ROW ═══ */
+.info-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px;}
+.info-item{display:flex;align-items:center;gap:10px;padding:14px 16px;border-radius:var(--radius-lg);background:var(--surface);border:1px solid var(--border);transition:all .15s;}
+.info-item:hover{border-color:var(--border-hover);}
+.info-item i{font-size:.78rem;color:var(--accent);width:18px;text-align:center;}
+.info-item .ii-t{font-size:.8rem;font-weight:600;}
+.info-item .ii-d{font-size:.62rem;color:var(--t3);}
+
+/* ═══ TOAST ═══ */
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(70px);background:var(--bg3);border:1px solid var(--accent);color:var(--t1);padding:12px 24px;border-radius:var(--radius-lg);font-size:.8rem;font-weight:600;z-index:9999;opacity:0;transition:all .3s;backdrop-filter:blur(20px);pointer-events:none;display:flex;align-items:center;gap:8px;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+</style>
+</head>
+<body>
+
+<!-- TICKER -->
+<div class="ticker-bar"><div class="ticker-track" id="tickerTrack"></div></div>
+
+<!-- NAVBAR -->
+<nav>
+<div class="nav-brand"><div class="nav-logo">1TM</div><span class="nav-name">1 Trade Market</span></div>
+<div class="nav-links">
+<a class="nlink" href="dashboard.html">Dashboard</a>
+<a class="nlink" href="market.html">Markets</a>
+<a class="nlink">Trade <i class="fas fa-chevron-down dd"></i></a>
+<a class="nlink" href="wallet.html">Wallet <i class="fas fa-chevron-down dd"></i></a>
+<a class="nlink" href="crypto-ira.html">Earn <i class="fas fa-chevron-down dd"></i></a>
+<a class="nlink">More <i class="fas fa-chevron-down dd"></i></a>
+</div>
+<div class="nav-right">
+<button class="nav-dep" onclick="location.href='ira-deposit-withdraw.html'">Deposit</button>
+<div class="nav-wallet"><i class="fas fa-wallet"></i> Wallet</div>
+<div class="nav-avatar" id="navAvatar">UA</div>
+<div class="nav-notif"><i class="fas fa-bell"></i><span class="dot"></span></div>
+</div>
+</nav>
+
+<div class="layout">
+<!-- SIDEBAR -->
+<aside class="sidebar">
+<a class="sb-icon" href="dashboard.html"><i class="fas fa-th-large"></i><span class="tip">Dashboard</span></a>
+<a class="sb-icon" href="trade-room.html"><i class="fas fa-chart-line"></i><span class="tip">Trade Room</span></a>
+<a class="sb-icon" href="market.html"><i class="fas fa-globe"></i><span class="tip">Markets</span></a>
+<a class="sb-icon" href="wallet.html"><i class="fas fa-wallet"></i><span class="tip">Wallet</span></a>
+<a class="sb-icon" href="ira-deposit-withdraw.html"><i class="fas fa-download"></i><span class="tip">Deposit / Withdraw</span></a>
+<div class="sb-div"></div>
+<a class="sb-icon" href="trading-plans.html"><i class="fas fa-clock-rotate-left"></i><span class="tip">Trading Plans</span></a>
+<a class="sb-icon" href="fund-protection.html"><i class="fas fa-shield-halved"></i><span class="tip">Fund Protection</span></a>
+<a class="sb-icon" href="fund-managers.html"><i class="fas fa-users"></i><span class="tip">Fund Managers</span></a>
+<a class="sb-icon" href="welcome-bonus.html"><i class="fas fa-gift"></i><span class="tip">Welcome Bonus</span></a>
+<div class="sb-spacer"></div>
+<div class="sb-div"></div>
+<a class="sb-icon on" href="settings.html"><i class="fas fa-gear"></i><span class="tip">Settings</span></a>
+<a class="sb-icon" href="login.html"><i class="fas fa-arrow-right-from-bracket"></i><span class="tip">Logout</span></a>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+
+<div class="pg-hdr">
+<h1>Settings</h1>
+<p>Manage your account, security, and preferences</p>
+</div>
+
+<!-- USER CARD -->
+<div class="user-card gc">
+<div class="uc-avatar" id="mainAvatar" onclick="document.getElementById('avatarInput').click()"><span class="initials" id="avatarInitials">UA</span><div class="cam-overlay"><i class="fas fa-camera"></i></div><span class="dot"></span></div>
+<input type="file" id="avatarInput" accept="image/*" style="display:none;" onchange="handleAvatarUpload(this)">
+<div class="uc-info">
+<div class="uc-name">user account</div>
+<div class="uc-email">customer@app.com</div>
+<div class="uc-badges"><span class="badge accent">Starter Account</span><span class="badge warn">Incomplete</span></div>
+</div>
+<div class="uc-actions">
+<div class="uc-act" onclick="showTab('security')"><i class="fas fa-shield-alt"></i><span>Security</span></div>
+<div class="uc-act" onclick="goToSection('overview','langGrid')"><i class="fas fa-language"></i><span>Language</span></div>
+<div class="uc-act" onclick="goToSection('overview','curGrid')"><i class="fas fa-coins"></i><span>Currency</span></div>
+</div>
+</div>
+
+<!-- TABS -->
+<div class="tab-bar">
+<button class="tab-btn active" onclick="showTab('overview')">Overview</button>
+<button class="tab-btn" onclick="showTab('profile')">Profile</button>
+<button class="tab-btn" onclick="showTab('security')">Security</button>
+<button class="tab-btn" onclick="showTab('verification')">Verification</button>
+<button class="tab-btn" onclick="showTab('preferences')">Preferences</button>
+</div>
+
+<!-- ═══ OVERVIEW ═══ -->
+<div class="tab-content active" id="tab-overview"><div class="cg"><div>
+
+<div class="sec gc">
+<div class="sec-hd"><i class="fas fa-chart-pie"></i><h3>Account Overview</h3><span class="tag">Active</span></div>
+<div class="stat-row">
+<div class="stat-mini"><div class="label">Account Status</div><div class="val ok">Active</div><div class="sub">Since Jan 2025</div></div>
+<div class="stat-mini"><div class="label">Security Level</div><div class="val warn">Basic</div><div class="sub">Enable 2FA to upgrade</div></div>
+<div class="stat-mini"><div class="label">KYC Status</div><div class="val warn">Pending</div><div class="sub">1 step remaining</div></div>
+</div>
+<div class="info-row">
+<div class="info-item"><i class="fas fa-clock-rotate-left"></i><div><div class="ii-t">Last Login</div><div class="ii-d">Today, 2:34 PM · Chrome, macOS</div></div></div>
+<div class="info-item"><i class="fas fa-calendar-check"></i><div><div class="ii-t">Member Since</div><div class="ii-d">January 15, 2025 · 1 year, 4 months</div></div></div>
+</div>
+</div>
+
+<div class="sec gc">
+<div class="sec-hd"><i class="fas fa-globe"></i><h3>Localization</h3></div>
+<div class="sec-label"><i class="fas fa-coins" style="font-size:.5rem;"></i> Dashboard Currency</div>
+<div class="rg" id="curGrid">
+<div class="ri sel" onclick="selR(this,'curGrid')"><div class="rdot"></div><span class="rflag">🇺🇸</span> USD</div>
+<div class="ri" onclick="selR(this,'curGrid')"><div class="rdot"></div><span class="rflag">🇪🇺</span> EUR</div>
+<div class="ri" onclick="selR(this,'curGrid')"><div class="rdot"></div><span class="rflag">🇬🇧</span> GBP</div>
+<div class="ri" onclick="selR(this,'curGrid')"><div class="rdot"></div><span class="rflag">🇯🇵</span> JPY</div>
+<div class="ri" onclick="selR(this,'curGrid')"><div class="rdot"></div><span class="rflag">🇨🇦</span> CAD</div>
+<div class="ri" onclick="selR(this,'curGrid')"><div class="rdot"></div><span class="rflag">🇲🇽</span> MXN</div>
+<div class="ri" onclick="selR(this,'curGrid')"><div class="rdot"></div><span class="rflag">🇦🇺</span> AUD</div>
+<div class="ri" onclick="selR(this,'curGrid')"><div class="rdot"></div><span class="rflag">🇨🇭</span> CHF</div>
+<div class="ri" onclick="selR(this,'curGrid')"><div class="rdot"></div><span class="rflag">🇨🇳</span> CNY</div>
+<div class="ri" onclick="selR(this,'curGrid')"><div class="rdot"></div><span class="rflag">🇮🇳</span> INR</div>
+<div class="ri" onclick="selR(this,'curGrid')"><div class="rdot"></div><span class="rflag">🇧🇷</span> BRL</div>
+<div class="ri" onclick="selR(this,'curGrid')"><div class="rdot"></div><span class="rflag">🇿🇦</span> ZAR</div>
+</div>
+<div class="sec-label" style="margin-top:22px;"><i class="fas fa-language" style="font-size:.5rem;"></i> Dashboard Language</div>
+<div class="rg" id="langGrid">
+<div class="ri sel" onclick="selR(this,'langGrid')"><div class="rdot"></div><span class="rflag">🇺🇸</span> English</div>
+<div class="ri" onclick="selR(this,'langGrid')"><div class="rdot"></div><span class="rflag">🇪🇸</span> Español</div>
+<div class="ri" onclick="selR(this,'langGrid')"><div class="rdot"></div><span class="rflag">🇫🇷</span> Français</div>
+<div class="ri" onclick="selR(this,'langGrid')"><div class="rdot"></div><span class="rflag">🇩🇪</span> Deutsch</div>
+<div class="ri" onclick="selR(this,'langGrid')"><div class="rdot"></div><span class="rflag">🇮🇹</span> Italiano</div>
+<div class="ri" onclick="selR(this,'langGrid')"><div class="rdot"></div><span class="rflag">🇵🇹</span> Português</div>
+<div class="ri" onclick="selR(this,'langGrid')"><div class="rdot"></div><span class="rflag">🇨🇳</span> 中文</div>
+<div class="ri" onclick="selR(this,'langGrid')"><div class="rdot"></div><span class="rflag">🇯🇵</span> 日本語</div>
+<div class="ri" onclick="selR(this,'langGrid')"><div class="rdot"></div><span class="rflag">🇰🇷</span> 한국어</div>
+<div class="ri" onclick="selR(this,'langGrid')"><div class="rdot"></div><span class="rflag">🇸🇦</span> العربية</div>
+<div class="ri" onclick="selR(this,'langGrid')"><div class="rdot"></div><span class="rflag">🇷🇺</span> Русский</div>
+<div class="ri" onclick="selR(this,'langGrid')"><div class="rdot"></div><span class="rflag">🇮🇳</span> हिन्दी</div>
+</div>
+</div>
+
+</div><div>
+
+<div class="sc gc">
+<div class="sc-title">Account Snapshot</div>
+<div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--border);">
+<div class="uc-avatar" id="profileAvatar" style="width:38px;height:38px;font-size:.8rem;cursor:default;"><span class="initials">UA</span></div>
+<div><div style="font-weight:700;font-size:.82rem;">user account</div><div style="font-size:.66rem;color:var(--t3);">customer@app.com</div></div>
+</div>
+<div class="sc-row"><span class="sc-row-l">Account ID</span><span class="sc-row-v">232323</span></div>
+<div class="sc-row"><span class="sc-row-l">Plan</span><span class="sc-row-v ok">STARTER</span></div>
+<div class="sc-row"><span class="sc-row-l">Verification</span><span class="sc-row-v warn">Incomplete</span></div>
+</div>
+
+<div class="sc gc">
+<div class="sc-title">Quick Links</div>
+<div class="sc-link" onclick="showTab('profile')"><i class="fas fa-user"></i> Personal Information</div>
+<div class="sc-link" onclick="showTab('security')"><i class="fas fa-shield-alt"></i> Security Settings</div>
+<div class="sc-link" onclick="showTab('verification')"><i class="fas fa-id-card"></i> KYC Verification</div>
+<div class="sc-link" onclick="location.href='ira-deposit-withdraw.html'"><i class="fas fa-arrow-down"></i> Withdraw Funds</div>
+</div>
+
+<div class="sc gc">
+<div class="sc-title">Settings Tips</div>
+<div class="sc-tip">Enable two-factor authentication to add an extra layer of protection.</div>
+<div class="sc-tip">Choose a display currency that matches how you track your portfolio.</div>
+<div class="sc-tip">Switch language anytime, your preference is saved per device.</div>
+<div class="sc-tip">Review your security settings every few weeks to stay safe.</div>
+</div>
+
+<div class="sc gc" style="border-color:rgba(0,223,162,.08);">
+<div class="sc-title" style="color:var(--t2);">Need Help?</div>
+<p style="font-size:.72rem;color:var(--t3);margin-bottom:12px;line-height:1.5;">Our support team can help with account configuration and troubleshooting.</p>
+<button class="btn-p" style="width:100%;justify-content:center;padding:9px;font-size:.76rem;"><i class="fas fa-comments"></i> Contact Support</button>
+</div>
+
+</div></div></div>
+
+<!-- ═══ PROFILE ═══ -->
+<div class="tab-content" id="tab-profile">
+
+<!-- Profile Hero -->
+<div class="prof-hero gc">
+<div class="prof-avatar-wrap">
+<div class="prof-avatar" id="profHeroAvatar" onclick="document.getElementById('profAvatarInput').click()"><span class="initials" id="profHeroInitials">UA</span><div class="cam"><i class="fas fa-camera"></i><span>Upload</span></div></div>
+<div class="prof-avatar-badge"><i class="fas fa-pen"></i></div>
+<input type="file" id="profAvatarInput" accept="image/*" style="display:none;" onchange="handleProfileAvatar(this)">
+</div>
+<div class="prof-meta">
+<div class="prof-name">user account</div>
+<div class="prof-email">customer@app.com</div>
+<div class="prof-tags">
+<span class="prof-tag lv"><i class="fas fa-gem" style="font-size:.5rem;"></i> Starter Account</span>
+<span class="prof-tag id"><i class="fas fa-fingerprint" style="font-size:.5rem;"></i> <code>232323</code></span>
+</div>
+</div>
+<div class="prof-pct">
+<div class="prof-ring" id="profRing">
+<svg viewBox="0 0 64 64"><circle class="bg" cx="32" cy="32" r="28"/><circle class="fg" cx="32" cy="32" r="28" stroke-dasharray="175.93" stroke-dashoffset="0" id="profRingFg"/></svg>
+<div class="prof-ring-val" id="profRingVal">100%</div>
+</div>
+<div class="prof-pct-label">Complete</div>
+</div>
+</div>
+
+<div class="cg"><div>
+
+<!-- Personal Info -->
+<div class="sec gc">
+<div class="form-sec">
+<div class="form-sec-hd"><div class="fs-ico"><i class="fas fa-user"></i></div><h4>Personal Information</h4><p>Basic identity details</p></div>
+<div class="fg">
+<div class="fgrp"><div class="flbl"><i class="fas fa-user"></i> First Name</div><input type="text" class="field-input" id="pf-fname" value="user" oninput="updateProfile()"></div>
+<div class="fgrp"><div class="flbl"><i class="fas fa-user"></i> Last Name</div><input type="text" class="field-input" id="pf-lname" value="account" oninput="updateProfile()"></div>
+<div class="fgrp"><div class="flbl"><i class="fas fa-calendar"></i> Date of Birth</div><input type="date" class="field-input" id="pf-dob" value="2026-04-21" onchange="updateProfile()"></div>
+<div class="fgrp"><div class="flbl"><i class="fas fa-venus-mars"></i> Gender</div><select class="field-input"><option>Prefer not to say</option><option>Male</option><option>Female</option><option>Non-binary</option></select></div>
+</div>
+</div>
+</div>
+
+<!-- Contact Info -->
+<div class="sec gc">
+<div class="form-sec">
+<div class="form-sec-hd"><div class="fs-ico"><i class="fas fa-address-book"></i></div><h4>Contact Information</h4><p>How we reach you</p></div>
+<div class="fg">
+<div class="fgrp"><div class="flbl"><i class="fas fa-envelope"></i> Email Address</div><input type="email" class="field-input" id="pf-email" value="customer@app.com" oninput="updateProfile()"></div>
+<div class="fgrp"><div class="flbl"><i class="fas fa-phone"></i> Phone Number</div><input type="tel" class="field-input" id="pf-phone" value="24343434343" oninput="updateProfile()"></div>
+</div>
+</div>
+</div>
+
+<!-- Location -->
+<div class="sec gc">
+<div class="form-sec">
+<div class="form-sec-hd"><div class="fs-ico"><i class="fas fa-location-dot"></i></div><h4>Location</h4><p>Residential details</p></div>
+<div class="fg">
+<div class="fgrp"><div class="flbl"><i class="fas fa-globe-africa"></i> Country</div><select class="field-input" id="pf-country" onchange="updateProfile()"><option>Nigeria</option><option>United States</option><option>United Kingdom</option><option>Canada</option><option>Germany</option><option>France</option><option>Australia</option><option>Japan</option><option>South Africa</option><option>Brazil</option><option>India</option><option>Mexico</option></select></div>
+<div class="fgrp"><div class="flbl"><i class="fas fa-map-marker-alt"></i> Address</div><input type="text" class="field-input" id="pf-address" value="address" oninput="updateProfile()"></div>
+<div class="fgrp"><div class="flbl"><i class="fas fa-city"></i> City</div><input type="text" class="field-input" placeholder="Enter your city"></div>
+<div class="fgrp"><div class="flbl"><i class="fas fa-mail-bulk"></i> Postal Code</div><input type="text" class="field-input" placeholder="Enter postal code"></div>
+</div>
+</div>
+</div>
+
+<!-- Account -->
+<div class="sec gc">
+<div class="form-sec">
+<div class="form-sec-hd"><div class="fs-ico"><i class="fas fa-id-badge"></i></div><h4>Account</h4><p>Read-only details</p></div>
+<div class="fg">
+<div class="fgrp"><div class="flbl"><i class="fas fa-fingerprint"></i> Account ID</div><input type="text" class="field-input" value="232323" readonly></div>
+<div class="fgrp"><div class="flbl"><i class="fas fa-circle-info"></i> Account Type</div><input type="text" class="field-input" value="STARTER ACCOUNT" readonly></div>
+</div>
+<div style="font-size:.58rem;color:var(--t4);margin-top:8px;"><i class="fas fa-lock" style="font-size:.45rem;margin-right:4px;"></i> Account details are assigned and cannot be modified</div>
+</div>
+</div>
+
+<div class="btn-row"><button class="btn-p" onclick="toast('Profile saved successfully')"><i class="fas fa-check"></i> Save Changes</button><button class="btn-g" onclick="toast('Fields reset')">Reset</button></div>
+
+<!-- Profile Checklist -->
+<div class="gc" style="padding:20px 24px;margin-top:20px;">
+<div class="sec-label" style="margin-bottom:0;"><i class="fas fa-list-check" style="font-size:.5rem;"></i> Profile Checklist</div>
+<div class="pc-grid" id="pcGrid">
+<div class="pc-item done" data-field="fname"><div class="pc-ico"><i class="fas fa-check"></i></div><div class="pc-txt">First Name</div></div>
+<div class="pc-item done" data-field="lname"><div class="pc-ico"><i class="fas fa-check"></i></div><div class="pc-txt">Last Name</div></div>
+<div class="pc-item done" data-field="email"><div class="pc-ico"><i class="fas fa-check"></i></div><div class="pc-txt">Email</div></div>
+<div class="pc-item done" data-field="phone"><div class="pc-ico"><i class="fas fa-check"></i></div><div class="pc-txt">Phone</div></div>
+<div class="pc-item done" data-field="country"><div class="pc-ico"><i class="fas fa-check"></i></div><div class="pc-txt">Country</div></div>
+<div class="pc-item done" data-field="address"><div class="pc-ico"><i class="fas fa-check"></i></div><div class="pc-txt">Address</div></div>
+<div class="pc-item done" data-field="dob"><div class="pc-ico"><i class="fas fa-check"></i></div><div class="pc-txt">Date of Birth</div></div>
+<div class="pc-item done" data-field="photo"><div class="pc-ico"><i class="fas fa-check"></i></div><div class="pc-txt">Profile Photo</div></div>
+</div>
+</div>
+
+</div><div>
+<div class="sc gc"><div class="sc-title">Identity</div>
+<div class="sc-row"><span class="sc-row-l">Account ID</span><span class="sc-row-v">232323</span></div>
+<div class="sc-row"><span class="sc-row-l">Plan</span><span class="sc-row-v ok">STARTER</span></div>
+<div class="sc-row"><span class="sc-row-l">Verification</span><span class="sc-row-v warn">Incomplete</span></div>
+<div class="sc-row"><span class="sc-row-l">Country</span><span class="sc-row-v">Nigeria</span></div>
+<div class="sc-row"><span class="sc-row-l">Phone</span><span class="sc-row-v">243434343</span></div>
+</div>
+<div class="sc gc"><div class="sc-title">Contact</div>
+<div class="ct-row"><i class="fas fa-envelope"></i><span class="ct-val">customer@app.com</span><span class="ct-badge">PRIMARY</span></div>
+<div class="ct-row"><i class="fas fa-phone"></i><span class="ct-val">24343434343</span><span class="ct-badge">PRIMARY</span></div>
+</div>
+<div class="sc gc"><div class="sc-title">Profile Tips</div>
+<div class="sc-tip">Keep your contact info up to date so you never miss security alerts.</div>
+<div class="sc-tip">Your legal name must match your KYC documents exactly.</div>
+<div class="sc-tip">Update your address whenever you move to keep statements accurate.</div>
+</div>
+<div class="sc gc"><div class="sc-title">Quick Actions</div>
+<div class="qa"><div class="qa-b" onclick="showTab('security')"><i class="fas fa-shield-alt"></i> Security</div><div class="qa-b" onclick="showTab('verification')"><i class="fas fa-id-card"></i> KYC</div><div class="qa-b" onclick="showTab('preferences')"><i class="fas fa-sliders-h"></i> Prefs</div><div class="qa-b"><i class="fas fa-comments"></i> Support</div></div>
+</div>
+</div></div></div>
+
+<!-- ═══ SECURITY ═══ -->
+<div class="tab-content" id="tab-security">
+
+<div class="sec gc" style="border-color:rgba(0,223,162,.08);">
+<div style="display:flex;align-items:center;gap:18px;">
+<div style="width:48px;height:48px;border-radius:14px;background:var(--accent-dim);display:grid;place-items:center;font-size:1.15rem;color:var(--accent);flex-shrink:0;animation:glow 3s ease-in-out infinite;"><i class="fas fa-shield-alt"></i></div>
+<div><div style="font-family:var(--heading);font-size:1.05rem;font-weight:800;">Your Security Score</div><p style="font-size:.75rem;color:var(--t3);margin-top:2px;">Enable all security features for maximum protection</p>
+<div style="margin-top:8px;display:flex;flex-direction:column;gap:4px;"><span style="display:flex;align-items:center;gap:7px;font-size:.7rem;color:var(--t2);"><i class="fas fa-circle" style="font-size:.4rem;color:var(--orange);"></i> Enable 2FA authentication</span><span style="display:flex;align-items:center;gap:7px;font-size:.7rem;color:var(--t2);"><i class="fas fa-circle" style="font-size:.4rem;color:var(--orange);"></i> Complete KYC verification</span><span style="display:flex;align-items:center;gap:7px;font-size:.7rem;color:var(--t2);"><i class="fas fa-circle" style="font-size:.4rem;color:var(--orange);"></i> Set up anti-phishing code</span></div>
+</div></div></div>
+
+<div class="sec-label" style="margin-bottom:16px;"><i class="fas fa-key" style="font-size:.5rem;"></i> Two-Factor Authentication</div>
+<div class="tfa-grid">
+<div class="tfa gc" id="tfa-gauth"><div class="tfa-ico"><i class="fab fa-google"></i></div><div class="tfa-name">Google Authenticator</div><div class="tfa-desc">Use Google Authenticator for 2FA. Provides the highest level of security.</div><div class="tfa-st off" id="tfa-gauth-st"><span class="d"></span> <span>Disabled</span></div><br><button class="tfa-btn" id="tfa-gauth-btn" onclick="openTfaModal('gauth')">Enable</button></div>
+<div class="tfa gc" id="tfa-sms"><div class="tfa-ico"><i class="fas fa-comment-sms"></i></div><div class="tfa-name">SMS Authentication</div><div class="tfa-desc">Receive verification codes via SMS to your registered phone number.</div><div class="tfa-st off" id="tfa-sms-st"><span class="d"></span> <span>Disabled</span></div><br><button class="tfa-btn" id="tfa-sms-btn" onclick="openTfaModal('sms')">Enable</button></div>
+<div class="tfa gc" id="tfa-email"><div class="tfa-ico"><i class="fas fa-envelope"></i></div><div class="tfa-name">Email Authentication</div><div class="tfa-desc">Receive verification codes via email for account actions and logins.</div><div class="tfa-st off" id="tfa-email-st"><span class="d"></span> <span>Disabled</span></div><br><button class="tfa-btn" id="tfa-email-btn" onclick="openTfaModal('email')">Enable</button></div>
+</div>
+
+<div class="sec gc">
+<div class="sec-hd"><i class="fas fa-lock"></i><h3>Password &amp; Login</h3></div>
+<div class="fg">
+<div class="fgrp"><div class="flbl"><i class="fas fa-key"></i> Current Password</div><div class="iw"><input type="password" class="field-input" placeholder="Enter current password" id="sCur" oninput="checkPwReqs()"><i class="fas fa-eye eye" onclick="tPw('sCur',this)"></i></div></div>
+<div class="fgrp"><div class="flbl"><i class="fas fa-lock"></i> New Password</div><div class="iw"><input type="password" class="field-input" placeholder="Min. 8 characters" id="sNew" oninput="checkPwReqs()"><i class="fas fa-eye eye" onclick="tPw('sNew',this)"></i></div></div>
+<div class="fgrp"><div class="flbl"><i class="fas fa-check-double"></i> Confirm</div><div class="iw"><input type="password" class="field-input" placeholder="Re-enter new password" id="sCfm" oninput="checkPwReqs()"><i class="fas fa-eye eye" onclick="tPw('sCfm',this)"></i></div></div>
+</div>
+<div class="pw-reqs">
+<div class="pw-req" id="pw-len"><i class="fas fa-circle" style="font-size:.35rem;"></i> Min 8 characters</div>
+<div class="pw-req" id="pw-upper"><i class="fas fa-circle" style="font-size:.35rem;"></i> One uppercase letter</div>
+<div class="pw-req" id="pw-num"><i class="fas fa-circle" style="font-size:.35rem;"></i> One number</div>
+<div class="pw-req" id="pw-special"><i class="fas fa-circle" style="font-size:.35rem;"></i> One special character</div>
+<div class="pw-req" id="pw-match" style="grid-column:1/-1;"><i class="fas fa-circle" style="font-size:.35rem;"></i> Passwords match</div>
+</div>
+<div class="btn-row"><button class="btn-p" id="pwChangeBtn" onclick="changePassword()" style="opacity:.5;pointer-events:none;"><i class="fas fa-check"></i> Change Password</button><button class="btn-g" onclick="resetPwFields()">Reset</button></div>
+</div>
+
+
+
+
+<div class="sec gc"><div class="sec-hd"><i class="fas fa-bolt"></i><h3>Account Actions</h3></div>
+<div class="arow"><div class="arow-left"><i class="fas fa-snowflake warn"></i><div><h4>Freeze Account</h4><p>Temporarily disable all trading and withdrawals</p></div></div><button class="btn-o warn" onclick="toast('Account freeze initiated')">Freeze</button></div>
+<div class="arow"><div class="arow-left"><i class="fas fa-ban danger"></i><div><h4>Disable Account</h4><p>Permanently disable your 1 Trade Market account</p></div></div><button class="btn-o danger">Disable</button></div>
+<div class="arow"><div class="arow-left"><i class="fas fa-download accent"></i><div><h4>Export Account Data</h4><p>Download all your account information and history</p></div></div><button class="btn-o accent" onclick="toast('Export started')"><i class="fas fa-download"></i> Export</button></div>
+</div>
+
+<div class="sec gc"><div class="sec-hd"><i class="fas fa-clock-rotate-left"></i><h3>Login Activity Log</h3></div><div class="log-hdr"><span>Date</span><span>IP Address</span><span>Location</span><span>Device</span><span>Status</span></div><div class="empty"><div class="empty-ico"><i class="fas fa-clock"></i></div><div class="empty-t">No login activity</div><div class="empty-d">Your recent login history will appear here</div></div></div>
+
+<div class="trust"><span><i class="fas fa-lock"></i> Enterprise Encryption</span><span><i class="fas fa-certificate"></i> SOC 2 Compliant</span><span><i class="fas fa-vault"></i> Multi-signature Vaults</span></div>
+</div>
+
+<!-- ═══ VERIFICATION ═══ -->
+<div class="tab-content" id="tab-verification"><div class="cg"><div>
+
+<div class="sec gc">
+<div class="sec-hd"><i class="fas fa-id-card"></i><h3>Identity Verification</h3></div>
+<div style="display:flex;align-items:center;gap:10px;padding:12px 16px;border-radius:var(--radius);background:var(--orange-dim);border:1px solid rgba(255,152,0,.1);margin-bottom:18px;">
+<i class="fas fa-exclamation-triangle" style="color:var(--orange);font-size:.8rem;"></i>
+<div><div style="font-size:.78rem;font-weight:700;color:var(--orange);">INCOMPLETE</div><div style="font-size:.66rem;color:var(--t3);">Complete your KYC verification to unlock full platform features</div></div>
+</div>
+<div class="vs"><div class="vs-num done"><i class="fas fa-check" style="font-size:.6rem;"></i></div><div class="vs-info"><div class="vs-t">Personal Information</div><div class="vs-d">Basic details confirmed</div></div><span class="vs-badge done">Complete</span></div>
+<div class="vs"><div class="vs-num pend">2</div><div class="vs-info"><div class="vs-t">Government ID</div><div class="vs-d">Upload a valid government-issued photo ID</div></div><span class="vs-badge pend">Pending</span><button class="btn-o accent" style="margin-left:10px;"><i class="fas fa-upload"></i> Upload</button></div>
+</div>
+
+<div class="sec gc"><div class="sec-hd"><i class="fas fa-gift"></i><h3>Verification Benefits</h3></div>
+<div class="ben-grid">
+<div class="ben"><i class="fas fa-arrow-up-right-dots"></i><span>Higher Limits</span></div>
+<div class="ben"><i class="fas fa-building-columns"></i><span>Fiat Withdrawals</span></div>
+<div class="ben"><i class="fas fa-arrows-rotate"></i><span>P2P Trading</span></div>
+<div class="ben"><i class="fas fa-headset"></i><span>Priority Support</span></div>
+</div></div>
+
+</div><div>
+<div class="sc gc"><div class="sc-title">Verification Status</div>
+<div class="sc-row"><span class="sc-row-l">Level</span><span class="sc-row-v">Level 1 · Basic</span></div>
+<div class="prg" style="margin-top:12px;"><div class="prg-top"><span class="l">Progress</span><span class="v">50%</span></div><div class="prg-bar"><div class="prg-fill" style="width:50%;"></div></div></div>
+<div class="sc-row"><span class="sc-row-l">Daily Limit</span><span class="sc-row-v">$2,000</span></div>
+<div class="sc-row"><span class="sc-row-l">Monthly Limit</span><span class="sc-row-v">$10,000</span></div>
+</div>
+<div class="sc gc"><div class="sc-title">Required Documents</div>
+<div class="sc-tip">Valid passport or driver's license</div>
+<div class="sc-tip">Proof of address (utility bill, less than 3 months old)</div>
+</div>
+<div class="sc gc"><div class="sc-title">Verification Tips</div>
+<div class="sc-tip">Ensure photos are clear and well-lit, blurry images get rejected.</div>
+<div class="sc-tip">Names on documents must match your account details exactly.</div>
+<div class="sc-tip">Verification typically processes within 24 to 48 hours.</div>
+</div>
+</div></div></div>
+
+<!-- ═══ PREFERENCES ═══ -->
+<div class="tab-content" id="tab-preferences"><div class="cg"><div>
+
+<div class="sec gc">
+<div class="sec-hd"><i class="fas fa-bell"></i><h3>Notifications</h3></div>
+<div class="trow"><div class="trow-info"><i class="fas fa-envelope"></i><div><div class="trow-label">Email Notifications</div><div class="trow-desc">Receive account updates via email</div></div></div><div class="tgl on" onclick="tT(this)"></div></div>
+<div class="trow"><div class="trow-info"><i class="fas fa-mobile-screen"></i><div><div class="trow-label">Push Notifications</div><div class="trow-desc">Browser push notifications for alerts</div></div></div><div class="tgl" onclick="tT(this)"></div></div>
+<div class="trow"><div class="trow-info"><i class="fas fa-comment-sms"></i><div><div class="trow-label">SMS Alerts</div><div class="trow-desc">Text messages for critical events</div></div></div><div class="tgl" onclick="tT(this)"></div></div>
+<div class="trow"><div class="trow-info"><i class="fas fa-chart-line"></i><div><div class="trow-label">Price Alerts</div><div class="trow-desc">Get notified when prices hit your targets</div></div></div><div class="tgl on" onclick="tT(this)"></div></div>
+<div class="trow"><div class="trow-info"><i class="fas fa-receipt"></i><div><div class="trow-label">Trade Confirmations</div><div class="trow-desc">Confirmation after each trade execution</div></div></div><div class="tgl on" onclick="tT(this)"></div></div>
+<div class="trow"><div class="trow-info"><i class="fas fa-shield-alt"></i><div><div class="trow-label">Security Alerts</div><div class="trow-desc">Login attempts and security events (always on)</div></div></div><div class="tgl on locked"></div></div>
+</div>
+
+<div class="sec gc">
+<div class="sec-hd"><i class="fas fa-palette"></i><h3>Display</h3></div>
+<div class="optg"><div class="optg-l">Theme</div><div class="opts"><button class="opt on" onclick="setPref(this,'theme','Dark')"><i class="fas fa-moon" style="font-size:.6rem;"></i> Dark</button><button class="opt" onclick="setPref(this,'theme','Light')"><i class="fas fa-sun" style="font-size:.6rem;"></i> Light</button></div></div>
+<div class="optg"><div class="optg-l">Chart Type</div><div class="opts"><button class="opt on" onclick="setPref(this,'chart','Candlestick')">Candlestick</button><button class="opt" onclick="setPref(this,'chart','Line')">Line</button><button class="opt" onclick="setPref(this,'chart','Area')">Area</button></div></div>
+<div class="optg"><div class="optg-l">Default Timeframe</div><div class="opts"><button class="opt" onclick="setPref(this,'timeframe','1H')">1H</button><button class="opt" onclick="setPref(this,'timeframe','4H')">4H</button><button class="opt on" onclick="setPref(this,'timeframe','1D')">1D</button><button class="opt" onclick="setPref(this,'timeframe','1W')">1W</button></div></div>
+</div>
+
+<div class="sec gc">
+<div class="sec-hd"><i class="fas fa-chart-bar"></i><h3>Trading Preferences</h3></div>
+<div class="optg"><div class="optg-l">Default Order Type</div><div class="opts"><button class="opt" onclick="setPref(this,'ordertype','Market')">Market</button><button class="opt on" onclick="setPref(this,'ordertype','Limit')">Limit</button></div></div>
+<div class="trow"><div class="trow-info"><i class="fas fa-check-double"></i><div><div class="trow-label">Confirm Before Trade</div><div class="trow-desc">Show confirmation dialog before executing</div></div></div><div class="tgl on" onclick="tT(this)"></div></div>
+<div class="trow"><div class="trow-info"><i class="fas fa-robot"></i><div><div class="trow-label">Auto-close Positions</div><div class="trow-desc">Automatically close at stop-loss / take-profit</div></div></div><div class="tgl" onclick="tT(this)"></div></div>
+</div>
+
+</div><div>
+<div class="sc gc"><div class="sc-title">Current Preferences</div>
+<div id="prefPanel">
+<div class="sc-row"><span class="sc-row-l">Theme</span><span class="sc-row-v">Dark</span></div>
+<div class="sc-row"><span class="sc-row-l">Currency</span><span class="sc-row-v">USD</span></div>
+<div class="sc-row"><span class="sc-row-l">Language</span><span class="sc-row-v">English</span></div>
+<div class="sc-row"><span class="sc-row-l">Chart</span><span class="sc-row-v">Candlestick</span></div>
+<div class="sc-row"><span class="sc-row-l">Timeframe</span><span class="sc-row-v">1D</span></div>
+<div class="sc-row"><span class="sc-row-l">Order Type</span><span class="sc-row-v">Limit</span></div>
+</div></div>
+<div class="sc gc"><div class="sc-title">Preferences Tips</div>
+<div class="sc-tip">Dark mode reduces eye strain during long trading sessions.</div>
+<div class="sc-tip">Candlestick charts show the most data for technical analysis.</div>
+<div class="sc-tip">Enable trade confirmations to avoid accidental orders.</div>
+<div class="sc-tip">Security alerts cannot be disabled, they keep your account safe.</div>
+</div>
+</div></div></div>
+
+</main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* Ticker */
+var TC=[{s:'BTC',p:97845.20,c:2.34},{s:'ETH',p:3421.50,c:-0.87},{s:'BNB',p:612.30,c:1.45},{s:'SOL',p:178.90,c:4.12},{s:'XRP',p:2.41,c:-1.23},{s:'ADA',p:0.82,c:3.67},{s:'DOGE',p:0.287,c:5.89},{s:'DOT',p:9.34,c:-2.11},{s:'LINK',p:18.43,c:1.84},{s:'ARB',p:1.78,c:3.21},{s:'OP',p:3.45,c:2.76},{s:'AVAX',p:48.92,c:2.45},{s:'ATOM',p:12.35,c:1.67},{s:'NEAR',p:7.86,c:3.92},{s:'INJ',p:56.78,c:4.18}];
+!function(){var t=document.getElementById('tickerTrack');function b(){TC.forEach(function(c){var d=document.createElement('div');d.className='ticker-item';var u=c.c>=0;d.innerHTML='<span class="ti-dot '+(u?'up':'dn')+'"></span><span class="ti-sym">'+c.s+'</span><span class="ti-price">$'+c.p.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})+'</span><span class="ti-chg '+(u?'ti-up':'ti-dn')+'">'+(u?'+':'')+c.c.toFixed(2)+'%</span>';t.appendChild(d)})}b();b()}();
+
+/* Tabs */
+function showTab(id){document.querySelectorAll('.tab-content').forEach(function(e){e.classList.remove('active')});document.querySelectorAll('.tab-btn').forEach(function(e){e.classList.remove('active')});var t=document.getElementById('tab-'+id);if(t)t.classList.add('active');var m={overview:'Overview',profile:'Profile',security:'Security',verification:'Verification',preferences:'Preferences'};document.querySelectorAll('.tab-btn').forEach(function(b){if(b.textContent===m[id])b.classList.add('active')});document.querySelector('.main').scrollTo({top:0,behavior:'smooth'})}
+
+/* PW Toggle */
+function tPw(id,i){var e=document.getElementById(id);if(e.type==='password'){e.type='text';i.classList.replace('fa-eye','fa-eye-slash')}else{e.type='password';i.classList.replace('fa-eye-slash','fa-eye')}}
+
+/* PW Requirements Live Check */
+function checkPwReqs(){
+  var pw=document.getElementById('sNew').value;
+  var cfm=document.getElementById('sCfm').value;
+  var typing=pw.length>0;
+  var checks={
+    'pw-len':{pass:pw.length>=8,active:typing},
+    'pw-upper':{pass:/[A-Z]/.test(pw),active:typing},
+    'pw-num':{pass:/[0-9]/.test(pw),active:typing},
+    'pw-special':{pass:/[^A-Za-z0-9]/.test(pw),active:typing},
+    'pw-match':{pass:pw.length>0&&cfm.length>0&&pw===cfm,active:cfm.length>0}
+  };
+  var allMet=true;
+  Object.keys(checks).forEach(function(id){
+    var el=document.getElementById(id);if(!el)return;
+    var ico=el.querySelector('i');
+    if(checks[id].pass){
+      el.className='pw-req met';
+      ico.className='fas fa-check-circle';
+      ico.style.fontSize='.62rem';
+    }else if(checks[id].active&&!checks[id].pass){
+      el.className='pw-req fail';
+      ico.className='fas fa-times-circle';
+      ico.style.fontSize='.62rem';
+      allMet=false;
+    }else{
+      el.className='pw-req';
+      ico.className='fas fa-circle';
+      ico.style.fontSize='.35rem';
+      allMet=false;
+    }
+  });
+  var cur=document.getElementById('sCur').value;
+  var btn=document.getElementById('pwChangeBtn');
+  if(allMet&&cur.length>0){btn.style.opacity='1';btn.style.pointerEvents='auto'}
+  else{btn.style.opacity='.5';btn.style.pointerEvents='none'}
+}
+
+function changePassword(){
+  var cur=document.getElementById('sCur').value;
+  var pw=document.getElementById('sNew').value;
+  var cfm=document.getElementById('sCfm').value;
+  if(!cur){toast('Please enter your current password');return}
+  if(pw.length<8){toast('Password must be at least 8 characters');return}
+  if(!/[A-Z]/.test(pw)){toast('Password needs an uppercase letter');return}
+  if(!/[0-9]/.test(pw)){toast('Password needs a number');return}
+  if(!/[^A-Za-z0-9]/.test(pw)){toast('Password needs a special character');return}
+  if(pw!==cfm){toast('Passwords do not match');return}
+  resetPwFields();
+  toast('Password changed successfully');
+}
+
+function resetPwFields(){
+  document.getElementById('sCur').value='';
+  document.getElementById('sNew').value='';
+  document.getElementById('sCfm').value='';
+  ['pw-len','pw-upper','pw-num','pw-special','pw-match'].forEach(function(id){
+    var el=document.getElementById(id);if(el){el.className='pw-req';var ico=el.querySelector('i');ico.className='fas fa-circle';ico.style.fontSize='.35rem'}
+  });
+  var btn=document.getElementById('pwChangeBtn');btn.style.opacity='.5';btn.style.pointerEvents='none';
+}
+
+/* Radio */
+function selR(el,gid){document.getElementById(gid).querySelectorAll('.ri').forEach(function(r){r.classList.remove('sel')});el.classList.add('sel');toast('Preference updated')}
+
+/* Toggle */
+function tT(el){if(el.classList.contains('locked'))return;el.classList.toggle('on')}
+
+/* Prefs */
+var prefs={theme:'Dark',chart:'Candlestick',timeframe:'1D',ordertype:'Limit'};
+function setPref(el,key,val){
+el.parentElement.querySelectorAll('.opt').forEach(function(p){p.classList.remove('on')});el.classList.add('on');
+prefs[key]=val;
+var p=document.getElementById('prefPanel');if(p){var rows=p.querySelectorAll('.sc-row');var map={Theme:prefs.theme,Chart:prefs.chart,Timeframe:prefs.timeframe,'Order Type':prefs.ordertype};rows.forEach(function(r){var l=r.querySelector('.sc-row-l'),v=r.querySelector('.sc-row-v');if(l&&v&&map[l.textContent]!==undefined)v.textContent=map[l.textContent]})}
+if(key==='theme'){if(val==='Light'){document.body.classList.add('light')}else{document.body.classList.remove('light')}}
+toast(key.charAt(0).toUpperCase()+key.slice(1)+' set to '+val);
+}
+
+/* Toast */
+function toast(m){var t=document.getElementById('toast');t.innerHTML='<i class="fas fa-check-circle" style="color:var(--accent);"></i> '+m;t.classList.add('show');setTimeout(function(){t.classList.remove('show')},2200)}
+
+/* Go to section */
+function goToSection(tab,elId){showTab(tab);setTimeout(function(){var el=document.getElementById(elId);if(el){var main=document.querySelector('.main');var rect=el.getBoundingClientRect();var mainRect=main.getBoundingClientRect();main.scrollTo({top:main.scrollTop+(rect.top-mainRect.top)-mainRect.height/3,behavior:'smooth'});el.style.boxShadow='0 0 0 2px var(--accent)';el.style.borderRadius='var(--radius)';setTimeout(function(){el.style.boxShadow='';el.style.borderRadius=''},1800)}},200)}
+
+/* ═══ PROFILE AVATAR ═══ */
+function handleProfileAvatar(input){
+  if(!input.files||!input.files[0])return;
+  var file=input.files[0];
+  if(!file.type.startsWith('image/')){toast('Please select an image file');return}
+  var reader=new FileReader();
+  reader.onload=function(e){
+    var url=e.target.result;
+    applyAvatarEverywhere(url);
+    updateProfile();
+    toast('Profile photo updated');
+  };
+  reader.readAsDataURL(file);
+}
+var uploadedPhoto=false;
+function applyAvatarEverywhere(url){
+  uploadedPhoto=true;
+  /* Profile hero */
+  var hero=document.getElementById('profHeroAvatar');
+  var hi=document.getElementById('profHeroInitials');if(hi)hi.style.display='none';
+  var he=hero.querySelector('img');if(he){he.src=url}else{var himg=document.createElement('img');himg.src=url;hero.insertBefore(himg,hero.firstChild)}
+  /* Main user card */
+  var main=document.getElementById('mainAvatar');if(main){
+    var mi=document.getElementById('avatarInitials');if(mi)mi.style.display='none';
+    var me=main.querySelector('img');if(me){me.src=url}else{var mimg=document.createElement('img');mimg.src=url;main.insertBefore(mimg,main.firstChild)}}
+  /* Navbar */
+  var nav=document.getElementById('navAvatar');if(nav){nav.innerHTML='';nav.style.overflow='hidden';
+    var ni=document.createElement('img');ni.src=url;ni.style.cssText='width:100%;height:100%;object-fit:cover;border-radius:50%;';nav.appendChild(ni)}
+  /* Small profile avatar */
+  var prof=document.getElementById('profileAvatar');if(prof){var pi=prof.querySelector('.initials');if(pi)pi.style.display='none';
+    var pe=prof.querySelector('img');if(pe){pe.src=url}else{var pm=document.createElement('img');pm.src=url;prof.insertBefore(pm,prof.firstChild)}}
+}
+
+/* ═══ PROFILE COMPLETION ═══ */
+function updateProfile(){
+  var fields={fname:'pf-fname',lname:'pf-lname',email:'pf-email',phone:'pf-phone',country:'pf-country',address:'pf-address',dob:'pf-dob'};
+  var total=8;var done=0;
+  Object.keys(fields).forEach(function(k){
+    var el=document.getElementById(fields[k]);
+    var val=el?el.value.trim():'';
+    var item=document.querySelector('.pc-item[data-field="'+k+'"]');
+    if(val&&val!==''){
+      done++;
+      if(item){item.className='pc-item done';item.querySelector('.pc-ico').innerHTML='<i class="fas fa-check"></i>'}
+    }else{
+      if(item){item.className='pc-item missing';item.querySelector('.pc-ico').innerHTML='<i class="fas fa-times"></i>'}
+    }
+  });
+  /* Photo */
+  var photoItem=document.querySelector('.pc-item[data-field="photo"]');
+  if(uploadedPhoto){
+    done++;
+    if(photoItem){photoItem.className='pc-item done';photoItem.querySelector('.pc-ico').innerHTML='<i class="fas fa-check"></i>'}
+  }else{
+    if(photoItem){photoItem.className='pc-item missing';photoItem.querySelector('.pc-ico').innerHTML='<i class="fas fa-times"></i>'}
+  }
+  var pct=Math.round((done/total)*100);
+  var ring=document.getElementById('profRingFg');if(ring){ring.setAttribute('stroke-dashoffset',((100-pct)/100*175.93).toFixed(2))}
+  var rv=document.getElementById('profRingVal');if(rv)rv.textContent=pct+'%';
+  /* Update ring color based on completion */
+  if(ring){ring.style.stroke=pct===100?'var(--accent)':pct>=50?'var(--orange)':'var(--red)'}
+  if(rv){rv.style.color=pct===100?'var(--accent)':pct>=50?'var(--orange)':'var(--red)'}
+}
+/* Run on page load */
+document.addEventListener('DOMContentLoaded',function(){updateProfile()});
+
+/* ═══ AVATAR UPLOAD ═══ */
+function handleAvatarUpload(input){
+  if(!input.files||!input.files[0])return;
+  var file=input.files[0];
+  if(!file.type.startsWith('image/')){toast('Please select an image file');return}
+  if(file.size>5*1024*1024){toast('Image must be under 5MB');return}
+  var reader=new FileReader();
+  reader.onload=function(e){applyAvatarEverywhere(e.target.result);updateProfile();toast('Profile photo updated')};
+  reader.readAsDataURL(file);
+}
+
+/* ═══ 2FA SYSTEM ═══ */
+var tfaState={gauth:false,sms:false,email:false};
+var tfaTimers={};
+var generatedSecret='';
+
+function genSecret(){for(var c='ABCDEFGHIJKLMNOPQRSTUVWXYZ234567',s='',i=0;i<16;i++)s+=c[Math.floor(Math.random()*c.length)];return s}
+
+function openTfaModal(type){
+  if(tfaState[type]){disableTfa(type);return}
+  var o=document.getElementById('tfaModal');
+  var box=document.getElementById('tfaModalBox');
+  if(type==='gauth'){
+    generatedSecret=genSecret();
+    box.innerHTML=
+    '<div class="modal-hdr"><i class="fab fa-google"></i><h3>Set Up Google Authenticator</h3><button class="modal-close" onclick="closeTfaModal()"><i class="fas fa-times"></i></button></div>'+
+    '<div class="modal-body">'+
+      '<div class="modal-step active" id="gauth-s1">'+
+        '<div class="modal-step-title"><span class="modal-step-num">1</span> Scan QR Code</div>'+
+        '<p>Open Google Authenticator app on your phone and scan this QR code to add your account.</p>'+
+        '<div class="qr-box" id="qrBox"><canvas id="qrCanvas"></canvas></div>'+
+        '<div class="modal-info"><i class="fas fa-info-circle"></i><span>If you cannot scan the QR code, manually enter this secret key into your authenticator app.</span></div>'+
+        '<div class="secret-key"><code id="secretDisplay">'+generatedSecret.match(/.{4}/g).join(' ')+'</code><button onclick="copySecret()" title="Copy"><i class="fas fa-copy"></i></button></div>'+
+        '<div class="modal-btns"><button class="btn-g" onclick="closeTfaModal()">Cancel</button><button class="btn-p" onclick="gauthStep(2)">Next <i class="fas fa-arrow-right" style="font-size:.65rem"></i></button></div>'+
+      '</div>'+
+      '<div class="modal-step" id="gauth-s2">'+
+        '<div class="modal-step-title"><span class="modal-step-num">2</span> Enter Verification Code</div>'+
+        '<p>Enter the 6-digit code shown in your Google Authenticator app to verify the setup.</p>'+
+        '<input type="text" class="modal-input" id="gauthCode" placeholder="000000" maxlength="6" oninput="this.value=this.value.replace(/[^0-9]/g,\'\')">'+
+        '<div class="modal-warn"><i class="fas fa-triangle-exclamation"></i><span>Save your secret key in a secure location. If you lose access to your authenticator app, you will need this key to recover your account.</span></div>'+
+        '<div class="modal-btns"><button class="btn-g" onclick="gauthStep(1)"><i class="fas fa-arrow-left" style="font-size:.65rem"></i> Back</button><button class="btn-p" onclick="verifyTfa(\'gauth\')"><i class="fas fa-shield-check" style="font-size:.7rem"></i> Verify & Enable</button></div>'+
+      '</div>'+
+    '</div>';
+    o.classList.add('show');
+    setTimeout(function(){drawQR()},100);
+  }
+  else if(type==='sms'){
+    box.innerHTML=
+    '<div class="modal-hdr"><i class="fas fa-comment-sms"></i><h3>Set Up SMS Authentication</h3><button class="modal-close" onclick="closeTfaModal()"><i class="fas fa-times"></i></button></div>'+
+    '<div class="modal-body">'+
+      '<div class="modal-step active" id="sms-s1">'+
+        '<div class="modal-step-title"><span class="modal-step-num">1</span> Enter Phone Number</div>'+
+        '<p>Enter the phone number where you want to receive verification codes.</p>'+
+        '<div class="phone-input-wrap"><input type="text" class="phone-prefix" id="smsPrefix" value="+1" maxlength="4"><input type="tel" class="phone-num" id="smsPhone" placeholder="(555) 123-4567"></div>'+
+        '<div class="modal-info"><i class="fas fa-info-circle"></i><span>Standard messaging rates may apply. A verification code will be sent to this number.</span></div>'+
+        '<div class="modal-btns"><button class="btn-g" onclick="closeTfaModal()">Cancel</button><button class="btn-p" onclick="sendSmsCode()"><i class="fas fa-paper-plane" style="font-size:.65rem"></i> Send Code</button></div>'+
+      '</div>'+
+      '<div class="modal-step" id="sms-s2">'+
+        '<div class="modal-step-title"><span class="modal-step-num">2</span> Enter Verification Code</div>'+
+        '<p>Enter the 6-digit code sent to your phone number.</p>'+
+        '<input type="text" class="modal-input" id="smsCode" placeholder="000000" maxlength="6" oninput="this.value=this.value.replace(/[^0-9]/g,\'\')">'+
+        '<div class="resend-row"><span>Did not receive the code?</span><button class="resend-btn" id="resendSms" onclick="resendCode(\'sms\')">Resend Code</button></div>'+
+        '<div class="modal-btns"><button class="btn-g" onclick="smsStep(1)"><i class="fas fa-arrow-left" style="font-size:.65rem"></i> Back</button><button class="btn-p" onclick="verifyTfa(\'sms\')"><i class="fas fa-shield-check" style="font-size:.7rem"></i> Verify & Enable</button></div>'+
+      '</div>'+
+    '</div>';
+    o.classList.add('show');
+  }
+  else if(type==='email'){
+    box.innerHTML=
+    '<div class="modal-hdr"><i class="fas fa-envelope"></i><h3>Set Up Email Authentication</h3><button class="modal-close" onclick="closeTfaModal()"><i class="fas fa-times"></i></button></div>'+
+    '<div class="modal-body">'+
+      '<div class="modal-step active" id="email-s1">'+
+        '<div class="modal-step-title"><span class="modal-step-num">1</span> Confirm Email Address</div>'+
+        '<p>A verification code will be sent to your registered email address.</p>'+
+        '<input type="email" class="modal-input" id="emailAddr" value="customer@app.com" style="letter-spacing:normal;font-family:var(--sans);font-weight:500;text-align:left;" readonly>'+
+        '<div class="modal-info"><i class="fas fa-info-circle"></i><span>Codes will be sent to this email address for all login attempts and sensitive account actions.</span></div>'+
+        '<div class="modal-btns"><button class="btn-g" onclick="closeTfaModal()">Cancel</button><button class="btn-p" onclick="sendEmailCode()"><i class="fas fa-paper-plane" style="font-size:.65rem"></i> Send Code</button></div>'+
+      '</div>'+
+      '<div class="modal-step" id="email-s2">'+
+        '<div class="modal-step-title"><span class="modal-step-num">2</span> Enter Verification Code</div>'+
+        '<p>Enter the 6-digit code sent to your email.</p>'+
+        '<input type="text" class="modal-input" id="emailCode" placeholder="000000" maxlength="6" oninput="this.value=this.value.replace(/[^0-9]/g,\'\')">'+
+        '<div class="resend-row"><span>Did not receive the code?</span><button class="resend-btn" id="resendEmail" onclick="resendCode(\'email\')">Resend Code</button></div>'+
+        '<div class="modal-btns"><button class="btn-g" onclick="emailStep(1)"><i class="fas fa-arrow-left" style="font-size:.65rem"></i> Back</button><button class="btn-p" onclick="verifyTfa(\'email\')"><i class="fas fa-shield-check" style="font-size:.7rem"></i> Verify & Enable</button></div>'+
+      '</div>'+
+    '</div>';
+    o.classList.add('show');
+  }
+}
+
+function closeTfaModal(){document.getElementById('tfaModal').classList.remove('show');Object.keys(tfaTimers).forEach(function(k){clearInterval(tfaTimers[k])})}
+
+function gauthStep(n){document.querySelectorAll('#tfaModalBox [id^="gauth-s"]').forEach(function(s){s.classList.remove('active')});document.getElementById('gauth-s'+n).classList.add('active');if(n===1)setTimeout(function(){drawQR()},50)}
+function smsStep(n){document.querySelectorAll('#tfaModalBox [id^="sms-s"]').forEach(function(s){s.classList.remove('active')});document.getElementById('sms-s'+n).classList.add('active')}
+function emailStep(n){document.querySelectorAll('#tfaModalBox [id^="email-s"]').forEach(function(s){s.classList.remove('active')});document.getElementById('email-s'+n).classList.add('active')}
+
+function sendSmsCode(){var ph=document.getElementById('smsPhone').value;if(!ph||ph.length<7){toast('Please enter a valid phone number');return}smsStep(2);startResendTimer('sms');toast('Verification code sent')}
+function sendEmailCode(){emailStep(2);startResendTimer('email');toast('Verification code sent to your email')}
+
+function startResendTimer(type){
+  var btn=document.getElementById('resend'+(type==='sms'?'Sms':'Email'));
+  var sec=30;btn.disabled=true;btn.textContent='Resend in '+sec+'s';
+  tfaTimers[type]=setInterval(function(){sec--;if(sec<=0){clearInterval(tfaTimers[type]);btn.disabled=false;btn.textContent='Resend Code'}else{btn.textContent='Resend in '+sec+'s'}},1000);
+}
+function resendCode(type){startResendTimer(type);toast('New code sent')}
+
+function verifyTfa(type){
+  var codeId={gauth:'gauthCode',sms:'smsCode',email:'emailCode'};
+  var code=document.getElementById(codeId[type]).value;
+  if(!code||code.length<6){toast('Please enter a valid 6-digit code');return}
+  enableTfa(type);closeTfaModal();
+}
+
+function enableTfa(type){
+  tfaState[type]=true;
+  var card=document.getElementById('tfa-'+type);card.classList.add('enabled');
+  var st=document.getElementById('tfa-'+type+'-st');st.className='tfa-st on';st.innerHTML='<span class="d"></span> <span>Enabled</span>';
+  var btn=document.getElementById('tfa-'+type+'-btn');btn.className='tfa-btn dis';btn.textContent='Disable';
+  updateSecurityLevel();
+  var names={gauth:'Google Authenticator',sms:'SMS Authentication',email:'Email Authentication'};
+  toast(names[type]+' enabled successfully');
+}
+
+function disableTfa(type){
+  tfaState[type]=false;
+  var card=document.getElementById('tfa-'+type);card.classList.remove('enabled');
+  var st=document.getElementById('tfa-'+type+'-st');st.className='tfa-st off';st.innerHTML='<span class="d"></span> <span>Disabled</span>';
+  var btn=document.getElementById('tfa-'+type+'-btn');btn.className='tfa-btn';btn.textContent='Enable';
+  updateSecurityLevel();
+  var names={gauth:'Google Authenticator',sms:'SMS Authentication',email:'Email Authentication'};
+  toast(names[type]+' disabled');
+}
+
+function updateSecurityLevel(){
+  var count=Object.values(tfaState).filter(Boolean).length;
+  var el=document.querySelectorAll('.stat-mini');
+  el.forEach(function(s){
+    var lbl=s.querySelector('.label');
+    if(lbl&&lbl.textContent==='Security Level'){
+      var v=s.querySelector('.val');
+      if(count===0){v.className='val warn';v.textContent='Basic';s.querySelector('.sub').textContent='Enable 2FA to upgrade'}
+      else if(count===1){v.className='val';v.style.color='var(--orange)';v.textContent='Medium';s.querySelector('.sub').textContent='1 method active'}
+      else if(count===2){v.className='val ok';v.textContent='Strong';s.querySelector('.sub').textContent='2 methods active'}
+      else{v.className='val ok';v.textContent='Maximum';s.querySelector('.sub').textContent='All methods active'}
+    }
+  });
+}
+
+function copySecret(){
+  var txt=generatedSecret;
+  if(navigator.clipboard){navigator.clipboard.writeText(txt).then(function(){toast('Secret key copied')})}
+  else{var ta=document.createElement('textarea');ta.value=txt;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);toast('Secret key copied')}
+}
+
+function drawQR(){
+  var c=document.getElementById('qrCanvas');if(!c)return;
+  var ctx=c.getContext('2d');c.width=160;c.height=160;
+  var size=160,cells=25,cell=size/cells;
+  ctx.fillStyle=document.body.classList.contains('light')?'#ffffff':'#0e1119';
+  ctx.fillRect(0,0,size,size);
+  ctx.fillStyle=document.body.classList.contains('light')?'#1a1d26':'#eef2f7';
+  /* Generate deterministic pattern from secret */
+  var seed=0;for(var i=0;i<generatedSecret.length;i++)seed=(seed*31+generatedSecret.charCodeAt(i))&0x7fffffff;
+  function rng(){seed=(seed*16807)%2147483647;return(seed-1)/2147483646}
+  /* Position detection patterns */
+  function drawFinder(ox,oy){
+    for(var y=0;y<7;y++)for(var x=0;x<7;x++){
+      if(y===0||y===6||x===0||x===6||(y>=2&&y<=4&&x>=2&&x<=4))ctx.fillRect((ox+x)*cell,(oy+y)*cell,cell,cell);
+    }
+  }
+  drawFinder(0,0);drawFinder(cells-7,0);drawFinder(0,cells-7);
+  /* Timing */
+  for(var i=8;i<cells-8;i++){if(i%2===0){ctx.fillRect(i*cell,6*cell,cell,cell);ctx.fillRect(6*cell,i*cell,cell,cell)}}
+  /* Data modules */
+  for(var y=0;y<cells;y++)for(var x=0;x<cells;x++){
+    if(x<8&&y<8)continue;if(x>=cells-7&&y<8)continue;if(x<8&&y>=cells-7)continue;
+    if(x===6||y===6)continue;
+    if(rng()>0.55)ctx.fillRect(x*cell,y*cell,cell,cell);
+  }
+  /* Accent overlay on finders */
+  ctx.fillStyle='rgba(0,223,162,0.15)';
+  ctx.fillRect(0,0,7*cell,7*cell);
+  ctx.fillRect((cells-7)*cell,0,7*cell,7*cell);
+  ctx.fillRect(0,(cells-7)*cell,7*cell,7*cell);
+}
+</script>
+
+<!-- 2FA MODAL -->
+<div class="modal-overlay" id="tfaModal" onclick="if(event.target===this)closeTfaModal()">
+<div class="modal-box" id="tfaModalBox"></div>
+</div>
+</body>
+</body>
+</html>
