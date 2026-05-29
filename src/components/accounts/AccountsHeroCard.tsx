@@ -1,4 +1,4 @@
-import { Wallet, Check, ShieldAlert } from "lucide-react";
+import { Wallet } from "lucide-react";
 import type { UserAccount } from "@/store/userStore";
 
 interface AccountsHeroCardProps {
@@ -8,78 +8,103 @@ interface AccountsHeroCardProps {
 }
 
 export function AccountsHeroCard({
-  firstName,
   accounts,
   verificationStatus,
 }: AccountsHeroCardProps) {
   const totalBalance = accounts.reduce(
     (sum, acc) => sum + (Number(acc.balance) || 0),
-    0,
+    0
   );
   const activeCount = accounts.filter((a) => a.status === "active").length;
   const primaryCurrency = accounts[0]?.currency || "USD";
-  const isVerified = verificationStatus === "approved";
+  const isVerified =
+    verificationStatus === "approved" || verificationStatus === "verified";
 
   return (
     <div
-      className="relative rounded-2xl border border-white/[0.06] p-5 shadow-[0_8px_32px_rgba(0,0,0,0.35),inset_0_1px_0_rgba(255,255,255,0.04)] md:p-7"
+      className="relative mb-7 flex flex-wrap items-center justify-between gap-5 overflow-hidden rounded-2xl border border-white/[0.06] p-6 shadow-[0_8px_32px_rgba(0,0,0,0.35),inset_0_1px_0_rgba(255,255,255,0.04)]"
       style={{
         background:
-          "linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01))",
+          "linear-gradient(145deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02))",
       }}
     >
-      <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
-        {/* Identity / intro */}
-        <div className="flex items-center gap-4">
-          <div
-            className="relative flex h-[64px] w-[64px] shrink-0 items-center justify-center rounded-2xl"
-            style={{
-              background:
-                "radial-gradient(circle, rgba(0,223,162,0.18) 0%, rgba(0,223,162,0.02) 60%, transparent 80%)",
-            }}
+      <span
+        aria-hidden
+        className="pointer-events-none absolute inset-0 rounded-2xl"
+        style={{
+          background:
+            "linear-gradient(175deg,rgba(255,255,255,0.03),transparent 40%)",
+        }}
+      />
+
+      {/* uwc-left */}
+      <div className="relative z-10 flex items-center gap-4">
+        <div
+          className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[14px] border-[1.5px]"
+          style={{
+            background:
+              "linear-gradient(135deg, rgba(0,223,162,0.1), rgba(0,223,162,0.06))",
+            borderColor: "rgba(0,223,162,0.2)",
+            color: "#00dfa2",
+          }}
+        >
+          <Wallet className="h-[1.2rem] w-[1.2rem]" />
+        </div>
+
+        <div className="min-w-0">
+          <h2 className="font-[Outfit,sans-serif] text-[1.1rem] font-bold uppercase tracking-[0.03em] text-[#eef2f7]">
+            User's Wallets
+          </h2>
+          <p
+            className="mt-[2px] text-[0.78rem] leading-[1.5] text-[#4a5468]"
+            style={{ maxWidth: "340px" }}
           >
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl border-2 border-white/[0.08] bg-[#00dfa2]/10">
-              <Wallet className="h-6 w-6 text-[#00dfa2]" />
-            </div>
-          </div>
-
-          <div className="min-w-0 flex-1">
-            <h2 className="truncate text-base font-extrabold tracking-tight text-[#eef2f7]">
-              {firstName ? `${firstName}'s wallets` : "Your wallets"}
-            </h2>
-            <p className="mt-0.5 truncate text-[11px] font-semibold text-[#4a5468]">
-              Manage balances and move funds between your wallets
-            </p>
+            Manage balances and move funds between your wallets
+          </p>
+          <div
+            className="mt-2 inline-flex items-center gap-1.5 rounded-[20px] border px-[14px] py-[5px] text-[0.7rem] font-bold uppercase tracking-[0.04em]"
+            style={
+              isVerified
+                ? {
+                    background: "rgba(30,215,96,0.08)",
+                    color: "#1ED760",
+                    borderColor: "rgba(30,215,96,0.2)",
+                  }
+                : {
+                    background: "rgba(255,152,0,0.08)",
+                    color: "#FF9800",
+                    borderColor: "rgba(255,152,0,0.2)",
+                  }
+            }
+          >
             <span
-              className={`mt-2 inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.06em] ${
-                isVerified
-                  ? "border-[#00dfa2]/20 bg-[#00dfa2]/[0.08] text-[#00dfa2]"
-                  : "border-[#f43f5e]/20 bg-[#f43f5e]/[0.08] text-[#f43f5e]"
-              }`}
-            >
-              {isVerified ? (
-                <Check className="h-3 w-3" />
-              ) : (
-                <ShieldAlert className="h-3 w-3" />
-              )}
-              {isVerified ? "Verified" : "Unverified"}
-            </span>
+              className="h-1.5 w-1.5 rounded-full"
+              style={{
+                background: isVerified ? "#1ED760" : "#FF9800",
+                boxShadow: `0 0 8px ${isVerified ? "#1ED760" : "#FF9800"}`,
+                animation: "pulse 2s ease-in-out infinite",
+              }}
+            />
+            {isVerified ? "Verified" : "Unverified"}
           </div>
         </div>
+      </div>
 
-        {/* Mini stat tiles */}
-        <div className="grid grid-cols-3 gap-2 md:max-w-[340px]">
-          <Stat
-            label="Total Balance"
-            value={`$${totalBalance.toLocaleString(undefined, {
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2,
-            })}`}
-            accent
-          />
-          <Stat label="Active" value={`${activeCount}/${accounts.length}`} />
-          <Stat label="Currency" value={primaryCurrency} />
-        </div>
+      {/* uwc-right */}
+      <div className="relative z-10 flex flex-wrap gap-4">
+        <Stat
+          label="Total Balance"
+          value={`$${totalBalance.toLocaleString(undefined, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          })}`}
+          accent
+        />
+        <Stat
+          label="Active"
+          value={`${activeCount}/${accounts.length || 0}`}
+        />
+        <Stat label="Currency" value={primaryCurrency} />
       </div>
     </div>
   );
@@ -95,17 +120,28 @@ function Stat({
   accent?: boolean;
 }) {
   return (
-    <div className="flex flex-col items-center justify-center gap-1 rounded-lg border border-white/[0.04] bg-white/[0.02] px-2 py-2.5">
+    <div
+      className="relative min-w-[130px] overflow-hidden rounded-xl border border-white/[0.06] px-[22px] py-4 text-center"
+      style={{ background: "rgba(255,255,255,0.04)" }}
+    >
       <span
-        className={`font-mono text-[11px] font-extrabold ${
+        aria-hidden
+        className="pointer-events-none absolute left-0 right-0 top-0 h-px"
+        style={{
+          background:
+            "linear-gradient(90deg, transparent, rgba(255,255,255,0.06), transparent)",
+        }}
+      />
+      <div
+        className={`mb-1 font-[JetBrains_Mono,monospace] text-[1.2rem] font-bold ${
           accent ? "text-[#00dfa2]" : "text-[#eef2f7]"
         }`}
       >
         {value}
-      </span>
-      <span className="text-[9px] font-bold uppercase tracking-[0.06em] text-[#4a5468]">
+      </div>
+      <div className="text-[0.68rem] font-bold uppercase tracking-[0.06em] text-[#4a5468]">
         {label}
-      </span>
+      </div>
     </div>
   );
 }

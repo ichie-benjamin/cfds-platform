@@ -15,85 +15,107 @@ export function TradingPlanCard({
   color,
 }: TradingPlanCardProps) {
   const accent = color || "#00dfa2";
+  const planName = planTitle || "Basic";
+  const initial = planName.charAt(0).toUpperCase();
 
   return (
     <div
-      className="relative rounded-2xl border border-white/[0.06] p-5 shadow-[0_8px_32px_rgba(0,0,0,0.35),inset_0_1px_0_rgba(255,255,255,0.04)] md:p-7"
+      className="relative overflow-hidden rounded-2xl border border-white/[0.06] p-5 shadow-[0_8px_32px_rgba(0,0,0,0.35),inset_0_1px_0_rgba(255,255,255,0.04)]"
       style={{
         background:
-          "linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01))",
+          "linear-gradient(145deg,rgba(255,255,255,0.05),rgba(255,255,255,0.02))",
       }}
     >
-      <div className="mb-5 flex items-center gap-2">
-        <span className="text-[11px] font-bold uppercase tracking-[0.08em] text-[#00dfa2]">
+      <span
+        aria-hidden
+        className="pointer-events-none absolute inset-0 rounded-2xl"
+        style={{
+          background:
+            "linear-gradient(175deg,rgba(255,255,255,0.03),transparent 40%)",
+        }}
+      />
+
+      <div className="relative z-10">
+        <div className="mb-3.5 text-[0.68rem] font-bold uppercase tracking-[0.08em] text-[#00dfa2]">
           Trading Plan
-        </span>
-        <div className="h-px flex-1 bg-white/[0.06]" />
-      </div>
+        </div>
 
-      <div className="mb-5 flex items-center gap-3">
-        <div
-          className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-xl border border-white/[0.08]"
-          style={{ background: `${accent}1A` }}
+        <div className="mb-1 flex items-center gap-3">
+          <div
+            className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-[10px] border font-[Outfit,sans-serif] text-[1.1rem] font-extrabold"
+            style={{
+              background:
+                "linear-gradient(135deg, rgba(0,223,162,0.1), rgba(0,223,162,0.06))",
+              borderColor: "rgba(0,223,162,0.15)",
+              color: accent,
+            }}
+          >
+            {image ? (
+              <img
+                src={image}
+                alt={planName}
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              initial
+            )}
+          </div>
+        </div>
+
+        <div className="mt-3 font-[Outfit,sans-serif] text-[1rem] font-extrabold uppercase tracking-[0.04em] text-[#eef2f7]">
+          {planName}
+        </div>
+        <div className="mb-3.5 text-[0.72rem] text-[#4a5468]">
+          Current account plan
+        </div>
+
+        <div className="flex flex-col">
+          <PlanRow label="Plan" value={planName.toUpperCase()} />
+          <PlanRow
+            label="Leverage"
+            value={leverage ? `1:${leverage}` : "1:1"}
+            accentColor={accent}
+          />
+        </div>
+
+        <Link
+          to="/main/marketplace"
+          className="group mt-4 flex items-center gap-2 rounded-lg border px-3 py-2.5 transition-all"
+          style={{
+            borderColor: "rgba(0,223,162,0.2)",
+            background: "rgba(0,223,162,0.06)",
+            color: "#00dfa2",
+          }}
         >
-          {image ? (
-            <img
-              src={image}
-              alt={planTitle || "Plan"}
-              className="h-full w-full object-cover"
-            />
-          ) : (
-            <Crown className="h-5 w-5" style={{ color: accent }} />
-          )}
-        </div>
-        <div className="min-w-0">
-          <p className="truncate text-sm font-extrabold text-[#eef2f7]">
-            {planTitle || "Basic"}
-          </p>
-          <p className="truncate text-[10px] font-medium text-[#4a5468]">
-            Current account plan
-          </p>
-        </div>
+          <Crown className="h-3.5 w-3.5" />
+          <span className="flex-1 text-[0.76rem] font-bold">Upgrade Plan</span>
+          <ArrowRight className="h-3.5 w-3.5 -translate-x-1 opacity-0 transition-all group-hover:translate-x-0 group-hover:opacity-100" />
+        </Link>
       </div>
-
-      <div className="space-y-3">
-        <Row label="Plan" value={planTitle || "Basic"} />
-        <Row
-          label="Leverage"
-          value={leverage ? `1:${leverage}` : "1:1"}
-          highlight={accent}
-        />
-      </div>
-
-      <Link
-        to="/main/marketplace"
-        className="group mt-5 flex items-center gap-3 rounded-lg border border-[#00dfa2]/20 bg-[#00dfa2]/[0.06] px-3 py-2.5 text-[#00dfa2] transition-all hover:border-[#00dfa2]/40 hover:bg-[#00dfa2]/[0.1]"
-      >
-        <Crown className="h-4 w-4" />
-        <span className="flex-1 text-xs font-bold">Upgrade Plan</span>
-        <ArrowRight className="h-3.5 w-3.5 -translate-x-1 opacity-0 transition-all group-hover:translate-x-0 group-hover:opacity-100" />
-      </Link>
     </div>
   );
 }
 
-function Row({
+function PlanRow({
   label,
   value,
-  highlight,
+  accentColor,
 }: {
   label: string;
   value: string;
-  highlight?: string;
+  accentColor?: string;
 }) {
   return (
-    <div className="flex items-center justify-between gap-3 border-b border-white/[0.04] py-2 last:border-0">
-      <span className="text-[11px] font-bold uppercase tracking-[0.08em] text-[#4a5468]">
+    <div
+      className="flex items-center justify-between border-t py-2.5"
+      style={{ borderColor: "rgba(255,255,255,0.04)" }}
+    >
+      <span className="text-[0.72rem] font-bold uppercase tracking-[0.06em] text-[#4a5468]">
         {label}
       </span>
       <span
-        className="truncate text-xs font-bold capitalize"
-        style={{ color: highlight || "#eef2f7" }}
+        className="font-[JetBrains_Mono,monospace] text-[0.82rem] font-bold"
+        style={{ color: accentColor || "#eef2f7" }}
       >
         {value}
       </span>

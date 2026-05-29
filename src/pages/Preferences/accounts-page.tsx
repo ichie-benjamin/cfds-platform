@@ -1,23 +1,13 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import {
-  Wallet,
-  Menu,
-  BadgeDollarSign,
-  Coins,
-  Landmark,
-  BriefcaseBusiness,
-} from "lucide-react";
+import { Wallet, Menu } from "lucide-react";
 import { TickerBar } from "@/components/dashboard/TickerBar";
 import { AccountsSidebar } from "@/components/accounts/AccountsSidebar";
 import { HelpSupportCard } from "@/components/settings/HelpSupportCard";
+import { AccountsHeroCard } from "@/components/accounts/AccountsHeroCard";
 import { YourWalletsCard } from "@/components/accounts/YourWalletsCard";
 import { TransferFundsCard } from "@/components/accounts/TransferFundsCard";
 import { TradingPlanCard } from "@/components/accounts/TradingPlanCard";
 import { AccountsQuickLinksCard } from "@/components/accounts/AccountsQuickLinksCard";
-import { StatCard } from "@/components/dashboard/StatCard";
-import { Button } from "@/components/ui/button";
-import { useCurrency } from "@/hooks/useCurrency";
 import useUserStore from "@/store/userStore";
 
 export default function AccountsPage() {
@@ -25,19 +15,6 @@ export default function AccountsPage() {
   const user = useUserStore((state) => state.user);
   const accounts = user?.accounts || [];
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const navigate = useNavigate();
-  const { formatCurrency } = useCurrency();
-
-  // Mirror Dashboard's safe-fallback shape (TradingDashboard.tsx lines 49-57)
-  const balance = user?.balance || 0;
-  const tradesSummary = user?.trades_summary || {
-    total_pnl: 0,
-    total_wins: 0,
-    total_losses: 0,
-    trades_count: 0,
-    total_deposit: 0,
-    win_rate: 0,
-  };
 
   // Hide MainLayout chrome while this page is mounted (matches security/settings pattern)
   useEffect(() => {
@@ -59,6 +36,10 @@ export default function AccountsPage() {
         }
         body.accounts-active .flex-1.md\\:ml-\\[80px\\] {
           margin-left: 0 !important;
+        }
+        @keyframes accounts-pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+        .accounts-active .accounts-status-pulse {
+          animation: accounts-pulse 2s ease-in-out infinite;
         }
       `}</style>
 
@@ -95,105 +76,37 @@ export default function AccountsPage() {
             style={{ maxHeight: "100%" }}
           >
             {/* Page header */}
-            <div className="mb-7 flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#00dfa2]/10">
-                <Wallet className="h-5 w-5 text-[#00dfa2]" />
+            <div className="mb-7 flex items-center gap-3.5">
+              <div
+                className="flex h-11 w-11 items-center justify-center rounded-xl"
+                style={{
+                  background: "rgba(0,223,162,0.1)",
+                  color: "#00dfa2",
+                }}
+              >
+                <Wallet className="h-[1.1rem] w-[1.1rem]" />
               </div>
               <div>
                 <h1 className="font-[Outfit,sans-serif] text-[1.65rem] font-extrabold tracking-[-0.03em] text-[#eef2f7]">
                   Accounts
                 </h1>
-                <p className="mt-0.5 text-[0.87rem] text-[#4a5468]">
+                <p className="mt-0.5 text-[0.82rem] text-[#4a5468]">
                   View your wallets and move funds between them
                 </p>
               </div>
             </div>
 
-            {/* ═══ DASHBOARD-STYLE STAT PANELS ═══ */}
-            {/* Mirrors TradingDashboard.tsx lines 199-276 — same grid, same components, same data shape. */}
-            <div className="mb-6 grid gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-[1.2fr_1fr_1fr_0.9fr]">
-              {/* Account Balance — special card (mirrors Dashboard) */}
-              <div className="scard relative overflow-hidden rounded-2xl border-[1.5px] border-white/[0.06] bg-[#111319] p-[22px_24px] shadow-[0_8px_32px_rgba(0,0,0,0.35),inset_0_1px_0_rgba(255,255,255,0.04)]">
-                <div className="pointer-events-none absolute inset-0 rounded-2xl bg-[linear-gradient(175deg,rgba(255,255,255,0.03),transparent_40%)]" />
-                <div className="relative">
-                  <div className="mb-4 flex items-center justify-between">
-                    <div className="text-[0.72rem] font-bold uppercase tracking-[0.06em] text-[#4a5468]">
-                      Account Balance
-                    </div>
-                    <div className="flex h-9 w-9 items-center justify-center rounded-[10px] bg-[rgba(0,223,162,0.1)] text-[#00dfa2]">
-                      <BadgeDollarSign className="h-[0.82rem] w-[0.82rem]" />
-                    </div>
-                  </div>
-
-                  <div className="mb-4 font-mono text-[1.45rem] font-extrabold tracking-[-0.02em] text-[#00dfa2]">
-                    {formatCurrency(balance)}
-                  </div>
-
-                  <div className="flex flex-col gap-2 border-t border-white/[0.04] pt-[14px]">
-                    <div className="flex items-center justify-between text-[0.78rem]">
-                      <span className="font-medium text-[#4a5468]">Leverage</span>
-                      <span className="font-mono font-bold text-[#00dfa2]">
-                        1:{user?.account_type?.leverage || "1"}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between text-[0.78rem]">
-                      <span className="font-medium text-[#4a5468]">
-                        {user?.custom_wallet || "Credit Balance"}
-                      </span>
-                      <span className="font-mono font-bold text-[#8b97a8]">
-                        {formatCurrency(user?.credit_balance || 0)}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between text-[0.78rem]">
-                      <span className="font-medium text-[#4a5468]">
-                        Account Type
-                      </span>
-                      <span className="font-mono font-bold text-[#00dfa2]">
-                        {user?.account_type?.title || "Starter"}
-                      </span>
-                    </div>
-                  </div>
-
-                  <Button
-                    className="mt-4 flex w-full items-center justify-center gap-2 rounded-[10px] border-none bg-[linear-gradient(135deg,#00dfa2,#00b881)] py-3 text-[0.82rem] font-bold tracking-[0.02em] text-[#07080c] shadow-[0_4px_16px_rgba(0,223,162,0.2)] transition-all hover:-translate-y-px hover:shadow-[0_6px_24px_rgba(0,223,162,0.3)]"
-                    onClick={() => navigate("/trading")}
-                  >
-                    Open Trade Room
-                  </Button>
-                </div>
-              </div>
-
-              <StatCard
-                title="Total PNL"
-                value={formatCurrency(tradesSummary.total_pnl)}
-                icon={<Coins className="h-5 w-5" />}
-                footnote="Based on current exchange rate"
-                metaValue={`${tradesSummary.win_rate.toFixed(2)}%`}
-                iconTone="blue"
-              />
-
-              <StatCard
-                title="Total Deposits"
-                value={formatCurrency(tradesSummary.total_deposit || 0)}
-                icon={<Landmark className="h-5 w-5" />}
-                metaValue={`No deposits yet`}
-                iconTone="violet"
-              />
-
-              <StatCard
-                title="Profitable Orders"
-                value={`${tradesSummary.total_wins}`}
-                secondaryValue={`/${tradesSummary.trades_count}`}
-                icon={<BriefcaseBusiness className="h-3 w-3" />}
-                metaValue={`No orders placed`}
-                iconTone="amber"
-              />
-            </div>
-
-            {/* Two-column content */}
-            <div className="grid items-start gap-5 xl:grid-cols-[1fr_340px]">
+            {/* Two-column content (1fr 300px on desktop, stacked below) */}
+            <div className="grid items-start gap-6 xl:grid-cols-[1fr_300px]">
               {/* ── LEFT COLUMN ── */}
-              <div className="flex flex-col gap-5">
+              <div className="flex flex-col">
+                {/* Hero replaces the previous dashboard stat tiles */}
+                <AccountsHeroCard
+                  firstName={user?.first_name}
+                  accounts={accounts}
+                  verificationStatus={user?.verification_status}
+                />
+
                 <YourWalletsCard accounts={accounts} />
 
                 <TransferFundsCard accounts={accounts} />
