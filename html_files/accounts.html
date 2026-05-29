@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Accounts - 1 Trade Market</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --accent:#00dfa2;--accent-light:#00ffc3;--accent-dark:#00b881;
+  --accent-dim:rgba(0,223,162,0.1);--accent-glow:rgba(0,223,162,0.25);
+  --bg:#07080c;--bg2:#0a0d15;
+  --t1:#eef2f7;--t2:#8b97a8;--t3:#4a5468;--t4:#3a4556;
+  --glass-bg:rgba(255,255,255,0.04);--glass-border:rgba(255,255,255,0.08);--glass-highlight:rgba(255,255,255,0.12);
+  --green:#1ED760;--green-dim:rgba(30,215,96,.1);
+  --red:#f43f5e;--red-dim:rgba(244,63,94,.1);
+  --orange:#FF9800;--orange-dim:rgba(255,152,0,.08);
+  --blue:#5b8def;--amber:#F0B429;
+  --sans:'Inter',-apple-system,sans-serif;--heading:'Outfit',sans-serif;--mono:'JetBrains Mono',monospace;
+  --radius:8px;--radius-lg:12px;--radius-xl:16px;
+}
+html{-webkit-font-smoothing:antialiased;}
+body{font-family:var(--sans);background:linear-gradient(135deg,var(--bg) 0%,var(--bg2) 100%);color:var(--t1);min-height:100vh;line-height:1.6;overflow-x:hidden;}
+a{color:inherit;text-decoration:none;}
+
+/* TICKER */
+.ticker-bar{background:rgba(7,8,12,.75);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,.04);overflow:hidden;white-space:nowrap;height:32px;display:flex;align-items:center;z-index:299;}
+.ticker-track{display:inline-flex;animation:tickerScroll 45s linear infinite;gap:0;}
+.ticker-track:hover{animation-play-state:paused;}
+.ticker-item{display:inline-flex;align-items:center;gap:8px;padding:0 22px;font-size:.68rem;font-weight:600;border-right:1px solid rgba(255,255,255,.03);transition:background .2s;}
+.ticker-item:hover{background:rgba(255,255,255,.03);}
+.ti-sym{font-family:var(--mono);font-weight:700;color:var(--t1);letter-spacing:.04em;font-size:.66rem;}
+.ti-price{font-family:var(--mono);color:var(--t2);font-size:.66rem;}
+.ti-change{font-family:var(--mono);font-size:.63rem;font-weight:700;}
+.ti-up{color:var(--accent);}.ti-dn{color:var(--red);}
+.ti-dot{width:4px;height:4px;border-radius:50%;}
+.ti-dot.up{background:var(--accent);box-shadow:0 0 6px var(--accent);}
+.ti-dot.dn{background:var(--red);box-shadow:0 0 6px var(--red);}
+@keyframes tickerScroll{0%{transform:translateX(0);}100%{transform:translateX(-50%);}}
+
+/* LAYOUT */
+.page-wrap{display:grid;grid-template-columns:64px 1fr;min-height:calc(100vh - 32px);}
+@media(max-width:768px){.page-wrap{grid-template-columns:1fr;}}
+
+/* SIDEBAR */
+.sidebar{background:linear-gradient(180deg,rgba(255,255,255,0.03),rgba(255,255,255,0.01));border-right:1px solid rgba(255,255,255,0.05);display:flex;flex-direction:column;align-items:center;padding:14px 0;gap:2px;}
+@media(max-width:768px){.sidebar{display:none;}}
+.sb-icon{width:42px;height:42px;display:flex;align-items:center;justify-content:center;border-radius:12px;cursor:pointer;color:var(--t3);font-size:.88rem;transition:all .2s;position:relative;text-decoration:none;}
+.sb-icon:hover{background:rgba(255,255,255,0.06);color:var(--t1);}
+.sb-icon.on{background:rgba(255,255,255,0.1);color:var(--t1);border:1.5px solid rgba(100,160,255,0.6);box-shadow:0 0 14px rgba(100,160,255,0.25);}
+.sb-icon .tip{position:absolute;left:54px;background:rgba(10,13,21,.95);border:1px solid rgba(255,255,255,.1);color:var(--t1);font-size:.68rem;font-weight:600;padding:4px 10px;border-radius:6px;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .15s;z-index:400;}
+.sb-icon:hover .tip{opacity:1;}
+.sb-div{width:26px;height:1px;background:rgba(255,255,255,0.05);margin:6px 0;}
+.sb-spacer{flex:1;}
+
+/* MAIN */
+.main{padding:28px 32px;overflow-y:auto;max-height:calc(100vh - 32px);}
+@media(max-width:768px){.main{padding:16px;}}
+
+/* CONTENT GRID */
+.content-grid{display:grid;grid-template-columns:1fr 300px;gap:24px;}
+@media(max-width:1100px){.content-grid{grid-template-columns:1fr;}}
+
+/* PAGE HEADER */
+.pg-header{display:flex;align-items:center;gap:14px;margin-bottom:28px;}
+.pg-icon{width:44px;height:44px;border-radius:12px;background:var(--accent-dim);display:flex;align-items:center;justify-content:center;font-size:1.1rem;color:var(--accent);}
+.pg-header h1{font-family:var(--heading);font-size:1.65rem;font-weight:800;letter-spacing:-.03em;}
+.pg-header p{font-size:.82rem;color:var(--t3);margin-top:2px;}
+
+/* GLASS CARD */
+.gcard{background:linear-gradient(145deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02));border:1px solid rgba(255,255,255,0.06);border-radius:16px;padding:24px;position:relative;overflow:hidden;backdrop-filter:blur(40px);-webkit-backdrop-filter:blur(40px);box-shadow:0 8px 32px rgba(0,0,0,0.35),inset 0 1px 0 rgba(255,255,255,0.04);}
+.gcard::before{content:'';position:absolute;top:0;left:0;right:0;height:100%;background:linear-gradient(175deg,rgba(255,255,255,.03),transparent 40%);pointer-events:none;border-radius:16px;}
+
+/* USER WALLET CARD */
+.user-wallet-card{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;flex-wrap:wrap;gap:20px;}
+.uwc-left{display:flex;align-items:center;gap:16px;}
+.uwc-icon{width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,var(--accent-dim),rgba(0,223,162,0.06));border:1.5px solid rgba(0,223,162,0.2);display:flex;align-items:center;justify-content:center;font-size:1.2rem;color:var(--accent);}
+.uwc-info h2{font-family:var(--heading);font-size:1.1rem;font-weight:700;text-transform:uppercase;letter-spacing:.03em;margin-bottom:2px;}
+.uwc-info p{font-size:.78rem;color:var(--t3);max-width:340px;line-height:1.5;}
+.uwc-badge{display:inline-flex;align-items:center;gap:6px;padding:5px 14px;border-radius:20px;font-size:.7rem;font-weight:700;background:rgba(255,152,0,.08);color:var(--orange);border:1px solid rgba(255,152,0,.2);margin-top:8px;letter-spacing:.04em;}
+.uwc-badge .dot{width:6px;height:6px;border-radius:50%;background:var(--orange);box-shadow:0 0 8px var(--orange);animation:pulse 2s ease-in-out infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
+.uwc-right{display:flex;gap:16px;flex-wrap:wrap;}
+.uwc-stat{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:16px 22px;text-align:center;min-width:130px;position:relative;overflow:hidden;}
+.uwc-stat::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.06),transparent);}
+.uwc-stat .val{font-family:var(--mono);font-size:1.2rem;font-weight:700;margin-bottom:4px;}
+.uwc-stat .val.accent{color:var(--accent);}
+.uwc-stat .lbl{font-size:.68rem;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.06em;}
+
+/* SECTION HEADER */
+.sec-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;}
+.sec-left{display:flex;align-items:center;gap:10px;}
+.sec-left i{color:var(--accent);font-size:.92rem;}
+.sec-left h3{font-family:var(--heading);font-size:1.05rem;font-weight:700;}
+.sec-count{font-family:var(--mono);font-size:.72rem;font-weight:600;color:var(--t3);background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);padding:4px 12px;border-radius:20px;}
+
+/* TABLE */
+.wtable{width:100%;border-collapse:collapse;}
+.wtable thead th{font-size:.68rem;font-weight:700;color:var(--t4);text-transform:uppercase;letter-spacing:.08em;padding:14px 16px;text-align:left;border-bottom:1px solid rgba(255,255,255,0.06);}
+.wtable tbody td{padding:16px;font-size:.84rem;border-bottom:1px solid rgba(255,255,255,0.03);vertical-align:middle;transition:background .15s;}
+.wtable tbody tr:last-child td{border-bottom:none;}
+.wtable tbody tr{transition:background .15s;}
+.wtable tbody tr:hover td{background:rgba(255,255,255,0.025);}
+.wtable tbody tr:nth-child(even) td{background:rgba(255,255,255,0.01);}
+.wtable tbody tr:nth-child(even):hover td{background:rgba(255,255,255,0.035);}
+.td-account{display:flex;flex-direction:column;gap:2px;}
+.td-account .name{font-weight:600;color:var(--t1);font-size:.84rem;}
+.td-account .sub{font-size:.72rem;color:var(--t3);}
+.td-balance{font-family:var(--mono);font-weight:700;font-size:.88rem;}
+.td-currency{font-family:var(--mono);font-size:.82rem;color:var(--t2);}
+.td-type{font-size:.78rem;color:var(--t2);font-weight:500;}
+.status-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:20px;font-size:.7rem;font-weight:700;}
+.status-badge.active{background:var(--green-dim);color:var(--green);border:1px solid rgba(30,215,96,.2);}
+.status-badge .sdot{width:5px;height:5px;border-radius:50%;}
+.status-badge.active .sdot{background:var(--green);box-shadow:0 0 6px var(--green);}
+
+/* TRANSFER SECTION */
+.transfer-section{margin-top:28px;}
+.transfer-desc{font-size:.82rem;color:var(--t3);line-height:1.6;margin-bottom:16px;}
+.transfer-label{font-size:.72rem;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.08em;margin-bottom:16px;}
+.transfer-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;}
+@media(max-width:600px){.transfer-row{grid-template-columns:1fr;}}
+.form-group label{display:block;font-size:.72rem;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;}
+.form-group select,.form-group input{width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:12px 16px;color:var(--t1);font-family:var(--sans);font-size:.84rem;outline:none;transition:border-color .2s,box-shadow .2s;}
+.form-group select:focus,.form-group input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,223,162,0.08);}
+.form-group select{cursor:pointer;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%238b97a8' d='M6 8L1 3h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;}
+.form-group select option{background:var(--bg2);color:var(--t1);}
+.form-group input::placeholder{color:var(--t3);}
+.amount-input-wrap{margin-bottom:20px;}
+.transfer-btn{width:100%;padding:14px;border:none;border-radius:12px;background:linear-gradient(135deg,var(--accent),var(--accent-dark));color:#07080c;font-family:var(--sans);font-size:.88rem;font-weight:800;cursor:pointer;transition:all .2s;letter-spacing:.02em;box-shadow:0 4px 16px rgba(0,223,162,.2);display:flex;align-items:center;justify-content:center;gap:8px;}
+.transfer-btn:hover{transform:translateY(-1px);box-shadow:0 6px 24px rgba(0,223,162,.3);}
+.transfer-btn:active{transform:translateY(0);}
+
+/* RIGHT SIDEBAR CARDS */
+.right-col{display:flex;flex-direction:column;gap:20px;}
+.rcard{background:linear-gradient(145deg,rgba(255,255,255,0.05),rgba(255,255,255,0.02));border:1px solid rgba(255,255,255,0.06);border-radius:16px;padding:20px;position:relative;overflow:hidden;backdrop-filter:blur(40px);-webkit-backdrop-filter:blur(40px);box-shadow:0 8px 32px rgba(0,0,0,0.35),inset 0 1px 0 rgba(255,255,255,0.04);}
+.rcard::before{content:'';position:absolute;top:0;left:0;right:0;height:100%;background:linear-gradient(175deg,rgba(255,255,255,.03),transparent 40%);pointer-events:none;border-radius:16px;}
+.rcard-label{font-size:.68rem;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.08em;margin-bottom:14px;}
+
+/* Trading Plan Card */
+.plan-icon-wrap{display:flex;align-items:center;gap:12px;margin-bottom:4px;}
+.plan-icon{width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,var(--accent-dim),rgba(0,223,162,0.06));border:1px solid rgba(0,223,162,0.15);display:flex;align-items:center;justify-content:center;font-family:var(--heading);font-size:1.1rem;font-weight:800;color:var(--accent);}
+.plan-name{font-family:var(--heading);font-size:1rem;font-weight:800;text-transform:uppercase;letter-spacing:.04em;margin-top:12px;}
+.plan-sub{font-size:.72rem;color:var(--t3);margin-bottom:14px;}
+.plan-rows{display:flex;flex-direction:column;gap:0;}
+.plan-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-top:1px solid rgba(255,255,255,0.04);}
+.plan-row .pr-label{font-size:.72rem;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.06em;}
+.plan-row .pr-value{font-family:var(--mono);font-size:.82rem;font-weight:700;color:var(--t1);}
+.plan-row .pr-value.accent{color:var(--accent);}
+
+/* Quick Links */
+.qlinks{display:flex;flex-direction:column;gap:4px;}
+.qlink{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;font-size:.82rem;font-weight:500;color:var(--t2);transition:all .15s;cursor:pointer;text-decoration:none;}
+.qlink:hover{background:rgba(255,255,255,0.04);color:var(--t1);}
+.qlink i{width:16px;text-align:center;font-size:.78rem;color:var(--accent);}
+.qlink .arrow{margin-left:auto;font-size:.68rem;color:var(--t3);transition:transform .15s;}
+.qlink:hover .arrow{transform:translateX(3px);color:var(--t1);}
+
+/* Help Card */
+.help-text{font-size:.8rem;color:var(--t3);line-height:1.6;margin-bottom:16px;}
+.help-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:10px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent-dark));border:none;color:#07080c;font-family:var(--sans);font-size:.82rem;font-weight:700;cursor:pointer;transition:all .2s;box-shadow:0 4px 16px rgba(0,223,162,.15);}
+.help-btn:hover{transform:translateY(-1px);box-shadow:0 6px 24px rgba(0,223,162,.25);}
+.help-btn:active{transform:translateY(0);}
+
+/* TOAST */
+.toast{position:fixed;bottom:30px;right:30px;padding:14px 24px;border-radius:12px;font-size:.84rem;font-weight:600;z-index:999;transform:translateY(100px);opacity:0;transition:all .3s ease;pointer-events:none;max-width:380px;display:flex;align-items:center;gap:10px;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);}
+.toast.success{background:linear-gradient(135deg,rgba(0,223,162,0.15),rgba(0,223,162,0.08));border:1px solid rgba(0,223,162,0.3);color:var(--accent);}
+.toast.error{background:linear-gradient(135deg,rgba(244,63,94,0.15),rgba(244,63,94,0.08));border:1px solid rgba(244,63,94,0.3);color:var(--red);}
+.toast.show{transform:translateY(0);opacity:1;}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:4px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,.06);border-radius:2px;}
+
+.mono{font-family:var(--mono);}
+</style>
+</head>
+<body>
+
+<!-- TICKER -->
+<div class="ticker-bar"><div class="ticker-track" id="tickerTrack"></div></div>
+
+<!-- PAGE WRAP -->
+<div class="page-wrap">
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+<a class="sb-icon" href="dashboard.html"><i class="fas fa-th-large"></i><span class="tip">Dashboard</span></a>
+<a class="sb-icon" href="trade-room.html"><i class="fas fa-chart-line"></i><span class="tip">Trade Room</span></a>
+<a class="sb-icon" href="market.html"><i class="fas fa-globe"></i><span class="tip">Markets</span></a>
+<a class="sb-icon on" href="accounts.html"><i class="fas fa-wallet"></i><span class="tip">Accounts</span></a>
+<a class="sb-icon" href="ira-deposit-withdraw.html"><i class="fas fa-download"></i><span class="tip">Deposit / Withdraw</span></a>
+<div class="sb-div"></div>
+<a class="sb-icon" href="trading-plans.html"><i class="fas fa-clock-rotate-left"></i><span class="tip">Trading Plans</span></a>
+<a class="sb-icon" href="fund-protection.html"><i class="fas fa-shield-halved"></i><span class="tip">Fund Protection</span></a>
+<a class="sb-icon" href="fund-managers.html"><i class="fas fa-users"></i><span class="tip">Fund Managers</span></a>
+<a class="sb-icon" href="welcome-bonus.html"><i class="fas fa-gift"></i><span class="tip">Welcome Bonus</span></a>
+<div class="sb-spacer"></div>
+<div class="sb-div"></div>
+<a class="sb-icon" href="settings.html"><i class="fas fa-gear"></i><span class="tip">Settings</span></a>
+<a class="sb-icon" href="login.html"><i class="fas fa-arrow-right-from-bracket"></i><span class="tip">Logout</span></a>
+</aside>
+
+<!-- MAIN -->
+<div class="main">
+
+<!-- PAGE HEADER -->
+<div class="pg-header">
+  <div class="pg-icon"><i class="fas fa-wallet"></i></div>
+  <div>
+    <h1>Accounts</h1>
+    <p>View your wallets and move funds between them</p>
+  </div>
+</div>
+
+<div class="content-grid">
+<div class="left-col">
+
+<!-- USER WALLET CARD -->
+<div class="gcard user-wallet-card">
+  <div class="uwc-left">
+    <div class="uwc-icon"><i class="fas fa-wallet"></i></div>
+    <div class="uwc-info">
+      <h2>User's Wallets</h2>
+      <p>Manage balances and move funds between your wallets</p>
+      <div class="uwc-badge"><span class="dot"></span> UNVERIFIED</div>
+    </div>
+  </div>
+  <div class="uwc-right">
+    <div class="uwc-stat">
+      <div class="val accent mono" id="totalBalDisplay">$30,000.00</div>
+      <div class="lbl">Total Balance</div>
+    </div>
+    <div class="uwc-stat">
+      <div class="val mono">3/3</div>
+      <div class="lbl">Active</div>
+    </div>
+    <div class="uwc-stat">
+      <div class="val mono">USD</div>
+      <div class="lbl">Currency</div>
+    </div>
+  </div>
+</div>
+
+<!-- YOUR WALLETS TABLE -->
+<div class="sec-header">
+  <div class="sec-left">
+    <i class="fas fa-wallet"></i>
+    <h3>Your Wallets</h3>
+  </div>
+  <div class="sec-count">3 wallets</div>
+</div>
+
+<div class="gcard" style="padding:0;overflow:hidden;margin-bottom:28px;">
+  <table class="wtable">
+    <thead>
+      <tr>
+        <th>Account</th>
+        <th>Type</th>
+        <th>Balance</th>
+        <th>Currency</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody id="walletTableBody">
+      <tr>
+        <td><div class="td-account"><span class="name">CFD 232323 Total Balance</span></div></td>
+        <td><span class="td-type">Balance</span></td>
+        <td><span class="td-balance" id="bal-total">$30,000</span></td>
+        <td><span class="td-currency">USD</span></td>
+        <td><span class="status-badge active"><span class="sdot"></span> Active</span></td>
+      </tr>
+      <tr>
+        <td><div class="td-account"><span class="name">CFD 232323 Bonus wallet</span></div></td>
+        <td><span class="td-type">Bonus</span></td>
+        <td><span class="td-balance" id="bal-bonus">$0</span></td>
+        <td><span class="td-currency">USD</span></td>
+        <td><span class="status-badge active"><span class="sdot"></span> Active</span></td>
+      </tr>
+      <tr>
+        <td><div class="td-account"><span class="name">CFD 232323 Available balance wallet</span></div></td>
+        <td><span class="td-type">Available</span></td>
+        <td><span class="td-balance" id="bal-available">$0</span></td>
+        <td><span class="td-currency">USD</span></td>
+        <td><span class="status-badge active"><span class="sdot"></span> Active</span></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- TRANSFER BETWEEN WALLETS -->
+<div class="transfer-section">
+  <div class="sec-header">
+    <div class="sec-left">
+      <i class="fas fa-right-left"></i>
+      <h3>Transfer Between Wallets</h3>
+    </div>
+  </div>
+
+  <div class="gcard">
+    <p class="transfer-desc">Move funds between your wallets instantly. Transfers are free and settle immediately, no fees, no waiting.</p>
+    <div class="transfer-label">Transfer Funds Between Your Accounts</div>
+
+    <div class="transfer-row">
+      <div class="form-group">
+        <label>From account</label>
+        <select id="fromAccount">
+          <option value="bonus">CFD 232323 Bonus wallet ($0)</option>
+          <option value="available">CFD 232323 Available balance wallet ($0)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>To account</label>
+        <select id="toAccount">
+          <option value="available">CFD 232323 Available balance wallet ($0)</option>
+          <option value="bonus">CFD 232323 Bonus wallet ($0)</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="amount-input-wrap">
+      <div class="form-group">
+        <label>Amount (USD)</label>
+        <input type="number" id="transferAmount" placeholder="Enter amount to transfer" min="0" step="0.01">
+      </div>
+    </div>
+
+    <button class="transfer-btn" id="transferBtn" onclick="makeTransfer()">
+      <i class="fas fa-paper-plane"></i> Make Transfer
+    </button>
+  </div>
+</div>
+
+</div><!-- /left-col -->
+
+<!-- RIGHT SIDEBAR -->
+<div class="right-col">
+
+<!-- Trading Plan -->
+<div class="rcard">
+  <div class="rcard-label">Trading Plan</div>
+  <div class="plan-icon-wrap">
+    <div class="plan-icon">B</div>
+  </div>
+  <div class="plan-name">Starter Account</div>
+  <div class="plan-sub">Current account plan</div>
+  <div class="plan-rows">
+    <div class="plan-row">
+      <span class="pr-label">Plan</span>
+      <span class="pr-value">STARTER ACCOUNT</span>
+    </div>
+    <div class="plan-row">
+      <span class="pr-label">Leverage</span>
+      <span class="pr-value accent mono">1:10</span>
+    </div>
+  </div>
+</div>
+
+<!-- Quick Links -->
+<div class="rcard">
+  <div class="rcard-label">Quick Links</div>
+  <div class="qlinks">
+    <a class="qlink" href="ira-deposit-withdraw.html"><i class="fas fa-arrow-down"></i> Deposit Funds <span class="arrow"><i class="fas fa-chevron-right"></i></span></a>
+    <a class="qlink" href="ira-deposit-withdraw.html"><i class="fas fa-arrow-up"></i> Withdraw Funds <span class="arrow"><i class="fas fa-chevron-right"></i></span></a>
+    <a class="qlink" href="ira-deposit-withdraw.html"><i class="fas fa-clock-rotate-left"></i> Deposit History <span class="arrow"><i class="fas fa-chevron-right"></i></span></a>
+    <a class="qlink" href="earning.html"><i class="fas fa-chart-pie"></i> Earning <span class="arrow"><i class="fas fa-chevron-right"></i></span></a>
+  </div>
+</div>
+
+<!-- Need Help -->
+<div class="rcard">
+  <div class="rcard-label">Need Help?</div>
+  <p class="help-text">Can't find a setting? Our support team can help with account configuration and troubleshooting.</p>
+  <button class="help-btn"><i class="fas fa-headset"></i> Contact Support</button>
+</div>
+
+</div><!-- /right-col -->
+</div><!-- /content-grid -->
+
+</div><!-- /main -->
+</div><!-- /page-wrap -->
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+/* TICKER */
+var TICKER_COINS=[
+  {sym:'BTC',price:'67234.50',change:'+3.45'},{sym:'ETH',price:'3892.10',change:'+2.18'},
+  {sym:'XRP',price:'2.48',change:'+1.92'},{sym:'SOL',price:'189.32',change:'+4.67'},
+  {sym:'DOGE',price:'0.42',change:'+5.23'},{sym:'ADA',price:'1.15',change:'+2.14'},
+  {sym:'POL',price:'0.89',change:'+7.32'},{sym:'LINK',price:'18.45',change:'+1.84'},
+  {sym:'ARB',price:'1.78',change:'+3.21'},{sym:'OP',price:'3.45',change:'+2.76'},
+  {sym:'AVAX',price:'48.92',change:'+2.45'},{sym:'ATOM',price:'12.34',change:'+1.67'},
+  {sym:'NEAR',price:'7.89',change:'+3.92'},{sym:'INJ',price:'56.78',change:'+4.18'},
+  {sym:'DOT',price:'8.56',change:'-1.32'}
+];
+function buildTicker(){var t=document.getElementById('tickerTrack');if(!t)return;var h=TICKER_COINS.map(function(c){var up=c.change.startsWith('+');return'<div class="ticker-item"><span class="ti-dot '+(up?'up':'dn')+'"></span><span class="ti-sym">'+c.sym+'</span><span class="ti-price">$'+c.price+'</span><span class="ti-change '+(up?'ti-up':'ti-dn')+'">'+c.change+'%</span></div>';}).join('');t.innerHTML=h+h;}
+function fluctuatePrices(){document.querySelectorAll('.ticker-item').forEach(function(item){var p=item.querySelector('.ti-price');if(!p||Math.random()>.15)return;var b=parseFloat(p.textContent.replace('$','').replace(',',''));var d=b*(Math.random()*.004-.002);var n=Math.max(.01,b+d);p.textContent='$'+n.toFixed(2);p.style.color=d>=0?'var(--accent)':'var(--red)';setTimeout(function(){p.style.color='';},600);});}
+buildTicker();setInterval(fluctuatePrices,2500);
+
+/* WALLET DATA */
+var wallets={
+  total:30000,
+  bonus:0,
+  available:0
+};
+
+function formatMoney(n){return '$'+n.toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0});}
+function formatMoneyFull(n){return '$'+n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
+
+function updateUI(){
+  document.getElementById('bal-total').textContent=formatMoney(wallets.total);
+  document.getElementById('bal-bonus').textContent=formatMoney(wallets.bonus);
+  document.getElementById('bal-available').textContent=formatMoney(wallets.available);
+  document.getElementById('totalBalDisplay').textContent=formatMoneyFull(wallets.total+wallets.bonus+wallets.available);
+
+  var fromSel=document.getElementById('fromAccount');
+  var toSel=document.getElementById('toAccount');
+  var fromVal=fromSel.value;
+  var toVal=toSel.value;
+
+  var opts=[
+    {val:'bonus',label:'CFD 232323 Bonus wallet ('+formatMoney(wallets.bonus)+')'},
+    {val:'available',label:'CFD 232323 Available balance wallet ('+formatMoney(wallets.available)+')'}
+  ];
+
+  fromSel.innerHTML='';
+  toSel.innerHTML='';
+  opts.forEach(function(o){
+    var opt1=document.createElement('option');
+    opt1.value=o.val;opt1.textContent=o.label;
+    if(o.val===fromVal)opt1.selected=true;
+    fromSel.appendChild(opt1);
+
+    var opt2=document.createElement('option');
+    opt2.value=o.val;opt2.textContent=o.label;
+    if(o.val===toVal)opt2.selected=true;
+    toSel.appendChild(opt2);
+  });
+}
+
+function showToast(msg,type){
+  var t=document.getElementById('toast');
+  t.textContent=msg;
+  t.className='toast '+type;
+  setTimeout(function(){t.classList.add('show');},10);
+  setTimeout(function(){t.classList.remove('show');},3500);
+}
+
+function makeTransfer(){
+  var from=document.getElementById('fromAccount').value;
+  var to=document.getElementById('toAccount').value;
+  var amountStr=document.getElementById('transferAmount').value;
+  var amount=parseFloat(amountStr);
+
+  if(!amountStr||isNaN(amount)||amount<=0){
+    showToast('Please enter a valid amount greater than 0.','error');
+    return;
+  }
+
+  if(from==='total'||to==='total'){
+    showToast('Total Balance wallet is restricted from transfers.','error');
+    return;
+  }
+
+  if(from===to){
+    showToast('Source and destination wallets must be different.','error');
+    return;
+  }
+
+  if(amount>wallets[from]){
+    showToast('Insufficient balance. Available: '+formatMoney(wallets[from]),'error');
+    return;
+  }
+
+  wallets[from]-=amount;
+  wallets[to]+=amount;
+  updateUI();
+  document.getElementById('transferAmount').value='';
+  showToast('Transfer of '+formatMoneyFull(amount)+' completed successfully!','success');
+}
+</script>
+
+</body>
+</html>

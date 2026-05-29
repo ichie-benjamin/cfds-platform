@@ -223,22 +223,30 @@ export default function SettingsPage() {
                 <SecurityScoreCard />
                 <TwoFactorSection />
 
-                <section className="mb-6">
-                  <div className="mb-4 flex items-center gap-2.5">
-                    <div
-                      className="flex h-9 w-9 items-center justify-center rounded-[10px]"
-                      style={{
-                        background: "rgba(0,223,162,0.1)",
-                        color: "#00dfa2",
-                      }}
-                    >
-                      <Lock className="h-[0.88rem] w-[0.88rem]" />
-                    </div>
-                    <h2 className="text-[1.05rem] font-extrabold text-[#eef2f7]">
+                <section
+                  className="relative mb-[18px] overflow-hidden rounded-2xl border border-white/[0.06] p-6"
+                  style={{
+                    background:
+                      "linear-gradient(145deg,rgba(255,255,255,0.05),rgba(255,255,255,0.015))",
+                    boxShadow: "0 4px 24px rgba(0,0,0,0.2)",
+                  }}
+                >
+                  <div
+                    className="pointer-events-none absolute inset-0 rounded-2xl"
+                    style={{
+                      background:
+                        "linear-gradient(175deg,rgba(255,255,255,0.025),transparent 40%)",
+                    }}
+                  />
+                  <div className="relative z-10 mb-[18px] flex items-center gap-2.5 border-b border-white/[0.06] pb-[14px]">
+                    <Lock className="h-3.5 w-3.5 text-[#00dfa2]" />
+                    <h3 className="flex-1 font-[Outfit,sans-serif] text-[0.95rem] font-bold text-[#eef2f7]">
                       Password &amp; Login
-                    </h2>
+                    </h3>
                   </div>
-                  <PasswordChangeCard />
+                  <div className="relative z-10">
+                    <PasswordChangeCard />
+                  </div>
                 </section>
 
                 <AccountActionsCard />

@@ -13,31 +13,46 @@ export function ProfileIdentityCard({
   country,
   phone,
 }: ProfileIdentityCardProps) {
+  const isVerified =
+    verificationStatus === "verified" || verificationStatus === "approved";
+
   return (
     <div
-      className="relative rounded-2xl border border-white/[0.04] p-4 shadow-[0_4px_16px_rgba(0,0,0,0.25),inset_0_1px_0_rgba(255,255,255,0.03)] md:p-5"
+      className="relative overflow-hidden rounded-2xl border border-white/[0.06] p-5"
       style={{
         background:
-          "linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.005))",
+          "linear-gradient(145deg,rgba(255,255,255,0.05),rgba(255,255,255,0.015))",
+        boxShadow: "0 4px 24px rgba(0,0,0,0.2)",
       }}
     >
-      <div className="mb-4 flex items-center gap-2">
-        <span className="text-[10px] font-bold uppercase tracking-[0.1em] text-[#5f6b82]">
-          Identity
-        </span>
-        <div className="h-px flex-1 bg-white/[0.04]" />
+      <div
+        className="pointer-events-none absolute inset-0 rounded-2xl"
+        style={{
+          background:
+            "linear-gradient(175deg,rgba(255,255,255,0.025),transparent 40%)",
+        }}
+      />
+
+      <div className="relative z-10 mb-3.5 text-[0.58rem] font-bold uppercase tracking-[0.08em] text-[#00dfa2]">
+        Identity
       </div>
 
-      <div className="space-y-3">
-        <Row label="Account ID" value={accountId || "—"} />
-        <Row label="Plan" value={planTitle || "Basic"} />
+      <div className="relative z-10">
+        <Row label="Account ID" value={accountId || "—"} mono />
+        <Row
+          label="Plan"
+          value={(planTitle || "Basic").toUpperCase()}
+          tone="ok"
+          mono
+        />
         <Row
           label="Verification"
-          value={verificationStatus || "—"}
-          highlight={verificationStatus === "verified" ? "#00dfa2" : "#FF9800"}
+          value={isVerified ? "Verified" : "Incomplete"}
+          tone={isVerified ? "ok" : "warn"}
+          mono
         />
-        <Row label="Country" value={country || "—"} />
-        <Row label="Phone" value={phone || "—"} />
+        <Row label="Country" value={country || "—"} mono />
+        <Row label="Phone" value={phone || "—"} mono />
       </div>
     </div>
   );
@@ -46,20 +61,27 @@ export function ProfileIdentityCard({
 function Row({
   label,
   value,
-  highlight,
+  tone,
+  mono,
 }: {
   label: string;
   value: string;
-  highlight?: string;
+  tone?: "ok" | "warn";
+  mono?: boolean;
 }) {
+  const valueColor =
+    tone === "ok" ? "#00dfa2" : tone === "warn" ? "#FF9800" : "#eef2f7";
   return (
-    <div className="flex items-center justify-between gap-3 border-b border-white/[0.04] py-2 last:border-0">
-      <span className="text-[11px] font-bold uppercase tracking-[0.08em] text-[#8b97a8]">
-        {label}
-      </span>
+    <div
+      className="flex items-center justify-between gap-3 border-b py-2 last:border-0"
+      style={{ borderColor: "rgba(255,255,255,0.025)" }}
+    >
+      <span className="text-[0.76rem] font-medium text-[#4a5468]">{label}</span>
       <span
-        className="truncate text-xs font-bold capitalize"
-        style={{ color: highlight || "#d7dde5" }}
+        className={`truncate text-[0.72rem] font-semibold capitalize ${
+          mono ? "font-[JetBrains_Mono,monospace]" : ""
+        }`}
+        style={{ color: valueColor }}
       >
         {value}
       </span>

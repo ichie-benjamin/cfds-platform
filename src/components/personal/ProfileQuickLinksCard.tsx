@@ -7,36 +7,43 @@ import {
 } from "lucide-react";
 
 const LINKS = [
-  { to: "/main/security", icon: ShieldCheck, label: "Security Settings" },
-  { to: "/main/kyc", icon: IdCard, label: "KYC Verification" },
-  { to: "/main/settings", icon: Sliders, label: "Preferences" },
-  { to: "/main/chat", icon: MessageSquare, label: "Contact Support" },
+  { to: "/main/security", icon: ShieldCheck, label: "Security" },
+  { to: "/main/kyc", icon: IdCard, label: "KYC" },
+  { to: "/main/settings", icon: Sliders, label: "Prefs" },
+  { to: "/main/chat", icon: MessageSquare, label: "Support" },
 ];
 
 export function ProfileQuickLinksCard() {
   return (
-    <div className="px-1">
-      <div className="mb-2 flex items-center gap-2">
-        <span className="text-[10px] font-bold uppercase tracking-[0.1em] text-[#5f6b82]">
-          Quick Actions
-        </span>
-        <div className="h-px flex-1 bg-white/[0.04]" />
+    <div
+      className="relative overflow-hidden rounded-2xl border border-white/[0.06] p-5"
+      style={{
+        background:
+          "linear-gradient(145deg,rgba(255,255,255,0.05),rgba(255,255,255,0.015))",
+        boxShadow: "0 4px 24px rgba(0,0,0,0.2)",
+      }}
+    >
+      <div
+        className="pointer-events-none absolute inset-0 rounded-2xl"
+        style={{
+          background:
+            "linear-gradient(175deg,rgba(255,255,255,0.025),transparent 40%)",
+        }}
+      />
+
+      <div className="relative z-10 mb-3.5 text-[0.58rem] font-bold uppercase tracking-[0.08em] text-[#00dfa2]">
+        Quick Actions
       </div>
 
-      <div className="grid grid-cols-2 gap-2">
+      <div className="relative z-10 grid grid-cols-2 gap-1.5">
         {LINKS.map(({ to, icon: Icon, label }) => (
           <Link
             key={to}
             to={to}
-            aria-label={label}
-            className="group flex items-center gap-2.5 rounded-xl bg-white/[0.015] px-3 py-2.5 transition-all hover:bg-[#00dfa2]/[0.05]"
+            className="group flex items-center gap-[7px] rounded-lg border border-white/[0.06] bg-white/[0.035] px-2.5 py-[9px] text-[0.68rem] font-semibold text-[#4a5468] transition-colors hover:border-[#00dfa2]/[0.12] hover:bg-[#00dfa2]/[0.08] hover:text-[#00dfa2]"
           >
-            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[10px] bg-[#00dfa2]/[0.08] text-[#00dfa2] transition-colors group-hover:bg-[#00dfa2]/[0.16]">
-              <Icon className="h-3.5 w-3.5" />
-            </span>
-            <span className="truncate text-[11px] font-semibold leading-tight text-[#8b97a8] transition-colors group-hover:text-[#eef2f7]">
-              {label}
-            </span>
+            <Icon className="h-[0.7rem] w-[0.7rem] text-[#3a4556] transition-colors group-hover:text-[#00dfa2]" />
+            <span className="truncate">{label}</span>
           </Link>
         ))}
       </div>

@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Earning - 1 Trade Market</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --accent:#00dfa2;--accent-light:#00ffc3;--accent-dark:#00b881;
+  --accent-dim:rgba(0,223,162,0.1);--accent-glow:rgba(0,223,162,0.25);
+  --bg:#07080c;--bg2:#0a0d15;
+  --t1:#eef2f7;--t2:#8b97a8;--t3:#4a5468;--t4:#3a4556;
+  --glass-bg:rgba(255,255,255,0.04);--glass-border:rgba(255,255,255,0.08);--glass-highlight:rgba(255,255,255,0.12);
+  --green:#1ED760;--green-dim:rgba(30,215,96,.1);
+  --red:#f43f5e;--red-dim:rgba(244,63,94,.1);
+  --orange:#FF9800;--orange-dim:rgba(255,152,0,.08);
+  --blue:#5b8def;--amber:#F0B429;
+  --sans:'Inter',-apple-system,sans-serif;--heading:'Outfit',sans-serif;--mono:'JetBrains Mono',monospace;
+  --radius:8px;--radius-lg:12px;--radius-xl:16px;
+}
+html{-webkit-font-smoothing:antialiased;}
+body{font-family:var(--sans);background:linear-gradient(135deg,var(--bg) 0%,var(--bg2) 100%);color:var(--t1);min-height:100vh;line-height:1.6;overflow-x:hidden;}
+a{color:inherit;text-decoration:none;}
+
+/* TICKER */
+.ticker-bar{background:rgba(7,8,12,.75);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,.04);overflow:hidden;white-space:nowrap;height:32px;display:flex;align-items:center;z-index:299;}
+.ticker-track{display:inline-flex;animation:tickerScroll 45s linear infinite;gap:0;}
+.ticker-track:hover{animation-play-state:paused;}
+.ticker-item{display:inline-flex;align-items:center;gap:8px;padding:0 22px;font-size:.68rem;font-weight:600;border-right:1px solid rgba(255,255,255,.03);transition:background .2s;}
+.ticker-item:hover{background:rgba(255,255,255,.03);}
+.ti-sym{font-family:var(--mono);font-weight:700;color:var(--t1);letter-spacing:.04em;font-size:.66rem;}
+.ti-price{font-family:var(--mono);color:var(--t2);font-size:.66rem;}
+.ti-change{font-family:var(--mono);font-size:.63rem;font-weight:700;}
+.ti-up{color:var(--accent);}.ti-dn{color:var(--red);}
+.ti-dot{width:4px;height:4px;border-radius:50%;}
+.ti-dot.up{background:var(--accent);box-shadow:0 0 6px var(--accent);}
+.ti-dot.dn{background:var(--red);box-shadow:0 0 6px var(--red);}
+@keyframes tickerScroll{0%{transform:translateX(0);}100%{transform:translateX(-50%);}}
+
+/* LAYOUT */
+.page-wrap{display:grid;grid-template-columns:64px 1fr;min-height:calc(100vh - 32px);}
+@media(max-width:768px){.page-wrap{grid-template-columns:1fr;}}
+
+/* SIDEBAR */
+.sidebar{background:linear-gradient(180deg,rgba(255,255,255,0.03),rgba(255,255,255,0.01));border-right:1px solid rgba(255,255,255,0.05);display:flex;flex-direction:column;align-items:center;padding:14px 0;gap:2px;}
+@media(max-width:768px){.sidebar{display:none;}}
+.sb-icon{width:42px;height:42px;display:flex;align-items:center;justify-content:center;border-radius:12px;cursor:pointer;color:var(--t3);font-size:.88rem;transition:all .2s;position:relative;text-decoration:none;}
+.sb-icon:hover{background:rgba(255,255,255,0.06);color:var(--t1);}
+.sb-icon.on{background:rgba(255,255,255,0.1);color:var(--t1);border:1.5px solid rgba(100,160,255,0.6);box-shadow:0 0 14px rgba(100,160,255,0.25);}
+.sb-icon .tip{position:absolute;left:54px;background:rgba(10,13,21,.95);border:1px solid rgba(255,255,255,.1);color:var(--t1);font-size:.68rem;font-weight:600;padding:4px 10px;border-radius:6px;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .15s;z-index:400;}
+.sb-icon:hover .tip{opacity:1;}
+.sb-div{width:26px;height:1px;background:rgba(255,255,255,0.05);margin:6px 0;}
+.sb-spacer{flex:1;}
+
+/* MAIN */
+.main{padding:28px 32px;overflow-y:auto;max-height:calc(100vh - 32px);}
+@media(max-width:768px){.main{padding:16px;}}
+
+/* CONTENT GRID */
+.content-grid{display:grid;grid-template-columns:1fr 300px;gap:24px;}
+@media(max-width:1100px){.content-grid{grid-template-columns:1fr;}}
+
+/* PAGE HEADER */
+.pg-header{display:flex;align-items:center;gap:14px;margin-bottom:28px;}
+.pg-icon{width:44px;height:44px;border-radius:12px;background:var(--accent-dim);display:flex;align-items:center;justify-content:center;font-size:1.1rem;color:var(--accent);}
+.pg-header h1{font-family:var(--heading);font-size:1.65rem;font-weight:800;letter-spacing:-.03em;}
+.pg-header p{font-size:.82rem;color:var(--t3);margin-top:2px;}
+
+/* GLASS CARD */
+.gcard{background:linear-gradient(145deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02));border:1px solid rgba(255,255,255,0.06);border-radius:16px;padding:24px;position:relative;overflow:hidden;backdrop-filter:blur(40px);-webkit-backdrop-filter:blur(40px);box-shadow:0 8px 32px rgba(0,0,0,0.35),inset 0 1px 0 rgba(255,255,255,0.04);}
+.gcard::before{content:'';position:absolute;top:0;left:0;right:0;height:100%;background:linear-gradient(175deg,rgba(255,255,255,.03),transparent 40%);pointer-events:none;border-radius:16px;}
+
+/* USER WALLET CARD */
+.user-wallet-card{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;flex-wrap:wrap;gap:20px;}
+.uwc-left{display:flex;align-items:center;gap:16px;}
+.uwc-icon{width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,var(--accent-dim),rgba(0,223,162,0.06));border:1.5px solid rgba(0,223,162,0.2);display:flex;align-items:center;justify-content:center;font-size:1.2rem;color:var(--accent);}
+.uwc-info h2{font-family:var(--heading);font-size:1.1rem;font-weight:700;text-transform:uppercase;letter-spacing:.03em;margin-bottom:2px;}
+.uwc-info p{font-size:.78rem;color:var(--t3);max-width:340px;line-height:1.5;}
+.uwc-badge{display:inline-flex;align-items:center;gap:6px;padding:5px 14px;border-radius:20px;font-size:.7rem;font-weight:700;background:rgba(255,152,0,.08);color:var(--orange);border:1px solid rgba(255,152,0,.2);margin-top:8px;letter-spacing:.04em;}
+.uwc-badge .dot{width:6px;height:6px;border-radius:50%;background:var(--orange);box-shadow:0 0 8px var(--orange);animation:pulse 2s ease-in-out infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
+.uwc-right{display:flex;gap:16px;flex-wrap:wrap;}
+.uwc-stat{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:16px 22px;text-align:center;min-width:130px;position:relative;overflow:hidden;}
+.uwc-stat::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.06),transparent);}
+.uwc-stat .val{font-family:var(--mono);font-size:1.2rem;font-weight:700;margin-bottom:4px;}
+.uwc-stat .val.accent{color:var(--accent);}
+.uwc-stat .lbl{font-size:.68rem;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.06em;}
+
+/* SECTION HEADER */
+.sec-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;}
+.sec-left{display:flex;align-items:center;gap:10px;}
+.sec-left i{color:var(--accent);font-size:.92rem;}
+.sec-left h3{font-family:var(--heading);font-size:1.05rem;font-weight:700;}
+.sec-count{font-family:var(--mono);font-size:.72rem;font-weight:600;color:var(--t3);background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);padding:4px 12px;border-radius:20px;}
+.live-dot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);display:inline-block;animation:pulse 2s ease-in-out infinite;margin-left:8px;}
+
+/* DEPOSIT SECTION */
+.deposit-desc{font-size:.82rem;color:var(--t3);line-height:1.6;margin-bottom:16px;}
+.deposit-label{font-size:.72rem;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.08em;margin-bottom:16px;}
+.form-group label{display:block;font-size:.72rem;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;}
+.form-group select,.form-group input{width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:12px 16px;color:var(--t1);font-family:var(--sans);font-size:.84rem;outline:none;transition:border-color .2s,box-shadow .2s;}
+.form-group select:focus,.form-group input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,223,162,0.08);}
+.form-group select{cursor:pointer;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%238b97a8' d='M6 8L1 3h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;}
+.form-group select option{background:var(--bg2);color:var(--t1);}
+.form-group input::placeholder{color:var(--t3);}
+.min-notice{font-size:.72rem;color:var(--t3);margin-top:6px;}
+.deposit-btn{width:100%;padding:14px;border:none;border-radius:12px;background:linear-gradient(135deg,var(--accent),var(--accent-dark));color:#07080c;font-family:var(--sans);font-size:.88rem;font-weight:800;cursor:pointer;transition:all .2s;letter-spacing:.02em;box-shadow:0 4px 16px rgba(0,223,162,.2);display:flex;align-items:center;justify-content:center;gap:8px;margin-top:16px;}
+.deposit-btn:hover{transform:translateY(-1px);box-shadow:0 6px 24px rgba(0,223,162,.3);}
+.deposit-btn:active{transform:translateY(0);}
+
+/* MARKET PERFORMANCE GRID */
+.perf-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+@media(max-width:900px){.perf-grid{grid-template-columns:repeat(2,1fr);}}
+@media(max-width:600px){.perf-grid{grid-template-columns:1fr;}}
+.perf-card{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.05);border-radius:12px;padding:16px;position:relative;transition:all .2s;cursor:default;}
+.perf-card:hover{background:rgba(255,255,255,0.05);border-color:rgba(255,255,255,0.08);}
+.perf-card.up{border-left:3px solid var(--green);}
+.perf-card.dn{border-left:3px solid var(--red);}
+.perf-top{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.perf-token-icon{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.68rem;font-weight:800;color:#fff;flex-shrink:0;}
+.perf-token-name{font-family:var(--heading);font-size:.88rem;font-weight:700;}
+.perf-price{font-family:var(--mono);font-size:1rem;font-weight:700;margin-bottom:6px;}
+.perf-change{display:flex;align-items:center;gap:8px;}
+.perf-amount{font-family:var(--mono);font-size:.78rem;font-weight:600;}
+.perf-pct{font-family:var(--mono);font-size:.72rem;font-weight:700;padding:2px 8px;border-radius:6px;}
+.perf-pct.up{background:var(--green-dim);color:var(--green);}
+.perf-pct.dn{background:var(--red-dim);color:var(--red);}
+.perf-amount.up{color:var(--green);}
+.perf-amount.dn{color:var(--red);}
+.sparkline{display:flex;align-items:flex-end;gap:2px;height:24px;margin-top:10px;}
+.sparkline .bar{width:4px;border-radius:2px;transition:height .3s;}
+
+/* PRODUCTS TABLE */
+.products-toolbar{display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap;}
+.products-toolbar .search-wrap{flex:1;min-width:180px;position:relative;}
+.products-toolbar .search-wrap input{width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:10px 14px 10px 36px;color:var(--t1);font-family:var(--sans);font-size:.82rem;outline:none;transition:border-color .2s,box-shadow .2s;}
+.products-toolbar .search-wrap input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,223,162,0.08);}
+.products-toolbar .search-wrap input::placeholder{color:var(--t3);}
+.products-toolbar .search-wrap i{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--t3);font-size:.78rem;}
+.filter-select{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:10px 32px 10px 14px;color:var(--t2);font-family:var(--sans);font-size:.82rem;outline:none;cursor:pointer;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%238b97a8' d='M6 8L1 3h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;transition:border-color .2s;}
+.filter-select:focus{border-color:var(--accent);}
+.filter-select option{background:var(--bg2);color:var(--t1);}
+
+.ptable{width:100%;border-collapse:collapse;}
+.ptable thead th{font-size:.68rem;font-weight:700;color:var(--t4);text-transform:uppercase;letter-spacing:.08em;padding:14px 16px;text-align:left;border-bottom:1px solid rgba(255,255,255,0.06);}
+.ptable tbody td{padding:14px 16px;font-size:.84rem;border-bottom:1px solid rgba(255,255,255,0.03);vertical-align:middle;transition:background .15s;}
+.ptable tbody tr:last-child td{border-bottom:none;}
+.ptable tbody tr{transition:background .15s;cursor:pointer;}
+.ptable tbody tr:hover td{background:rgba(255,255,255,0.025);}
+.ptable tbody tr:nth-child(even) td{background:rgba(255,255,255,0.01);}
+.ptable tbody tr:nth-child(even):hover td{background:rgba(255,255,255,0.035);}
+.token-cell{display:flex;align-items:center;gap:10px;}
+.token-icon{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.6rem;font-weight:800;color:#fff;flex-shrink:0;}
+.token-name{font-weight:600;}
+.apy-val{font-family:var(--mono);font-weight:700;color:var(--green);}
+.term-val{font-size:.82rem;color:var(--t2);}
+.expand-chevron{transition:transform .2s;color:var(--t3);font-size:.78rem;}
+.expand-chevron.open{transform:rotate(180deg);color:var(--accent);}
+
+/* EXPANDED ROW */
+.expand-row{display:none;}
+.expand-row.open{display:table-row;}
+.expand-content{padding:20px 24px;background:rgba(255,255,255,0.02);}
+.expand-title{font-family:var(--heading);font-size:.95rem;font-weight:700;margin-bottom:14px;}
+.expand-form{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;}
+@media(max-width:600px){.expand-form{grid-template-columns:1fr;}}
+.earnings-calc{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.05);border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:8px;}
+.calc-row{display:flex;justify-content:space-between;align-items:center;}
+.calc-label{font-size:.72rem;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.04em;}
+.calc-val{font-family:var(--mono);font-size:.88rem;font-weight:700;color:var(--green);}
+.subscribe-btn{padding:12px 24px;border:none;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent-dark));color:#07080c;font-family:var(--sans);font-size:.84rem;font-weight:700;cursor:pointer;transition:all .2s;box-shadow:0 4px 16px rgba(0,223,162,.2);}
+.subscribe-btn:hover{transform:translateY(-1px);box-shadow:0 6px 24px rgba(0,223,162,.3);}
+.subscribe-btn:active{transform:translateY(0);}
+.subscribe-btn:disabled{opacity:.4;cursor:not-allowed;transform:none;box-shadow:none;}
+.sub-note{font-size:.72rem;color:var(--orange);margin-top:6px;}
+
+/* DAILY GROWTH */
+.growth-table{width:100%;border-collapse:collapse;}
+.growth-table thead th{font-size:.68rem;font-weight:700;color:var(--t4);text-transform:uppercase;letter-spacing:.08em;padding:12px 14px;text-align:left;border-bottom:1px solid rgba(255,255,255,0.06);}
+.growth-table tbody td{padding:12px 14px;font-size:.82rem;border-bottom:1px solid rgba(255,255,255,0.03);}
+.growth-val{font-family:var(--mono);font-weight:600;color:var(--green);}
+.empty-state{text-align:center;padding:40px 20px;color:var(--t3);font-size:.88rem;}
+.empty-state i{font-size:2rem;color:var(--t4);margin-bottom:12px;display:block;}
+
+/* FAQ */
+.faq-title{font-family:var(--heading);font-size:1.1rem;font-weight:700;text-align:center;margin-bottom:20px;}
+.faq-item{border-bottom:1px solid rgba(255,255,255,0.05);}
+.faq-item:last-child{border-bottom:none;}
+.faq-q{display:flex;align-items:center;justify-content:space-between;padding:16px 0;cursor:pointer;font-size:.88rem;font-weight:600;color:var(--t1);transition:color .2s;}
+.faq-q:hover{color:var(--accent);}
+.faq-q i{transition:transform .3s;color:var(--t3);font-size:.72rem;}
+.faq-q.open i{transform:rotate(180deg);color:var(--accent);}
+.faq-a{max-height:0;overflow:hidden;transition:max-height .3s ease;font-size:.82rem;color:var(--t3);line-height:1.7;}
+.faq-a.open{max-height:200px;}
+.faq-a-inner{padding:0 0 16px 0;}
+
+/* RIGHT SIDEBAR CARDS */
+.right-col{display:flex;flex-direction:column;gap:20px;}
+.rcard{background:linear-gradient(145deg,rgba(255,255,255,0.05),rgba(255,255,255,0.02));border:1px solid rgba(255,255,255,0.06);border-radius:16px;padding:20px;position:relative;overflow:hidden;backdrop-filter:blur(40px);-webkit-backdrop-filter:blur(40px);box-shadow:0 8px 32px rgba(0,0,0,0.35),inset 0 1px 0 rgba(255,255,255,0.04);}
+.rcard::before{content:'';position:absolute;top:0;left:0;right:0;height:100%;background:linear-gradient(175deg,rgba(255,255,255,.03),transparent 40%);pointer-events:none;border-radius:16px;}
+.rcard-label{font-size:.68rem;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.08em;margin-bottom:14px;}
+
+/* Plan Card */
+.plan-icon-wrap{display:flex;align-items:center;gap:12px;margin-bottom:4px;}
+.plan-icon{width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,var(--accent-dim),rgba(0,223,162,0.06));border:1px solid rgba(0,223,162,0.15);display:flex;align-items:center;justify-content:center;font-size:1.1rem;color:var(--accent);}
+.plan-name{font-family:var(--heading);font-size:1rem;font-weight:800;text-transform:uppercase;letter-spacing:.04em;margin-top:12px;}
+.plan-sub{font-size:.72rem;color:var(--t3);margin-bottom:14px;}
+.plan-rows{display:flex;flex-direction:column;gap:0;}
+.plan-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-top:1px solid rgba(255,255,255,0.04);}
+.plan-row .pr-label{font-size:.72rem;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.06em;}
+.plan-row .pr-value{font-family:var(--mono);font-size:.82rem;font-weight:700;color:var(--t1);}
+.plan-row .pr-value.accent{color:var(--accent);}
+
+/* Quick Links */
+.qlinks{display:flex;flex-direction:column;gap:4px;}
+.qlink{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;font-size:.82rem;font-weight:500;color:var(--t2);transition:all .15s;cursor:pointer;text-decoration:none;}
+.qlink:hover{background:rgba(255,255,255,0.04);color:var(--t1);}
+.qlink i{width:16px;text-align:center;font-size:.78rem;color:var(--accent);}
+.qlink .arrow{margin-left:auto;font-size:.68rem;color:var(--t3);transition:transform .15s;}
+.qlink:hover .arrow{transform:translateX(3px);color:var(--t1);}
+
+/* Help Card */
+.help-text{font-size:.8rem;color:var(--t3);line-height:1.6;margin-bottom:16px;}
+.help-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:10px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent-dark));border:none;color:#07080c;font-family:var(--sans);font-size:.82rem;font-weight:700;cursor:pointer;transition:all .2s;box-shadow:0 4px 16px rgba(0,223,162,.15);}
+.help-btn:hover{transform:translateY(-1px);box-shadow:0 6px 24px rgba(0,223,162,.25);}
+.help-btn:active{transform:translateY(0);}
+
+.start-earning-btn{width:100%;padding:12px;border:none;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent-dark));color:#07080c;font-family:var(--sans);font-size:.84rem;font-weight:700;cursor:pointer;transition:all .2s;box-shadow:0 4px 16px rgba(0,223,162,.15);margin-top:14px;display:flex;align-items:center;justify-content:center;gap:8px;}
+.start-earning-btn:hover{transform:translateY(-1px);box-shadow:0 6px 24px rgba(0,223,162,.25);}
+
+/* MODAL */
+.modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);z-index:500;display:none;align-items:center;justify-content:center;}
+.modal-overlay.show{display:flex;}
+.modal-card{background:linear-gradient(145deg,rgba(15,18,28,0.98),rgba(10,13,21,0.98));border:1px solid rgba(255,255,255,0.08);border-radius:20px;padding:32px;max-width:440px;width:90%;position:relative;box-shadow:0 24px 64px rgba(0,0,0,0.6);backdrop-filter:blur(40px);-webkit-backdrop-filter:blur(40px);}
+.modal-card::before{content:'';position:absolute;top:0;left:0;right:0;height:100%;background:linear-gradient(175deg,rgba(255,255,255,.04),transparent 40%);pointer-events:none;border-radius:20px;}
+.modal-icon{width:56px;height:56px;border-radius:16px;background:var(--accent-dim);display:flex;align-items:center;justify-content:center;font-size:1.4rem;color:var(--accent);margin:0 auto 16px;}
+.modal-title{font-family:var(--heading);font-size:1.2rem;font-weight:800;text-align:center;margin-bottom:20px;}
+.modal-summary{display:flex;flex-direction:column;gap:0;margin-bottom:20px;}
+.modal-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-top:1px solid rgba(255,255,255,0.05);}
+.modal-row .ml{font-size:.78rem;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.04em;}
+.modal-row .mv{font-family:var(--mono);font-size:.88rem;font-weight:700;color:var(--t1);}
+.modal-row .mv.accent{color:var(--accent);}
+.modal-warning{font-size:.76rem;color:var(--t3);line-height:1.6;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.05);border-radius:10px;padding:12px;margin-bottom:20px;}
+.modal-btns{display:flex;gap:12px;}
+.modal-btn-ghost{flex:1;padding:12px;border:1px solid rgba(255,255,255,0.1);border-radius:10px;background:transparent;color:var(--t2);font-family:var(--sans);font-size:.84rem;font-weight:600;cursor:pointer;transition:all .2s;}
+.modal-btn-ghost:hover{background:rgba(255,255,255,0.04);color:var(--t1);}
+.modal-btn-confirm{flex:1;padding:12px;border:none;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent-dark));color:#07080c;font-family:var(--sans);font-size:.84rem;font-weight:800;cursor:pointer;transition:all .2s;box-shadow:0 4px 16px rgba(0,223,162,.2);}
+.modal-btn-confirm:hover{transform:translateY(-1px);box-shadow:0 6px 24px rgba(0,223,162,.3);}
+
+/* TOAST */
+.toast{position:fixed;bottom:30px;right:30px;padding:14px 24px;border-radius:12px;font-size:.84rem;font-weight:600;z-index:999;transform:translateY(100px);opacity:0;transition:all .3s ease;pointer-events:none;max-width:380px;display:flex;align-items:center;gap:10px;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);}
+.toast.success{background:linear-gradient(135deg,rgba(0,223,162,0.15),rgba(0,223,162,0.08));border:1px solid rgba(0,223,162,0.3);color:var(--accent);}
+.toast.error{background:linear-gradient(135deg,rgba(244,63,94,0.15),rgba(244,63,94,0.08));border:1px solid rgba(244,63,94,0.3);color:var(--red);}
+.toast.show{transform:translateY(0);opacity:1;}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:4px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,.06);border-radius:2px;}
+
+.mono{font-family:var(--mono);}
+.mb-28{margin-bottom:28px;}
+</style>
+</head>
+<body>
+
+<!-- TICKER -->
+<div class="ticker-bar"><div class="ticker-track" id="tickerTrack"></div></div>
+
+<!-- PAGE WRAP -->
+<div class="page-wrap">
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+<a class="sb-icon" href="dashboard.html"><i class="fas fa-th-large"></i><span class="tip">Dashboard</span></a>
+<a class="sb-icon" href="trade-room.html"><i class="fas fa-chart-line"></i><span class="tip">Trade Room</span></a>
+<a class="sb-icon" href="market.html"><i class="fas fa-globe"></i><span class="tip">Markets</span></a>
+<a class="sb-icon" href="accounts.html"><i class="fas fa-wallet"></i><span class="tip">Accounts</span></a>
+<a class="sb-icon" href="ira-deposit-withdraw.html"><i class="fas fa-download"></i><span class="tip">Deposit / Withdraw</span></a>
+<div class="sb-div"></div>
+<a class="sb-icon" href="trading-plans.html"><i class="fas fa-clock-rotate-left"></i><span class="tip">Trading Plans</span></a>
+<a class="sb-icon" href="fund-protection.html"><i class="fas fa-shield-halved"></i><span class="tip">Fund Protection</span></a>
+<a class="sb-icon" href="fund-managers.html"><i class="fas fa-users"></i><span class="tip">Fund Managers</span></a>
+<a class="sb-icon on" href="earning.html"><i class="fas fa-coins"></i><span class="tip">Earning</span></a>
+<div class="sb-spacer"></div>
+<div class="sb-div"></div>
+<a class="sb-icon" href="settings.html"><i class="fas fa-gear"></i><span class="tip">Settings</span></a>
+<a class="sb-icon" href="login.html"><i class="fas fa-arrow-right-from-bracket"></i><span class="tip">Logout</span></a>
+</aside>
+
+<!-- MAIN -->
+<div class="main">
+
+<!-- PAGE HEADER -->
+<div class="pg-header">
+  <div class="pg-icon"><i class="fas fa-coins"></i></div>
+  <div>
+    <h1>Earning</h1>
+    <p>Put your crypto to work and earn daily rewards</p>
+  </div>
+</div>
+
+<div class="content-grid">
+<div class="left-col">
+
+<!-- EARNING BALANCE CARD -->
+<div class="gcard user-wallet-card">
+  <div class="uwc-left">
+    <div class="uwc-icon"><i class="fas fa-coins"></i></div>
+    <div class="uwc-info">
+      <h2>Earning Account</h2>
+      <p>Deposit funds to start earning. Minimum deposit: $150,000</p>
+      <div class="uwc-badge" id="depositBadge"><span class="dot"></span> REQUIRES DEPOSIT</div>
+    </div>
+  </div>
+  <div class="uwc-right">
+    <div class="uwc-stat">
+      <div class="val accent mono" id="earningBalDisplay">$0.00</div>
+      <div class="lbl">Earning Balance</div>
+    </div>
+    <div class="uwc-stat">
+      <div class="val mono" id="totalEarnedDisplay">$0.00</div>
+      <div class="lbl">Total Earned</div>
+    </div>
+    <div class="uwc-stat">
+      <div class="val mono" id="activePlansDisplay">0</div>
+      <div class="lbl">Active Plans</div>
+    </div>
+  </div>
+</div>
+
+<!-- DEPOSIT TO EARNING -->
+<div class="sec-header">
+  <div class="sec-left">
+    <i class="fas fa-arrow-down"></i>
+    <h3>Deposit to Earning Account</h3>
+  </div>
+</div>
+
+<div class="gcard mb-28" id="depositSection">
+  <p class="deposit-desc">To participate in the Earning program, deposit a minimum of $150,000 directly to your earning balance. This deposit is separate from your trading balance.</p>
+  <div class="form-group" style="margin-bottom:6px;">
+    <label>Amount (USD)</label>
+    <input type="number" id="depositAmount" placeholder="Enter deposit amount" min="0" step="1000">
+  </div>
+  <div class="min-notice">Minimum deposit: $150,000</div>
+  <button class="deposit-btn" onclick="makeDeposit()">
+    <i class="fas fa-arrow-right"></i> Proceed to Deposit
+  </button>
+</div>
+
+<!-- MARKET PERFORMANCE -->
+<div class="sec-header">
+  <div class="sec-left">
+    <i class="fas fa-chart-bar"></i>
+    <h3>Market Performance</h3>
+    <span class="live-dot"></span>
+  </div>
+</div>
+
+<div class="gcard mb-28">
+  <div class="perf-grid" id="perfGrid"></div>
+</div>
+
+<!-- PRODUCTS -->
+<div class="sec-header">
+  <div class="sec-left">
+    <i class="fas fa-box-open"></i>
+    <h3>Products</h3>
+  </div>
+  <div class="sec-count" id="productsCount">13 products</div>
+</div>
+
+<div class="gcard mb-28" style="padding:0;overflow:hidden;">
+  <div style="padding:16px 20px;">
+    <div class="products-toolbar">
+      <div class="search-wrap">
+        <i class="fas fa-search"></i>
+        <input type="text" id="productSearch" placeholder="Search tokens..." oninput="filterProducts()">
+      </div>
+      <select class="filter-select" id="filterProduct" onchange="filterProducts()">
+        <option value="all">All products</option>
+      </select>
+      <select class="filter-select" id="filterTerm" onchange="filterProducts()">
+        <option value="all">All terms</option>
+        <option value="30">30 Days</option>
+        <option value="60">60 Days</option>
+        <option value="90">90 Days</option>
+      </select>
+    </div>
+  </div>
+  <table class="ptable" id="productsTable">
+    <thead>
+      <tr>
+        <th>Token</th>
+        <th>Monthly APY</th>
+        <th>Term</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody id="productsBody"></tbody>
+  </table>
+</div>
+
+<!-- DAILY GROWTH -->
+<div class="sec-header">
+  <div class="sec-left">
+    <i class="fas fa-chart-line"></i>
+    <h3>Daily Growth Tracker</h3>
+  </div>
+</div>
+
+<div class="gcard mb-28" id="growthCard">
+  <div id="growthContent">
+    <div class="empty-state">
+      <i class="fas fa-seedling"></i>
+      Subscribe to an earning plan to see your daily growth
+    </div>
+  </div>
+</div>
+
+<!-- FAQ -->
+<div class="gcard mb-28">
+  <div class="faq-title">FAQ</div>
+  <div class="faq-item">
+    <div class="faq-q" onclick="toggleFaq(this)">What is Earn? <i class="fas fa-chevron-down"></i></div>
+    <div class="faq-a"><div class="faq-a-inner">Earn is a program that allows you to grow your crypto holdings passively. By subscribing your funds to earning plans, your assets are allocated into high-yield strategies managed by professional fund managers. Returns are calculated and distributed daily based on the monthly APY of each token.</div></div>
+  </div>
+  <div class="faq-item">
+    <div class="faq-q" onclick="toggleFaq(this)">What is monthly percentage yield? <i class="fas fa-chevron-down"></i></div>
+    <div class="faq-a"><div class="faq-a-inner">Monthly percentage yield (Monthly APY) represents the rate of return you earn on your subscribed funds over a one-month period. Unlike annual percentage yield, this rate compounds monthly, offering higher effective returns over time. Each token has its own Monthly APY based on market conditions and strategy performance.</div></div>
+  </div>
+  <div class="faq-item">
+    <div class="faq-q" onclick="toggleFaq(this)">When does revenue calculation/distribution start? <i class="fas fa-chevron-down"></i></div>
+    <div class="faq-a"><div class="faq-a-inner">Revenue calculation begins immediately after your subscription is confirmed. Earnings are calculated daily and credited to your earning balance at the end of each 24-hour cycle. You can view your daily growth in the Daily Growth Tracker section above.</div></div>
+  </div>
+  <div class="faq-item">
+    <div class="faq-q" onclick="toggleFaq(this)">What are the risks? <i class="fas fa-chevron-down"></i></div>
+    <div class="faq-a"><div class="faq-a-inner">As with all crypto investments, earning programs carry inherent market risk. Token values may fluctuate and past performance does not guarantee future results. Your subscribed funds are protected by our fund protection program, and you can unsubscribe at any time. We recommend only subscribing funds you can afford to allocate for the full term duration.</div></div>
+  </div>
+</div>
+
+</div><!-- /left-col -->
+
+<!-- RIGHT SIDEBAR -->
+<div class="right-col">
+
+<!-- Earning Overview -->
+<div class="rcard">
+  <div class="rcard-label">Earning Overview</div>
+  <div class="plan-icon-wrap">
+    <div class="plan-icon"><i class="fas fa-coins"></i></div>
+  </div>
+  <div class="plan-name">Earning Program</div>
+  <div class="plan-sub">Grow your portfolio passively</div>
+  <div class="plan-rows">
+    <div class="plan-row">
+      <span class="pr-label">Earning Balance</span>
+      <span class="pr-value accent mono" id="sidebarBalance">$0.00</span>
+    </div>
+    <div class="plan-row">
+      <span class="pr-label">Total Earned</span>
+      <span class="pr-value mono" id="sidebarEarned">$0.00</span>
+    </div>
+    <div class="plan-row">
+      <span class="pr-label">Active Plans</span>
+      <span class="pr-value mono" id="sidebarPlans">0</span>
+    </div>
+    <div class="plan-row">
+      <span class="pr-label">Min Deposit</span>
+      <span class="pr-value mono">$150,000</span>
+    </div>
+  </div>
+  <a href="#depositSection" class="start-earning-btn" onclick="document.getElementById('depositSection').scrollIntoView({behavior:'smooth'});return false;">
+    <i class="fas fa-rocket"></i> Start Earning
+  </a>
+</div>
+
+<!-- Quick Links -->
+<div class="rcard">
+  <div class="rcard-label">Quick Links</div>
+  <div class="qlinks">
+    <a class="qlink" href="ira-deposit-withdraw.html"><i class="fas fa-arrow-down"></i> Deposit Funds <span class="arrow"><i class="fas fa-chevron-right"></i></span></a>
+    <a class="qlink" href="accounts.html"><i class="fas fa-wallet"></i> Accounts <span class="arrow"><i class="fas fa-chevron-right"></i></span></a>
+    <a class="qlink" href="welcome-bonus.html"><i class="fas fa-gift"></i> Welcome Bonus <span class="arrow"><i class="fas fa-chevron-right"></i></span></a>
+    <a class="qlink" href="trading-plans.html"><i class="fas fa-clock-rotate-left"></i> Trading Plans <span class="arrow"><i class="fas fa-chevron-right"></i></span></a>
+  </div>
+</div>
+
+<!-- Need Help -->
+<div class="rcard">
+  <div class="rcard-label">Need Help?</div>
+  <p class="help-text">Can't find a setting? Our support team can help with account configuration and troubleshooting.</p>
+  <button class="help-btn"><i class="fas fa-headset"></i> Contact Support</button>
+</div>
+
+</div><!-- /right-col -->
+</div><!-- /content-grid -->
+
+</div><!-- /main -->
+</div><!-- /page-wrap -->
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- CONFIRMATION MODAL -->
+<div class="modal-overlay" id="confirmModal">
+  <div class="modal-card">
+    <div class="modal-icon"><i class="fas fa-check-circle"></i></div>
+    <div class="modal-title">Confirm Subscription</div>
+    <div class="modal-summary" id="modalSummary"></div>
+    <div class="modal-warning">By subscribing, your funds will be allocated to this earning plan. You can unsubscribe at any time.</div>
+    <div class="modal-btns">
+      <button class="modal-btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="modal-btn-confirm" onclick="confirmSubscription()">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* STATE */
+var earningBalance = 0;
+var totalEarned = 0;
+var activePlans = 0;
+var subscriptions = [];
+var pendingSub = null;
+
+/* TICKER */
+var TICKER_COINS=[
+  {sym:'BTC',price:'67234.50',change:'+3.45'},{sym:'ETH',price:'3892.10',change:'+2.18'},
+  {sym:'XRP',price:'2.48',change:'+1.92'},{sym:'SOL',price:'189.32',change:'+4.67'},
+  {sym:'DOGE',price:'0.42',change:'+5.23'},{sym:'ADA',price:'1.15',change:'+2.14'},
+  {sym:'POL',price:'0.89',change:'+7.32'},{sym:'LINK',price:'18.45',change:'+1.84'},
+  {sym:'ARB',price:'1.78',change:'+3.21'},{sym:'OP',price:'3.45',change:'+2.76'},
+  {sym:'AVAX',price:'48.92',change:'+2.45'},{sym:'ATOM',price:'12.34',change:'+1.67'},
+  {sym:'NEAR',price:'7.89',change:'+3.92'},{sym:'INJ',price:'56.78',change:'+4.18'},
+  {sym:'DOT',price:'8.56',change:'-1.32'}
+];
+function buildTicker(){var t=document.getElementById('tickerTrack');if(!t)return;var h=TICKER_COINS.map(function(c){var up=c.change.startsWith('+');return'<div class="ticker-item"><span class="ti-dot '+(up?'up':'dn')+'"></span><span class="ti-sym">'+c.sym+'</span><span class="ti-price">$'+c.price+'</span><span class="ti-change '+(up?'ti-up':'ti-dn')+'">'+c.change+'%</span></div>';}).join('');t.innerHTML=h+h;}
+function fluctuatePrices(){document.querySelectorAll('.ticker-item').forEach(function(item){var p=item.querySelector('.ti-price');if(!p||Math.random()>.15)return;var b=parseFloat(p.textContent.replace('$','').replace(',',''));var d=b*(Math.random()*.004-.002);var n=Math.max(.01,b+d);p.textContent='$'+n.toFixed(2);p.style.color=d>=0?'var(--accent)':'var(--red)';setTimeout(function(){p.style.color='';},600);});}
+buildTicker();setInterval(fluctuatePrices,2500);
+
+/* MARKET PERFORMANCE DATA */
+var perfTokens = [
+  {sym:'BTC',color:'#F7931A',price:67234.50,basePrice:67234.50},
+  {sym:'ETH',color:'#627EEA',price:3892.10,basePrice:3892.10},
+  {sym:'SOL',color:'#9945FF',price:189.32,basePrice:189.32},
+  {sym:'ADA',color:'#0033AD',price:1.15,basePrice:1.15},
+  {sym:'DOT',color:'#E6007A',price:8.56,basePrice:8.56},
+  {sym:'ATOM',color:'#6F7390',price:12.34,basePrice:12.34},
+  {sym:'NEAR',color:'#00C1DE',price:7.89,basePrice:7.89},
+  {sym:'AVAX',color:'#E84142',price:48.92,basePrice:48.92},
+  {sym:'LINK',color:'#2A5ADA',price:18.45,basePrice:18.45},
+  {sym:'ARB',color:'#28A0F0',price:1.78,basePrice:1.78},
+  {sym:'OP',color:'#FF0420',price:3.45,basePrice:3.45},
+  {sym:'INJ',color:'#00F2FE',price:56.78,basePrice:56.78},
+  {sym:'SUI',color:'#6FBCF0',price:2.14,basePrice:2.14}
+];
+
+/* Assign initial random directions */
+perfTokens.forEach(function(t){
+  var r = (Math.random() - 0.42);
+  t.changeAmt = t.basePrice * r * 0.03;
+  t.price = t.basePrice + t.changeAmt;
+  t.sparkData = [];
+  for(var i=0;i<8;i++){t.sparkData.push(Math.random());}
+});
+
+function buildPerfGrid(){
+  var grid = document.getElementById('perfGrid');
+  var html = '';
+  perfTokens.forEach(function(t,idx){
+    var up = t.changeAmt >= 0;
+    var pct = ((t.changeAmt / t.basePrice) * 100);
+    var priceStr = t.price >= 100 ? t.price.toFixed(2) : (t.price >= 1 ? t.price.toFixed(4) : t.price.toFixed(6));
+    var changeStr = (up?'+':'')+t.changeAmt.toFixed(2);
+    var pctStr = (up?'+':'')+pct.toFixed(2)+'%';
+    var sparkHtml = '';
+    t.sparkData.forEach(function(v){
+      var h = 4 + v * 20;
+      sparkHtml += '<div class="bar" style="height:'+h+'px;background:'+(up?'var(--green)':'var(--red)')+';opacity:'+(0.3+v*0.7)+';"></div>';
+    });
+    html += '<div class="perf-card '+(up?'up':'dn')+'" id="perf-'+idx+'">';
+    html += '<div class="perf-top"><div class="perf-token-icon" style="background:'+t.color+';">'+t.sym.substring(0,2)+'</div><div class="perf-token-name">'+t.sym+'</div></div>';
+    html += '<div class="perf-price" id="perfPrice-'+idx+'">$'+priceStr+'</div>';
+    html += '<div class="perf-change"><span class="perf-amount '+(up?'up':'dn')+'" id="perfAmt-'+idx+'"><i class="fas fa-arrow-'+(up?'up':'down')+'"></i> '+changeStr+'</span>';
+    html += '<span class="perf-pct '+(up?'up':'dn')+'" id="perfPct-'+idx+'">'+pctStr+'</span></div>';
+    html += '<div class="sparkline" id="spark-'+idx+'">'+sparkHtml+'</div>';
+    html += '</div>';
+  });
+  grid.innerHTML = html;
+}
+buildPerfGrid();
+
+function updatePerfPrices(){
+  perfTokens.forEach(function(t,idx){
+    var delta = t.basePrice * (Math.random() * 0.006 - 0.003);
+    t.price += delta;
+    t.changeAmt = t.price - t.basePrice;
+    var up = t.changeAmt >= 0;
+    var pct = ((t.changeAmt / t.basePrice) * 100);
+    var priceStr = t.price >= 100 ? t.price.toFixed(2) : (t.price >= 1 ? t.price.toFixed(4) : t.price.toFixed(6));
+    var changeStr = (up?'+$':'-$')+Math.abs(t.changeAmt).toFixed(2);
+    var pctStr = (up?'+':'')+pct.toFixed(2)+'%';
+
+    var card = document.getElementById('perf-'+idx);
+    if(card){
+      card.className = 'perf-card '+(up?'up':'dn');
+    }
+    var priceEl = document.getElementById('perfPrice-'+idx);
+    if(priceEl) priceEl.textContent = '$'+priceStr;
+
+    var amtEl = document.getElementById('perfAmt-'+idx);
+    if(amtEl){
+      amtEl.className = 'perf-amount '+(up?'up':'dn');
+      amtEl.innerHTML = '<i class="fas fa-arrow-'+(up?'up':'down')+'"></i> '+changeStr;
+    }
+    var pctEl = document.getElementById('perfPct-'+idx);
+    if(pctEl){
+      pctEl.className = 'perf-pct '+(up?'up':'dn');
+      pctEl.textContent = pctStr;
+    }
+
+    /* update sparkline */
+    t.sparkData.shift();
+    t.sparkData.push(Math.random());
+    var sparkEl = document.getElementById('spark-'+idx);
+    if(sparkEl){
+      var sparkHtml = '';
+      t.sparkData.forEach(function(v){
+        var h = 4 + v * 20;
+        sparkHtml += '<div class="bar" style="height:'+h+'px;background:'+(up?'var(--green)':'var(--red)')+';opacity:'+(0.3+v*0.7)+';"></div>';
+      });
+      sparkEl.innerHTML = sparkHtml;
+    }
+  });
+}
+setInterval(updatePerfPrices, 3500);
+
+/* PRODUCTS */
+var products = [
+  {token:'BTC',color:'#F7931A',apy:15.00,terms:[30,60,90]},
+  {token:'ETH',color:'#627EEA',apy:18.42,terms:[30,60,90]},
+  {token:'CHZ',color:'#CD0124',apy:15.92,terms:[30,60,90]},
+  {token:'ATOM',color:'#6F7390',apy:17.91,terms:[30,60,90]},
+  {token:'CRO',color:'#002D74',apy:20.12,terms:[30,60,90]},
+  {token:'SOL',color:'#9945FF',apy:22.15,terms:[30,60,90]},
+  {token:'DOT',color:'#E6007A',apy:21.53,terms:[30,60,90]},
+  {token:'TRX',color:'#EF0027',apy:19.34,terms:[30,60,90]},
+  {token:'NEAR',color:'#00C1DE',apy:23.04,terms:[30,60,90]},
+  {token:'POL',color:'#7B3FE4',apy:18.28,terms:[30,60,90]},
+  {token:'APT',color:'#2ED8A3',apy:24.19,terms:[30,60,90]},
+  {token:'ADA',color:'#0033AD',apy:19.74,terms:[30,60,90]},
+  {token:'SUI',color:'#6FBCF0',apy:25.00,terms:[30,60,90]}
+];
+
+function buildProducts(){
+  var body = document.getElementById('productsBody');
+  var search = document.getElementById('productSearch').value.toLowerCase();
+  var filterTerm = document.getElementById('filterTerm').value;
+  var html = '';
+  var count = 0;
+
+  products.forEach(function(p, idx){
+    if(search && p.token.toLowerCase().indexOf(search) === -1) return;
+    if(filterTerm !== 'all'){
+      /* Show only if product has this term */
+    }
+    count++;
+    html += '<tr onclick="toggleExpand('+idx+')" id="prow-'+idx+'">';
+    html += '<td><div class="token-cell"><div class="token-icon" style="background:'+p.color+';">'+p.token.substring(0,2)+'</div><span class="token-name">'+p.token+'</span></div></td>';
+    html += '<td><span class="apy-val">'+p.apy.toFixed(2)+'%</span></td>';
+    html += '<td><span class="term-val">Flexible</span></td>';
+    html += '<td><i class="fas fa-chevron-down expand-chevron" id="chev-'+idx+'"></i></td>';
+    html += '</tr>';
+    /* Expanded row */
+    html += '<tr class="expand-row" id="exp-'+idx+'"><td colspan="4"><div class="expand-content">';
+    html += '<div class="expand-title">Subscribe to '+p.token+' Earning</div>';
+    html += '<div class="expand-form">';
+    html += '<div class="form-group"><label>Amount (USD)</label><input type="number" id="subAmt-'+idx+'" placeholder="Enter amount" min="0" step="100" oninput="calcEarnings('+idx+')"></div>';
+    html += '<div class="earnings-calc"><div class="calc-row"><span class="calc-label">Est. Daily Earnings</span><span class="calc-val" id="dailyEst-'+idx+'">$0.00</span></div>';
+    html += '<div class="calc-row"><span class="calc-label">Est. Monthly Earnings</span><span class="calc-val" id="monthlyEst-'+idx+'">$0.00</span></div></div>';
+    html += '</div>';
+    if(earningBalance < 150000){
+      html += '<button class="subscribe-btn" disabled>Subscribe</button>';
+      html += '<div class="sub-note"><i class="fas fa-info-circle"></i> Deposit minimum $150,000 to subscribe</div>';
+    } else {
+      html += '<button class="subscribe-btn" onclick="event.stopPropagation();openSubscribeModal('+idx+')">Subscribe</button>';
+    }
+    html += '</div></td></tr>';
+  });
+
+  body.innerHTML = html;
+  document.getElementById('productsCount').textContent = count + ' product' + (count !== 1 ? 's' : '');
+}
+buildProducts();
+
+function toggleExpand(idx){
+  var row = document.getElementById('exp-'+idx);
+  var chev = document.getElementById('chev-'+idx);
+  if(row.classList.contains('open')){
+    row.classList.remove('open');
+    chev.classList.remove('open');
+  } else {
+    /* Close others */
+    document.querySelectorAll('.expand-row.open').forEach(function(r){r.classList.remove('open');});
+    document.querySelectorAll('.expand-chevron.open').forEach(function(c){c.classList.remove('open');});
+    row.classList.add('open');
+    chev.classList.add('open');
+  }
+}
+
+function calcEarnings(idx){
+  var amt = parseFloat(document.getElementById('subAmt-'+idx).value) || 0;
+  var apy = products[idx].apy / 100;
+  var monthly = amt * apy;
+  var daily = monthly / 30;
+  document.getElementById('dailyEst-'+idx).textContent = '$'+daily.toFixed(2);
+  document.getElementById('monthlyEst-'+idx).textContent = '$'+monthly.toFixed(2);
+}
+
+function filterProducts(){
+  buildProducts();
+}
+
+/* DEPOSIT */
+function formatMoney(n){return '$'+n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
+
+function makeDeposit(){
+  var amtStr = document.getElementById('depositAmount').value;
+  var amt = parseFloat(amtStr);
+  if(!amtStr || isNaN(amt) || amt <= 0){
+    showToast('Please enter a valid deposit amount.','error');
+    return;
+  }
+  if(amt < 150000){
+    showToast('Minimum deposit is $150,000.','error');
+    return;
+  }
+  /* Redirect to deposit page with amount pre-filled and earning flag */
+  window.location.href = 'ira-deposit-withdraw.html?source=earning&amount=' + amt;
+}
+
+function updateUI(){
+  document.getElementById('earningBalDisplay').textContent = formatMoney(earningBalance);
+  document.getElementById('totalEarnedDisplay').textContent = formatMoney(totalEarned);
+  document.getElementById('activePlansDisplay').textContent = activePlans;
+  document.getElementById('sidebarBalance').textContent = formatMoney(earningBalance);
+  document.getElementById('sidebarEarned').textContent = formatMoney(totalEarned);
+  document.getElementById('sidebarPlans').textContent = activePlans;
+
+  var badge = document.getElementById('depositBadge');
+  if(earningBalance >= 150000){
+    badge.innerHTML = '<span class="dot" style="background:var(--green);box-shadow:0 0 8px var(--green);"></span> ACTIVE';
+    badge.style.background = 'rgba(30,215,96,.08)';
+    badge.style.color = 'var(--green)';
+    badge.style.borderColor = 'rgba(30,215,96,.2)';
+  }
+}
+
+/* SUBSCRIBE MODAL */
+function openSubscribeModal(idx){
+  var amt = parseFloat(document.getElementById('subAmt-'+idx).value) || 0;
+  if(amt <= 0){
+    showToast('Please enter a subscription amount.','error');
+    return;
+  }
+  if(amt > earningBalance){
+    showToast('Insufficient earning balance.','error');
+    return;
+  }
+  var p = products[idx];
+  var monthly = amt * (p.apy / 100);
+  pendingSub = {idx:idx, token:p.token, amount:amt, apy:p.apy, monthlyEst:monthly};
+
+  var summary = document.getElementById('modalSummary');
+  summary.innerHTML = '<div class="modal-row"><span class="ml">Token</span><span class="mv">'+p.token+'</span></div>';
+  summary.innerHTML += '<div class="modal-row"><span class="ml">Amount</span><span class="mv mono">'+formatMoney(amt)+'</span></div>';
+  summary.innerHTML += '<div class="modal-row"><span class="ml">Monthly APY</span><span class="mv accent mono">'+p.apy.toFixed(2)+'%</span></div>';
+  summary.innerHTML += '<div class="modal-row"><span class="ml">Est. Monthly Earnings</span><span class="mv accent mono">'+formatMoney(monthly)+'</span></div>';
+
+  document.getElementById('confirmModal').classList.add('show');
+}
+
+function closeModal(){
+  document.getElementById('confirmModal').classList.remove('show');
+  pendingSub = null;
+}
+
+function confirmSubscription(){
+  if(!pendingSub) return;
+  var sub = pendingSub;
+  subscriptions.push(sub);
+  activePlans++;
+  updateUI();
+  closeModal();
+  buildProducts();
+  buildGrowthTracker();
+  showToast('Successfully subscribed to '+sub.token+' Earning!','success');
+}
+
+/* Close modal on overlay click */
+document.getElementById('confirmModal').addEventListener('click', function(e){
+  if(e.target === this) closeModal();
+});
+
+/* DAILY GROWTH TRACKER */
+function buildGrowthTracker(){
+  var container = document.getElementById('growthContent');
+  if(subscriptions.length === 0){
+    container.innerHTML = '<div class="empty-state"><i class="fas fa-seedling"></i>Subscribe to an earning plan to see your daily growth</div>';
+    return;
+  }
+  var html = '<table class="growth-table"><thead><tr><th>Token</th><th>Amount</th>';
+  for(var d=1;d<=7;d++){html += '<th>Day '+d+'</th>';}
+  html += '</tr></thead><tbody>';
+
+  subscriptions.forEach(function(sub){
+    var dailyRate = sub.apy / 100 / 30;
+    html += '<tr>';
+    html += '<td><span style="font-weight:700;">'+sub.token+'</span></td>';
+    html += '<td><span class="mono">'+formatMoney(sub.amount)+'</span></td>';
+    var cumulative = 0;
+    for(var d=1;d<=7;d++){
+      var dayEarn = sub.amount * dailyRate;
+      /* Add slight variance for realism */
+      dayEarn *= (0.95 + Math.random() * 0.1);
+      cumulative += dayEarn;
+      html += '<td><span class="growth-val">+'+formatMoney(dayEarn)+'</span></td>';
+    }
+    html += '</tr>';
+  });
+
+  html += '</tbody></table>';
+  container.innerHTML = html;
+}
+
+/* FAQ */
+function toggleFaq(el){
+  var a = el.nextElementSibling;
+  var isOpen = el.classList.contains('open');
+  /* Close all */
+  document.querySelectorAll('.faq-q').forEach(function(q){q.classList.remove('open');});
+  document.querySelectorAll('.faq-a').forEach(function(ans){ans.classList.remove('open');});
+  if(!isOpen){
+    el.classList.add('open');
+    a.classList.add('open');
+  }
+}
+
+/* TOAST */
+function showToast(msg,type){
+  var t=document.getElementById('toast');
+  t.innerHTML='<i class="fas '+(type==='success'?'fa-check-circle':'fa-exclamation-circle')+'"></i> '+msg;
+  t.className='toast '+type;
+  setTimeout(function(){t.classList.add('show');},10);
+  setTimeout(function(){t.classList.remove('show');},3500);
+}
+</script>
+
+</body>
+</html>

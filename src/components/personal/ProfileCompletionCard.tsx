@@ -1,4 +1,4 @@
-import { CheckCircle2, Circle } from "lucide-react";
+import { Check, X, ListChecks } from "lucide-react";
 
 interface ProfileFields {
   first_name?: string;
@@ -37,45 +37,75 @@ export function ProfileCompletionCard({ fields }: ProfileCompletionCardProps) {
 
   return (
     <div
-      className="relative rounded-2xl border border-white/[0.04] p-4 shadow-[0_4px_16px_rgba(0,0,0,0.25),inset_0_1px_0_rgba(255,255,255,0.03)] md:p-5"
+      className="relative overflow-hidden rounded-2xl border border-white/[0.06] px-5 py-5 sm:px-6"
       style={{
         background:
-          "linear-gradient(180deg, rgba(255,255,255,0.025), rgba(255,255,255,0.005))",
+          "linear-gradient(145deg,rgba(255,255,255,0.05),rgba(255,255,255,0.015))",
+        boxShadow: "0 4px 24px rgba(0,0,0,0.2)",
       }}
     >
-      <div className="mb-4 flex items-center gap-2">
-        <span className="text-[10px] font-bold uppercase tracking-[0.1em] text-[#5f6b82]">
-          Profile Completion
+      {/* Soft inner highlight (matches .gc::before) */}
+      <div
+        className="pointer-events-none absolute inset-0 rounded-2xl"
+        style={{
+          background:
+            "linear-gradient(175deg,rgba(255,255,255,0.025),transparent 40%)",
+        }}
+      />
+
+      {/* Header */}
+      <div className="relative z-10 mb-4 flex items-center justify-between gap-3">
+        <div className="flex items-center gap-1.5">
+          <ListChecks className="h-3 w-3 text-[#00dfa2]" />
+          <span className="text-[0.6rem] font-bold uppercase tracking-[0.08em] text-[#00dfa2]">
+            Profile Checklist
+          </span>
+        </div>
+        <span className="font-[Outfit,sans-serif] text-[0.78rem] font-extrabold tabular-nums text-[#eef2f7]">
+          {percent}%
         </span>
-        <div className="h-px flex-1 bg-white/[0.04]" />
-        <span className="text-xs font-extrabold text-[#eef2f7]">{percent}%</span>
       </div>
 
       {/* Progress bar */}
-      <div className="mb-5 h-2 w-full overflow-hidden rounded-full bg-white/[0.04]">
+      <div className="relative z-10 mb-[18px] h-1.5 w-full overflow-hidden rounded-full bg-white/[0.05]">
         <div
-          className="h-full rounded-full !bg-[#00dfa2] transition-all duration-300"
-          style={{ width: `${percent}%` }}
+          className="h-full rounded-full transition-[width] duration-500 ease-out"
+          style={{
+            width: `${percent}%`,
+            background: "linear-gradient(90deg,#00dfa2,#00ffc3)",
+          }}
         />
       </div>
 
-      {/* Field grid */}
-      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+      {/* Items grid: 1 → 2 → 4 cols, gap 10px */}
+      <div className="relative z-10 grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-4">
         {FIELD_LABELS.map(({ key, label }) => {
           const filled = isFilled(fields[key]);
           return (
             <div
               key={key}
-              className="flex items-center gap-2 rounded-lg bg-white/[0.02] px-3 py-2 text-[#d7dde5]"
+              className={`flex items-center gap-2.5 rounded-xl border px-3.5 py-3 transition-colors ${
+                filled
+                  ? "border-[#00dfa2]/10 bg-[#00dfa2]/[0.03]"
+                  : "border-[#f43f5e]/10 bg-[#f43f5e]/[0.03]"
+              }`}
             >
-              {filled ? (
-                <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-[#00dfa2]" />
-              ) : (
-                <Circle className="h-3.5 w-3.5 shrink-0 text-[#4a5468]" />
-              )}
               <span
-                className={`text-[11px] font-bold uppercase tracking-[0.06em] ${
-                  filled ? "text-[#d7dde5]" : "text-[#8b97a8]"
+                className={`grid h-7 w-7 shrink-0 place-items-center rounded-full ${
+                  filled
+                    ? "bg-[#00dfa2]/[0.08] text-[#00dfa2]"
+                    : "bg-[#f43f5e]/[0.08] text-[#f43f5e]"
+                }`}
+              >
+                {filled ? (
+                  <Check className="h-3 w-3" strokeWidth={3} />
+                ) : (
+                  <X className="h-3 w-3" strokeWidth={3} />
+                )}
+              </span>
+              <span
+                className={`text-[0.74rem] font-semibold leading-tight ${
+                  filled ? "text-[#00dfa2]" : "text-[#f43f5e]"
                 }`}
               >
                 {label}

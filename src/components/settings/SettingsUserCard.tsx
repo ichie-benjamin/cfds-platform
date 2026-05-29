@@ -101,9 +101,9 @@ export function SettingsUserCard({
 
       {/* Quick action tiles */}
       <div className="relative z-10 flex gap-2.5 sm:ml-auto">
-        <QuickTile icon={<ShieldAlert className="h-4 w-4" />} label="Security" onClick={onSecurity} />
-        <QuickTile icon={<Globe className="h-4 w-4" />} label="Language" onClick={onLanguage} />
-        <QuickTile icon={<Coins className="h-4 w-4" />} label="Currency" onClick={onCurrency} />
+        <QuickTile icon={<ShieldAlert className="h-[0.82rem] w-[0.82rem]" />} label="Security" onClick={onSecurity} />
+        <QuickTile icon={<Globe className="h-[0.82rem] w-[0.82rem]" />} label="Language" onClick={onLanguage} />
+        <QuickTile icon={<Coins className="h-[0.82rem] w-[0.82rem]" />} label="Currency" onClick={onCurrency} />
       </div>
     </div>
   );

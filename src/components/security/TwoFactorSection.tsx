@@ -1,44 +1,66 @@
-import { Shield, Smartphone, Mail, XCircle } from "lucide-react";
+import { Key, Smartphone, Mail } from "lucide-react";
 
-interface MethodCardProps {
+interface TfaCardProps {
   title: string;
   description: string;
   icon: React.ComponentType<{ className?: string }>;
 }
 
-function MethodCard({ title, description, icon: Icon }: MethodCardProps) {
+function TfaCard({ title, description, icon: Icon }: TfaCardProps) {
   return (
     <div
-      className="rounded-[14px] border border-[rgba(255,255,255,0.06)] p-5"
+      className="relative overflow-hidden rounded-2xl border border-white/[0.06] px-[18px] py-[22px] text-center"
       style={{
         background:
-          "linear-gradient(145deg,rgba(255,255,255,0.04),rgba(255,255,255,0.01))",
+          "linear-gradient(145deg,rgba(255,255,255,0.05),rgba(255,255,255,0.015))",
+        boxShadow: "0 4px 24px rgba(0,0,0,0.2)",
       }}
     >
-      <div className="mb-3 flex items-center justify-between gap-3">
-        <div className="flex items-center gap-2.5">
-          <div
-            className="flex h-9 w-9 items-center justify-center rounded-[10px]"
-            style={{ background: "rgba(0,223,162,0.1)", color: "#00dfa2" }}
-          >
-            <Icon className="h-[0.88rem] w-[0.88rem]" />
-          </div>
-          <div className="text-[0.92rem] font-extrabold text-[#eef2f7]">
-            {title}
-          </div>
-        </div>
-        <span className="inline-flex items-center gap-1 rounded-full border border-[rgba(244,63,94,0.25)] bg-[rgba(244,63,94,0.08)] px-2.5 py-1 text-[0.65rem] font-bold text-[#f43f5e]">
-          <XCircle className="h-3 w-3" />
-          Off
-        </span>
+      <div
+        className="pointer-events-none absolute inset-0 rounded-2xl"
+        style={{
+          background:
+            "linear-gradient(175deg,rgba(255,255,255,0.025),transparent 40%)",
+        }}
+      />
+
+      {/* Icon chip */}
+      <div
+        className="relative z-10 mx-auto mb-3 grid h-11 w-11 place-items-center rounded-[12px] border border-white/[0.06]"
+        style={{ background: "rgba(255,255,255,0.035)", color: "#00dfa2" }}
+      >
+        <Icon className="h-4 w-4" />
       </div>
-      <p className="mb-4 text-[0.8rem] leading-[1.6] text-[#4a5468]">
+
+      <div className="relative z-10 mb-1 font-[Outfit,sans-serif] text-[0.88rem] font-bold text-[#eef2f7]">
+        {title}
+      </div>
+      <p className="relative z-10 mx-auto mb-3 max-w-[24ch] text-[0.68rem] leading-[1.5] text-[#4a5468]">
         {description}
       </p>
+
+      {/* Status badge */}
+      <div
+        className="relative z-10 mx-auto mb-3.5 inline-flex items-center gap-1.5 rounded-xl px-2.5 py-[3px] text-[0.62rem] font-bold"
+        style={{
+          background: "rgba(244,63,94,0.08)",
+          color: "#f43f5e",
+        }}
+      >
+        <span className="block h-[5px] w-[5px] rounded-full bg-[#f43f5e]" />
+        <span>Disabled</span>
+      </div>
+
       <button
         type="button"
         disabled
-        className="cursor-not-allowed rounded-[10px] border border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.02)] px-4 py-2 text-[0.78rem] font-bold text-[#3a4556]"
+        className="relative z-10 w-full cursor-not-allowed rounded-lg border px-2 py-[9px] text-[0.76rem] font-semibold transition-colors"
+        style={{
+          borderColor: "rgba(0,223,162,0.2)",
+          color: "#00dfa2",
+          background: "transparent",
+          opacity: 0.6,
+        }}
       >
         Coming Soon
       </button>
@@ -48,33 +70,26 @@ function MethodCard({ title, description, icon: Icon }: MethodCardProps) {
 
 export function TwoFactorSection() {
   return (
-    <section className="mb-6">
-      <div className="mb-4 flex items-center gap-2.5">
-        <div
-          className="flex h-9 w-9 items-center justify-center rounded-[10px]"
-          style={{ background: "rgba(0,223,162,0.1)", color: "#00dfa2" }}
-        >
-          <Shield className="h-[0.88rem] w-[0.88rem]" />
-        </div>
-        <h2 className="text-[1.05rem] font-extrabold text-[#eef2f7]">
-          Two-Factor Authentication
-        </h2>
+    <section className="mb-[18px]">
+      <div className="mb-4 flex items-center gap-1.5 text-[0.6rem] font-bold uppercase tracking-[0.08em] text-[#00dfa2]">
+        <Key className="h-[0.55rem] w-[0.55rem]" />
+        Two-Factor Authentication
       </div>
 
-      <div className="flex flex-col gap-3">
-        <MethodCard
+      <div className="grid grid-cols-1 gap-3.5 md:grid-cols-3">
+        <TfaCard
           title="Google Authenticator"
-          description="Use Google Authenticator app for time-based one-time passwords (TOTP). Most secure 2FA method."
-          icon={Shield}
+          description="Use Google Authenticator for 2FA. Provides the highest level of security."
+          icon={Key}
         />
-        <MethodCard
+        <TfaCard
           title="SMS Authentication"
           description="Receive verification codes via SMS to your registered phone number."
           icon={Smartphone}
         />
-        <MethodCard
+        <TfaCard
           title="Email Authentication"
-          description="Receive verification codes by email when signing in."
+          description="Receive verification codes via email for account actions and logins."
           icon={Mail}
         />
       </div>

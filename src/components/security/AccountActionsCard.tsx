@@ -1,8 +1,8 @@
-import { CircleAlert, Snowflake, Ban, Download } from "lucide-react";
+import { Zap, Snowflake, Ban, Download } from "lucide-react";
 
 interface ActionRowProps {
   icon: React.ComponentType<{ className?: string; style?: React.CSSProperties }>;
-  iconColor: string;
+  tone: "warn" | "danger" | "accent";
   title: string;
   description: string;
   buttonLabel: string;
@@ -10,32 +10,47 @@ interface ActionRowProps {
 
 function ActionRow({
   icon: Icon,
-  iconColor,
+  tone,
   title,
   description,
   buttonLabel,
 }: ActionRowProps) {
+  const toneColor =
+    tone === "warn" ? "#FF9800" : tone === "danger" ? "#f43f5e" : "#00dfa2";
+  const toneBg =
+    tone === "warn"
+      ? "rgba(255,152,0,0.08)"
+      : tone === "danger"
+        ? "rgba(244,63,94,0.08)"
+        : "rgba(0,223,162,0.08)";
+
   return (
     <div
-      className="flex flex-col items-start justify-between gap-3 rounded-[14px] border border-[rgba(255,255,255,0.06)] p-5 sm:flex-row sm:items-center"
-      style={{
-        background:
-          "linear-gradient(145deg,rgba(255,255,255,0.04),rgba(255,255,255,0.01))",
-      }}
+      className="flex items-center justify-between gap-3.5 border-b py-4 last:border-0"
+      style={{ borderColor: "rgba(255,255,255,0.06)" }}
     >
-      <div className="flex-1">
-        <div className="mb-1 flex items-center gap-2 text-[0.92rem] font-extrabold text-[#eef2f7]">
-          <Icon className="h-[0.92rem] w-[0.92rem]" style={{ color: iconColor }} />
-          {title}
+      <div className="flex flex-1 items-start gap-3">
+        <Icon
+          className="h-[0.78rem] w-[0.78rem] shrink-0 translate-y-[3px]"
+          style={{ color: toneColor }}
+        />
+        <div className="min-w-0">
+          <h4 className="text-[0.85rem] font-semibold text-[#eef2f7]">
+            {title}
+          </h4>
+          <p className="text-[0.68rem] text-[#4a5468]">{description}</p>
         </div>
-        <p className="text-[0.78rem] leading-[1.6] text-[#4a5468]">
-          {description}
-        </p>
       </div>
       <button
         type="button"
         disabled
-        className="cursor-not-allowed whitespace-nowrap rounded-[10px] border border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.02)] px-4 py-2 text-[0.78rem] font-bold text-[#3a4556]"
+        className="shrink-0 cursor-not-allowed whitespace-nowrap rounded-lg border px-[18px] py-[8px] text-[0.74rem] font-semibold transition-colors"
+        style={{
+          borderColor: toneColor + "33", // alpha 0.2
+          color: toneColor,
+          background: toneBg,
+          opacity: 0.55,
+        }}
       >
         {buttonLabel}
       </button>
@@ -45,40 +60,50 @@ function ActionRow({
 
 export function AccountActionsCard() {
   return (
-    <section className="mb-6">
-      <div className="mb-4 flex items-center gap-2.5">
-        <div
-          className="flex h-9 w-9 items-center justify-center rounded-[10px]"
-          style={{ background: "rgba(0,223,162,0.1)", color: "#00dfa2" }}
-        >
-          <CircleAlert className="h-[0.88rem] w-[0.88rem]" />
-        </div>
-        <h2 className="text-[1.05rem] font-extrabold text-[#eef2f7]">
+    <section
+      className="relative mb-[18px] overflow-hidden rounded-2xl border border-white/[0.06] p-6"
+      style={{
+        background:
+          "linear-gradient(145deg,rgba(255,255,255,0.05),rgba(255,255,255,0.015))",
+        boxShadow: "0 4px 24px rgba(0,0,0,0.2)",
+      }}
+    >
+      <div
+        className="pointer-events-none absolute inset-0 rounded-2xl"
+        style={{
+          background:
+            "linear-gradient(175deg,rgba(255,255,255,0.025),transparent 40%)",
+        }}
+      />
+
+      <div className="relative z-10 mb-[18px] flex items-center gap-2.5 border-b border-white/[0.06] pb-[14px]">
+        <Zap className="h-3.5 w-3.5 text-[#00dfa2]" />
+        <h3 className="flex-1 font-[Outfit,sans-serif] text-[0.95rem] font-bold text-[#eef2f7]">
           Account Actions
-        </h2>
+        </h3>
       </div>
 
-      <div className="flex flex-col gap-3">
+      <div className="relative z-10">
         <ActionRow
           icon={Snowflake}
-          iconColor="#00ffc3"
+          tone="warn"
           title="Freeze Account"
-          description="Temporarily freeze your account to prevent all trading and withdrawals."
-          buttonLabel="Coming Soon"
+          description="Temporarily disable all trading and withdrawals"
+          buttonLabel="Freeze"
         />
         <ActionRow
           icon={Ban}
-          iconColor="#f43f5e"
+          tone="danger"
           title="Disable Account"
-          description="Permanently disable your account. This action cannot be undone."
-          buttonLabel="Coming Soon"
+          description="Permanently disable your trading account"
+          buttonLabel="Disable"
         />
         <ActionRow
           icon={Download}
-          iconColor="#c8e64e"
+          tone="accent"
           title="Export Account Data"
-          description="Download your complete account data in compliance with data protection regulations."
-          buttonLabel="Coming Soon"
+          description="Download all your account information and history"
+          buttonLabel="Export"
         />
       </div>
     </section>
