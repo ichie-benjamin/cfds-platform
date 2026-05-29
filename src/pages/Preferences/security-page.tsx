@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Lock, Menu } from "lucide-react";
+import { Menu } from "lucide-react";
 import { TickerBar } from "@/components/dashboard/TickerBar";
 import DashboardNavbar from "@/components/nav/DashboardNavbar";
 import { SecuritySidebar } from "@/components/security/SecuritySidebar";
@@ -64,7 +64,7 @@ export default function SecurityPage() {
             style={{ maxHeight: "100%" }}
           >
             {/* Page header */}
-            <div className="mb-7 flex items-start gap-3">
+            <div className="mb-8 flex items-start gap-3">
               <button
                 onClick={() => setIsSidebarOpen(true)}
                 aria-label="Toggle navigation"
@@ -73,10 +73,10 @@ export default function SecurityPage() {
                 <Menu className="h-[1.05rem] w-[1.05rem]" />
               </button>
               <div>
-                <h1 className="font-[Outfit,sans-serif] text-[1.65rem] font-extrabold tracking-[-0.03em] text-[#eef2f7]">
+                <h1 className="font-[Outfit,sans-serif] text-[28px] font-bold text-[#eef2f7]">
                   Security Settings
                 </h1>
-                <p className="mt-1 text-[0.87rem] text-[#4a5468]">
+                <p className="mt-2 text-[14px] text-[#8b97a8]">
                   Protect your account with advanced security features
                 </p>
               </div>
@@ -89,23 +89,7 @@ export default function SecurityPage() {
             <TwoFactorSection />
 
             {/* Password & Login (real, working — extracted shared component) */}
-            <section className="mb-6">
-              <div className="mb-4 flex items-center gap-2.5">
-                <div
-                  className="flex h-9 w-9 items-center justify-center rounded-[10px]"
-                  style={{
-                    background: "rgba(0,223,162,0.1)",
-                    color: "#00dfa2",
-                  }}
-                >
-                  <Lock className="h-[0.88rem] w-[0.88rem]" />
-                </div>
-                <h2 className="text-[1.05rem] font-extrabold text-[#eef2f7]">
-                  Password &amp; Login
-                </h2>
-              </div>
-              <PasswordChangeCard />
-            </section>
+            <PasswordChangeCard />
 
             {/* Anti-Phishing Code */}
             <AntiPhishingCard />

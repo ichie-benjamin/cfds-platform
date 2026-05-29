@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from "react";
-import { Menu, Lock, ShieldCheck } from "lucide-react";
+import { Menu } from "lucide-react";
 
 import { TickerBar } from "@/components/dashboard/TickerBar";
 import DashboardNavbar from "@/components/nav/DashboardNavbar";
@@ -29,6 +29,11 @@ import { SettingsTabs, type SettingsTabId } from "@/components/settings/Settings
 import { AccountOverviewCard } from "@/components/settings/AccountOverviewCard";
 import { LocalizationSection } from "@/components/settings/LocalizationSection";
 import { VerificationOverviewCard } from "@/components/settings/VerificationOverviewCard";
+import { VerificationStatusCard } from "@/components/settings/VerificationStatusCard";
+import { RequiredDocumentsCard } from "@/components/settings/RequiredDocumentsCard";
+import { VerificationTipsCard } from "@/components/settings/VerificationTipsCard";
+import { CurrentPreferencesCard } from "@/components/settings/CurrentPreferencesCard";
+import { PreferencesTipsCard } from "@/components/settings/PreferencesTipsCard";
 import { PreferencesPanel } from "@/components/settings/PreferencesPanel";
 
 import useUserStore from "@/store/userStore";
@@ -222,33 +227,7 @@ export default function SettingsPage() {
               <div className="flex flex-col">
                 <SecurityScoreCard />
                 <TwoFactorSection />
-
-                <section
-                  className="relative mb-[18px] overflow-hidden rounded-2xl border border-white/[0.06] p-6"
-                  style={{
-                    background:
-                      "linear-gradient(145deg,rgba(255,255,255,0.05),rgba(255,255,255,0.015))",
-                    boxShadow: "0 4px 24px rgba(0,0,0,0.2)",
-                  }}
-                >
-                  <div
-                    className="pointer-events-none absolute inset-0 rounded-2xl"
-                    style={{
-                      background:
-                        "linear-gradient(175deg,rgba(255,255,255,0.025),transparent 40%)",
-                    }}
-                  />
-                  <div className="relative z-10 mb-[18px] flex items-center gap-2.5 border-b border-white/[0.06] pb-[14px]">
-                    <Lock className="h-3.5 w-3.5 text-[#00dfa2]" />
-                    <h3 className="flex-1 font-[Outfit,sans-serif] text-[0.95rem] font-bold text-[#eef2f7]">
-                      Password &amp; Login
-                    </h3>
-                  </div>
-                  <div className="relative z-10">
-                    <PasswordChangeCard />
-                  </div>
-                </section>
-
+                <PasswordChangeCard />
                 <AccountActionsCard />
                 <LoginActivityCard />
                 <TrustBadgesFooter />
@@ -261,18 +240,12 @@ export default function SettingsPage() {
                 <VerificationOverviewCard
                   verificationStatus={user?.verification_status}
                 />
-                <div className="flex flex-col gap-3.5">
-                  <AccountSnapshotCard
-                    firstName={user?.first_name}
-                    lastName={user?.last_name}
-                    email={user?.email}
-                    avatar={user?.avatar}
-                    accountId={user?.account_id}
-                    planTitle={user?.account_type?.title}
+                <div className="flex flex-col">
+                  <VerificationStatusCard
                     verificationStatus={user?.verification_status}
                   />
-                  <ProfileTipsCard />
-                  <SettingsQuickLinksCard />
+                  <RequiredDocumentsCard />
+                  <VerificationTipsCard />
                 </div>
               </div>
             )}
@@ -281,28 +254,9 @@ export default function SettingsPage() {
             {activeTab === "preferences" && (
               <div className="grid items-start gap-6 xl:grid-cols-[1fr_300px]">
                 <PreferencesPanel />
-                <div className="flex flex-col gap-3.5">
-                  <SettingsTipsCard />
-                  <div
-                    className="relative overflow-hidden rounded-2xl border border-white/[0.06] p-5"
-                    style={{
-                      background:
-                        "linear-gradient(145deg,rgba(255,255,255,0.05),rgba(255,255,255,0.015))",
-                    }}
-                  >
-                    <div className="mb-3 flex items-center gap-2">
-                      <ShieldCheck className="h-3.5 w-3.5 text-[#00dfa2]" />
-                      <span className="text-[0.58rem] font-bold uppercase tracking-[0.08em] text-[#00dfa2]">
-                        Note
-                      </span>
-                    </div>
-                    <p className="text-[0.72rem] leading-relaxed text-[#4a5468]">
-                      Toggles on this tab are visual previews — preferences
-                      sync will be enabled when the corresponding backend is
-                      available. Theme, currency, and language already persist
-                      via the Overview tab.
-                    </p>
-                  </div>
+                <div className="flex flex-col">
+                  <CurrentPreferencesCard />
+                  <PreferencesTipsCard />
                   <HelpSupportCard />
                 </div>
               </div>

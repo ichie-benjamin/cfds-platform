@@ -1,125 +1,74 @@
+import { ShieldCheck } from "lucide-react";
 import useUserStore from "@/store/userStore";
 
 export function SecurityScoreCard() {
   const user = useUserStore((state) => state.user);
   const isVerified = user?.verification_status === "approved";
 
-  // Score derived only from real, verifiable user state.
-  // Each item contributes a fixed weight when satisfied. No fake numbers.
+  // Recommendation items derived from real user state. Each renders as a
+  // bullet only when not satisfied (matches settings.html reference).
   const items = [
-    {
-      label: "Account Verification",
-      satisfied: isVerified,
-      weight: 50,
-      hint: "Complete KYC verification",
-    },
-    {
-      label: "Strong Password",
-      satisfied: false, // no backend signal — neutral state
-      weight: 50,
-      hint: "Change your password regularly",
-    },
+    { label: "Enable 2FA authentication", satisfied: false },
+    { label: "Complete KYC verification", satisfied: isVerified },
+    { label: "Set up anti-phishing code", satisfied: false },
   ];
-
-  const score = items.reduce((sum, i) => (i.satisfied ? sum + i.weight : sum), 0);
-  const percent = score; // total weights = 100
-  const status =
-    score >= 80 ? "Excellent" : score >= 50 ? "Good" : score > 0 ? "Fair" : "—";
-  const statusColor =
-    score >= 80
-      ? "#00dfa2"
-      : score >= 50
-        ? "#00dfa2"
-        : score > 0
-          ? "#FF9800"
-          : "#4a5468";
-
-  // SVG circle math
-  const radius = 75;
-  const circumference = 2 * Math.PI * radius;
-  const offset = circumference - (percent / 100) * circumference;
-
-  const recommendations = items.filter((i) => !i.satisfied).map((i) => i.hint);
+  const recommendations = items.filter((i) => !i.satisfied);
 
   return (
-    <div
-      className="mb-6 flex flex-col gap-6 rounded-2xl border-[1.5px] border-[rgba(255,255,255,0.08)] p-7 shadow-[0_8px_32px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.06)] sm:flex-row sm:items-center"
+    <section
+      className="relative mb-[18px] overflow-hidden rounded-2xl border p-6 shadow-[0_4px_24px_rgba(0,0,0,0.2)]"
       style={{
+        borderColor: "rgba(0, 223, 162, 0.08)",
         background:
-          "linear-gradient(145deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02))",
+          "linear-gradient(145deg,rgba(255,255,255,0.05),rgba(255,255,255,0.015))",
       }}
     >
-      {/* Score circle */}
-      <div className="relative flex h-[180px] w-[180px] shrink-0 items-center justify-center self-center">
-        <svg
-          viewBox="0 0 200 200"
-          className="absolute inset-0 h-full w-full -rotate-90"
-        >
-          <circle
-            cx="100"
-            cy="100"
-            r={radius}
-            fill="none"
-            stroke="rgba(255,255,255,0.06)"
-            strokeWidth="14"
-          />
-          <circle
-            cx="100"
-            cy="100"
-            r={radius}
-            fill="none"
-            stroke={statusColor}
-            strokeWidth="14"
-            strokeLinecap="round"
-            strokeDasharray={circumference}
-            strokeDashoffset={offset}
-            style={{ transition: "stroke-dashoffset .8s ease" }}
-          />
-        </svg>
-        <div className="relative text-center">
-          <div className="font-mono text-[2.4rem] font-extrabold leading-none text-[#eef2f7]">
-            {score}
-          </div>
-          <div className="mt-1 text-[0.68rem] font-bold uppercase tracking-[0.1em] text-[#4a5468]">
-            Score
-          </div>
-        </div>
-      </div>
+      <span
+        aria-hidden
+        className="pointer-events-none absolute inset-0 rounded-2xl"
+        style={{
+          background:
+            "linear-gradient(175deg,rgba(255,255,255,0.025),transparent 40%)",
+        }}
+      />
 
-      {/* Right content */}
-      <div className="flex-1">
-        <div className="text-[0.85rem] font-semibold text-[#8b97a8]">
-          Your account is{" "}
-          <span className="font-extrabold" style={{ color: statusColor }}>
-            {status}
-          </span>
+      <div className="relative z-10 flex items-center gap-[18px]">
+        <div
+          className="grid h-12 w-12 flex-shrink-0 place-items-center rounded-[14px]"
+          style={{
+            background: "rgba(0, 223, 162, 0.08)",
+            color: "#00dfa2",
+          }}
+        >
+          <ShieldCheck className="h-[1.15rem] w-[1.15rem]" />
         </div>
-        <p className="mt-2 text-[0.83rem] leading-[1.6] text-[#4a5468]">
-          Strengthen your account by following the recommendations below.
-        </p>
-        <div className="mt-4">
-          <div className="mb-2 text-[0.68rem] font-bold uppercase tracking-[0.1em] text-[#3a4556]">
-            Recommendations
+
+        <div className="min-w-0">
+          <div className="font-[Outfit,sans-serif] text-[1.05rem] font-extrabold text-[#eef2f7]">
+            Your Security Score
           </div>
-          {recommendations.length === 0 ? (
-            <div className="text-[0.78rem] text-[#4a5468]">
-              No outstanding recommendations.
-            </div>
-          ) : (
-            <ul className="flex flex-col gap-1.5">
-              {recommendations.map((rec) => (
-                <li
-                  key={rec}
-                  className="flex items-center gap-2 text-[0.8rem] text-[#8b97a8]"
+          <p className="mt-[2px] text-[0.75rem] text-[#4a5468]">
+            Enable all security features for maximum protection
+          </p>
+
+          {recommendations.length > 0 && (
+            <div className="mt-2 flex flex-col gap-1">
+              {recommendations.map((r) => (
+                <span
+                  key={r.label}
+                  className="flex items-center gap-[7px] text-[0.7rem] text-[#8b97a8]"
                 >
-                  <span className="text-[#00dfa2]">→</span>
-                  {rec}
-                </li>
+                  <span
+                    className="block h-[0.4rem] w-[0.4rem] rounded-full"
+                    style={{ background: "#FF9800" }}
+                  />
+                  {r.label}
+                </span>
               ))}
-            </ul>
+            </div>
           )}
         </div>
       </div>
-    </div>
+    </section>
   );
 }

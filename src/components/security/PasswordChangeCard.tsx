@@ -1,11 +1,19 @@
 import * as React from "react";
-import { useForm } from "react-hook-form";
+import { useForm, type Control } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { AxiosError } from "axios";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { EyeOff, Eye, Lock } from "lucide-react";
+import {
+  EyeOff,
+  Eye,
+  Lock,
+  Key,
+  CheckCheck,
+  Check,
+  Circle,
+} from "lucide-react";
 import {
   Form,
   FormControl,
@@ -29,36 +37,93 @@ const passwordFormSchema = z
     path: ["confirm_password"],
   });
 
-// ── Password strength (purely visual) ──────────────────────────────
-function getPasswordStrength(password: string) {
-  let score = 0;
-  if (password.length >= 8) score++;
-  if (password.length >= 12) score++;
-  if (/[A-Z]/.test(password)) score++;
-  if (/[0-9]/.test(password)) score++;
-  if (/[^A-Za-z0-9]/.test(password)) score++;
+type PwFormValues = z.infer<typeof passwordFormSchema>;
+type FieldKey = keyof PwFormValues;
 
-  if (score <= 1) return { label: "Weak", color: "#f43f5e", percent: 20 };
-  if (score <= 2) return { label: "Fair", color: "#FF9800", percent: 40 };
-  if (score <= 3) return { label: "Good", color: "#f0b90b", percent: 60 };
-  if (score <= 4) return { label: "Strong", color: "#00dfa2", percent: 80 };
-  return { label: "Very Strong", color: "#00dfa2", percent: 100 };
+interface PwFieldProps {
+  name: FieldKey;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  placeholder: string;
+  show: boolean;
+  onToggle: () => void;
+  control: Control<PwFormValues>;
 }
 
-function PasswordStrengthBar({ password }: { password: string }) {
-  if (!password) return null;
-  const { label, color, percent } = getPasswordStrength(password);
+function PwField({
+  name,
+  label,
+  icon: Icon,
+  placeholder,
+  show,
+  onToggle,
+  control,
+}: PwFieldProps) {
   return (
-    <div className="mt-2 space-y-1">
-      <div className="h-1 w-full rounded-full bg-white/[0.06] overflow-hidden">
-        <div
-          className="h-full rounded-full transition-all duration-300"
-          style={{ width: `${percent}%`, backgroundColor: color }}
+    <FormField
+      control={control}
+      name={name}
+      render={({ field }) => (
+        <FormItem className="space-y-0">
+          <FormLabel className="mb-1.5 flex items-center gap-1.5 text-[0.67rem] font-semibold uppercase tracking-[0.04em] text-[#4a5468]">
+            <Icon className="h-[0.55rem] w-[0.55rem] text-[#00dfa2] opacity-50" />
+            {label}
+          </FormLabel>
+          <FormControl>
+            <div className="relative">
+              <Input
+                type={show ? "text" : "password"}
+                placeholder={placeholder}
+                {...field}
+                className="h-auto w-full rounded-lg border border-white/[0.06] px-[15px] py-3 text-[0.84rem] font-medium text-[#eef2f7] placeholder:text-[#3a4556] focus:border-[#00dfa2] focus:ring-[3px] focus:ring-[rgba(0,223,162,0.06)]"
+                style={{ background: "rgba(255,255,255,0.035)" }}
+              />
+              <button
+                type="button"
+                onClick={onToggle}
+                aria-label={show ? "Hide password" : "Show password"}
+                className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-[0.75rem] text-[#3a4556] transition-colors hover:text-[#eef2f7]"
+              >
+                {show ? (
+                  <EyeOff className="h-3.5 w-3.5" />
+                ) : (
+                  <Eye className="h-3.5 w-3.5" />
+                )}
+              </button>
+            </div>
+          </FormControl>
+          <FormMessage className="mt-1.5 text-[0.68rem] font-semibold text-[#f43f5e]" />
+        </FormItem>
+      )}
+    />
+  );
+}
+
+function PwReq({
+  label,
+  met,
+  full,
+}: {
+  label: string;
+  met: boolean;
+  full?: boolean;
+}) {
+  return (
+    <div
+      className={`flex items-center gap-2 text-[0.72rem] transition-colors ${
+        met ? "font-semibold text-[#00dfa2]" : "font-medium text-[#3a4556]"
+      }`}
+      style={full ? { gridColumn: "1 / -1" } : undefined}
+    >
+      {met ? (
+        <Check className="h-3 w-3 shrink-0 text-[#00dfa2]" strokeWidth={3} />
+      ) : (
+        <Circle
+          className="h-[0.62rem] w-[0.62rem] shrink-0"
+          fill="currentColor"
         />
-      </div>
-      <p className="text-[10px] font-semibold" style={{ color }}>
-        {label}
-      </p>
+      )}
+      <span>{label}</span>
     </div>
   );
 }
@@ -81,6 +146,17 @@ export function PasswordChangeCard() {
   });
 
   const watchedNewPassword = form.watch("new_password");
+  const watchedConfirmPassword = form.watch("confirm_password");
+
+  const reqs = {
+    len: watchedNewPassword.length >= 8,
+    upper: /[A-Z]/.test(watchedNewPassword),
+    num: /[0-9]/.test(watchedNewPassword),
+    special: /[^A-Za-z0-9]/.test(watchedNewPassword),
+    match:
+      watchedNewPassword.length > 0 &&
+      watchedNewPassword === watchedConfirmPassword,
+  };
 
   // ── Existing handler (UNCHANGED) ──
   const handleChangePassword = async (
@@ -110,166 +186,103 @@ export function PasswordChangeCard() {
   };
 
   return (
-    <div
-      className="rounded-[14px] border border-[rgba(255,255,255,0.06)] p-5"
+    <section
+      className="relative mb-[18px] overflow-hidden rounded-2xl border border-white/[0.06] p-6 shadow-[0_4px_24px_rgba(0,0,0,0.2)]"
       style={{
         background:
-          "linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01))",
+          "linear-gradient(145deg,rgba(255,255,255,0.05),rgba(255,255,255,0.015))",
       }}
     >
+      <span
+        aria-hidden
+        className="pointer-events-none absolute inset-0 rounded-2xl"
+        style={{
+          background:
+            "linear-gradient(175deg,rgba(255,255,255,0.025),transparent 40%)",
+        }}
+      />
+
+      {/* sec-hd */}
+      <div className="relative z-10 mb-[18px] flex items-center gap-2.5 border-b border-white/[0.06] pb-[14px]">
+        <Lock className="h-[0.85rem] w-[0.85rem] shrink-0 text-[#00dfa2]" />
+        <h3 className="flex-1 font-[Outfit,sans-serif] text-[0.95rem] font-bold text-[#eef2f7]">
+          Password &amp; Login
+        </h3>
+      </div>
+
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(handleChangePassword)}
-          className="space-y-4"
+          className="relative z-10"
         >
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-5 gap-y-4">
-            {/* Current Password */}
-            <FormField
-              control={form.control}
+          {/* .fg grid: 1fr 1fr, gap 16 */}
+          <div className="grid gap-4 sm:grid-cols-2">
+            <PwField
               name="current_password"
-              render={({ field }) => (
-                <FormItem className="space-y-1.5">
-                  <FormLabel className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.08em] text-[#4a5468]">
-                    <Lock className="h-3.5 w-3.5" />
-                    Current Password
-                  </FormLabel>
-                  <FormControl>
-                    <div className="relative">
-                      <Input
-                        type={showCurrentPassword ? "text" : "password"}
-                        placeholder="Enter current password"
-                        {...field}
-                        className="input-focus-glow h-10 rounded-lg pr-10 text-sm placeholder:text-[#3a4556] !bg-[#14161c]"
-                      />
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setShowCurrentPassword(!showCurrentPassword)
-                        }
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-[#4a5468] hover:text-[#eef2f7] transition-colors"
-                        aria-label={
-                          showCurrentPassword
-                            ? "Hide password"
-                            : "Show password"
-                        }
-                      >
-                        {showCurrentPassword ? (
-                          <EyeOff className="h-4 w-4" />
-                        ) : (
-                          <Eye className="h-4 w-4" />
-                        )}
-                      </button>
-                    </div>
-                  </FormControl>
-                  <FormMessage className="text-[11px] font-semibold text-[#f43f5e]" />
-                </FormItem>
-              )}
-            />
-
-            {/* New Password */}
-            <FormField
+              label="Current Password"
+              icon={Key}
+              placeholder="Enter current password"
+              show={showCurrentPassword}
+              onToggle={() => setShowCurrentPassword((v) => !v)}
               control={form.control}
+            />
+            <PwField
               name="new_password"
-              render={({ field }) => (
-                <FormItem className="space-y-1.5">
-                  <FormLabel className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.08em] text-[#4a5468]">
-                    <Lock className="h-3.5 w-3.5" />
-                    New Password
-                  </FormLabel>
-                  <FormControl>
-                    <div className="relative">
-                      <Input
-                        type={showNewPassword ? "text" : "password"}
-                        placeholder="Min. 8 characters"
-                        {...field}
-                        className="input-focus-glow h-10 rounded-lg pr-10 text-sm placeholder:text-[#3a4556] !bg-[#14161c]"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowNewPassword(!showNewPassword)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-[#4a5468] hover:text-[#eef2f7] transition-colors"
-                        aria-label={
-                          showNewPassword ? "Hide password" : "Show password"
-                        }
-                      >
-                        {showNewPassword ? (
-                          <EyeOff className="h-4 w-4" />
-                        ) : (
-                          <Eye className="h-4 w-4" />
-                        )}
-                      </button>
-                    </div>
-                  </FormControl>
-                  <PasswordStrengthBar password={watchedNewPassword} />
-                  <FormMessage className="text-[11px] font-semibold text-[#f43f5e]" />
-                </FormItem>
-              )}
-            />
-
-            {/* Confirm Password */}
-            <FormField
+              label="New Password"
+              icon={Lock}
+              placeholder="Min. 8 characters"
+              show={showNewPassword}
+              onToggle={() => setShowNewPassword((v) => !v)}
               control={form.control}
+            />
+            <PwField
               name="confirm_password"
-              render={({ field }) => (
-                <FormItem className="space-y-1.5 md:col-span-2">
-                  <FormLabel className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.08em] text-[#4a5468]">
-                    <Lock className="h-3.5 w-3.5" />
-                    Confirm New Password
-                  </FormLabel>
-                  <FormControl>
-                    <div className="relative">
-                      <Input
-                        type={showConfirmPassword ? "text" : "password"}
-                        placeholder="Re-enter new password"
-                        {...field}
-                        className="input-focus-glow h-10 rounded-lg pr-10 text-sm placeholder:text-[#3a4556] !bg-[#14161c] md:max-w-[calc(50%-0.625rem)]"
-                      />
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setShowConfirmPassword(!showConfirmPassword)
-                        }
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-[#4a5468] hover:text-[#eef2f7] transition-colors md:left-[calc(50%-0.625rem-2.5rem)] md:right-auto"
-                        aria-label={
-                          showConfirmPassword
-                            ? "Hide password"
-                            : "Show password"
-                        }
-                      >
-                        {showConfirmPassword ? (
-                          <EyeOff className="h-4 w-4" />
-                        ) : (
-                          <Eye className="h-4 w-4" />
-                        )}
-                      </button>
-                    </div>
-                  </FormControl>
-                  <FormMessage className="text-[11px] font-semibold text-[#f43f5e]" />
-                </FormItem>
-              )}
+              label="Confirm"
+              icon={CheckCheck}
+              placeholder="Re-enter new password"
+              show={showConfirmPassword}
+              onToggle={() => setShowConfirmPassword((v) => !v)}
+              control={form.control}
             />
           </div>
 
-          {/* Footer with submit */}
-          <div className="flex items-center gap-3 mt-7 pt-5 border-t border-white/[0.06]">
+          {/* .pw-reqs: grid 1fr 1fr, gap 6/14 */}
+          <div
+            className="mt-3 grid gap-y-1.5 gap-x-3.5 rounded-lg border border-white/[0.06] px-4 py-3 sm:grid-cols-2"
+            style={{ background: "rgba(255,255,255,0.035)" }}
+          >
+            <PwReq label="Min 8 characters" met={reqs.len} />
+            <PwReq label="One uppercase letter" met={reqs.upper} />
+            <PwReq label="One number" met={reqs.num} />
+            <PwReq label="One special character" met={reqs.special} />
+            <PwReq label="Passwords match" met={reqs.match} full />
+          </div>
+
+          {/* .btn-row */}
+          <div className="mt-[18px] flex flex-wrap gap-2.5">
             <Button
               type="submit"
               disabled={isSubmitting}
-              className="bg-[#061f1d] text-xs font-extrabold px-6 py-2.5 active:scale-[0.98] disabled:opacity-50"
+              className="inline-flex items-center gap-[7px] rounded-lg border-0 px-[22px] py-[10px] text-[0.78rem] font-bold text-[#07080c] transition-all hover:-translate-y-px hover:shadow-[0_4px_16px_rgba(0,223,162,0.25)] disabled:translate-y-0 disabled:opacity-50 disabled:shadow-none"
+              style={{
+                background:
+                  "linear-gradient(135deg, #00dfa2, #00b881)",
+              }}
             >
-              {isSubmitting ? "Changing Password..." : "Change Password"}
+              {isSubmitting ? "Updating..." : "Change Password"}
             </Button>
             <Button
               type="button"
               variant="outline"
               onClick={() => form.reset()}
-              className="border-white/[0.08] bg-white/[0.03] text-[#8b97a8] font-bold text-xs px-6 py-2.5 rounded-lg hover:bg-white/[0.06] hover:text-[#eef2f7] hover:border-white/[0.12] transition-all active:scale-[0.98]"
+              className="rounded-lg border border-white/[0.06] px-[22px] py-[10px] text-[0.78rem] font-semibold text-[#8b97a8] hover:border-white/[0.12] hover:text-[#eef2f7]"
+              style={{ background: "rgba(255,255,255,0.035)" }}
             >
               Reset
             </Button>
           </div>
         </form>
       </Form>
-    </div>
+    </section>
   );
 }

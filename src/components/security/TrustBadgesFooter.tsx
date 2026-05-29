@@ -2,31 +2,40 @@ import { Shield } from "lucide-react";
 
 const items = [
   "Enterprise-Grade Encryption",
-  "Data encrypted at rest and in transit",
-  "Glassmorphism Dark Theme",
+  "All data encrypted at rest and in transit",
+  "3D Glassmorphism Dark Theme",
 ];
 
 export function TrustBadgesFooter() {
   return (
     <div
-      className="mt-2 rounded-[14px] border border-[rgba(255,255,255,0.06)] p-5"
+      className="mt-12 rounded-2xl border-[1.5px] p-8 text-center"
       style={{
-        background:
-          "linear-gradient(145deg,rgba(0,223,162,0.04),rgba(255,255,255,0.01))",
+        background: "rgba(0, 223, 162, 0.05)",
+        borderColor: "rgba(0, 223, 162, 0.2)",
       }}
     >
-      <div className="mb-3 flex items-center gap-2 text-[0.95rem] font-extrabold text-[#eef2f7]">
-        <Shield className="h-4 w-4 text-[#00dfa2]" />
-        Security & Trust
+      <div className="mb-4 flex items-center justify-center gap-3 text-[16px] font-bold text-[#eef2f7]">
+        <Shield className="h-5 w-5 text-[#00dfa2]" />
+        Security &amp; Trust
       </div>
-      <div className="flex flex-wrap gap-2">
+      <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
         {items.map((item) => (
-          <span
+          <div
             key={item}
-            className="rounded-full border border-[rgba(0,223,162,0.25)] bg-[rgba(0,223,162,0.08)] px-3 py-1 text-[0.72rem] font-semibold text-[#00dfa2]"
+            className="flex items-center justify-center gap-2 text-[12px] text-[#8b97a8]"
           >
+            <span
+              className="grid h-5 w-5 place-items-center rounded-full text-[12px] font-bold"
+              style={{
+                background: "rgba(0, 223, 162, 0.15)",
+                color: "#00dfa2",
+              }}
+            >
+              ✓
+            </span>
             {item}
-          </span>
+          </div>
         ))}
       </div>
     </div>
