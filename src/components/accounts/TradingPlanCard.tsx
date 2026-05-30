@@ -1,6 +1,3 @@
-import { Link } from "react-router-dom";
-import { ArrowRight, Crown } from "lucide-react";
-
 interface TradingPlanCardProps {
   planTitle?: string;
   leverage?: number;
@@ -76,21 +73,8 @@ export function TradingPlanCard({
             value={leverage ? `1:${leverage}` : "1:1"}
             accentColor={accent}
           />
+          <PlanRow label="Status" value="ACTIVE" accentColor={accent} />
         </div>
-
-        <Link
-          to="/main/marketplace"
-          className="group mt-4 flex items-center gap-2 rounded-lg border px-3 py-2.5 transition-all"
-          style={{
-            borderColor: "rgba(0,223,162,0.2)",
-            background: "rgba(0,223,162,0.06)",
-            color: "#00dfa2",
-          }}
-        >
-          <Crown className="h-3.5 w-3.5" />
-          <span className="flex-1 text-[0.76rem] font-bold">Upgrade Plan</span>
-          <ArrowRight className="h-3.5 w-3.5 -translate-x-1 opacity-0 transition-all group-hover:translate-x-0 group-hover:opacity-100" />
-        </Link>
       </div>
     </div>
   );

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Wallet, Menu } from "lucide-react";
 import { TickerBar } from "@/components/dashboard/TickerBar";
+import DashboardNavbar from "@/components/nav/DashboardNavbar";
 import { AccountsSidebar } from "@/components/accounts/AccountsSidebar";
 import { HelpSupportCard } from "@/components/settings/HelpSupportCard";
 import { AccountsHeroCard } from "@/components/accounts/AccountsHeroCard";
@@ -52,6 +53,9 @@ export default function AccountsPage() {
       >
         {/* Top scrolling ticker bar (reused from Markets) */}
         <TickerBar />
+
+        {/* Universal platform navbar (matches Dashboard) */}
+        <DashboardNavbar />
 
         {/* Mobile-only sidebar trigger — mirrors MarketHeader's trigger */}
         <div className="flex items-center border-b border-[rgba(255,255,255,0.06)] bg-[rgba(7,8,12,0.75)] px-3 py-1.5 md:hidden">
