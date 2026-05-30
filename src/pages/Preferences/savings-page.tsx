@@ -11,26 +11,21 @@ import {
   Clock,
   Coins,
   Gift,
-  Globe,
   Headphones,
   Info,
-  LayoutDashboard,
   Loader2,
-  LogOut,
   Menu,
   PackageOpen,
   Rocket,
   Search,
-  Settings,
-  ShieldCheck,
   Sprout,
   TrendingUp,
-  Users,
   Wallet,
 } from "lucide-react";
 import { toast } from "sonner";
+import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import { TickerBar } from "@/components/dashboard/TickerBar";
-import { clearAuthenticatedSession } from "@/lib/session";
+import DashboardNavbar from "@/components/nav/DashboardNavbar";
 import useSavingsStore, {
   SavingsPeriod,
   UserSaving,
@@ -142,28 +137,6 @@ type PendingSubscription = {
   amount: number;
   monthly: number;
 };
-
-type SidebarItem = {
-  title: string;
-  icon: React.ComponentType<{ className?: string }>;
-  href: string;
-  external?: boolean;
-};
-
-const topSidebarItems: SidebarItem[] = [
-  { title: "Dashboard", icon: LayoutDashboard, href: "/main/dashboard" },
-  { title: "Trade Room", icon: BarChart3, href: "/trading", external: true },
-  { title: "Markets", icon: Globe, href: "/main/market" },
-  { title: "Accounts", icon: Wallet, href: "/main/accounts" },
-  { title: "Deposit / Withdraw", icon: ArrowDown, href: "/main/withdrawal" },
-];
-
-const midSidebarItems: SidebarItem[] = [
-  { title: "Trading Plans", icon: Clock, href: "/main/trading-plans" },
-  { title: "Fund Protection", icon: ShieldCheck, href: "/main/fund-protection" },
-  { title: "Fund Managers", icon: Users, href: "/main/fund-managers" },
-  { title: "Earning", icon: Coins, href: "/main/savings" },
-];
 
 function formatMoney(value: number): string {
   return value.toLocaleString("en-US", {
@@ -307,92 +280,10 @@ function ShellStyles() {
         font-size: .84rem !important;
       }
 
-      .earning-mobile-bar {
-        display: none;
-      }
-
-      .earning-layout {
-        display: grid;
-        grid-template-columns: 64px 1fr;
-        min-height: calc(100vh - 32px);
-      }
-
-      .earning-sidebar {
-        background: linear-gradient(180deg,rgba(255,255,255,0.03),rgba(255,255,255,0.01));
-        border-right: 1px solid rgba(255,255,255,0.05);
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        padding: 14px 0;
-        gap: 2px;
-      }
-
-      .earning-sb-icon {
-        width: 42px;
-        height: 42px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 12px;
-        cursor: pointer;
-        color: var(--earn-t3);
-        transition: all .2s;
-        position: relative;
-      }
-
-      .earning-sb-icon:hover {
-        background: rgba(255,255,255,0.06);
-        color: var(--earn-t1);
-      }
-
-      .earning-sb-icon.on {
-        background: rgba(255,255,255,0.1);
-        color: var(--earn-t1);
-        border: 1.5px solid rgba(100,160,255,0.6);
-        box-shadow: 0 0 14px rgba(100,160,255,0.25);
-      }
-
-      .earning-sb-icon svg {
-        width: .88rem;
-        height: .88rem;
-      }
-
-      .earning-sb-tip {
-        position: absolute;
-        left: 54px;
-        background: rgba(10,13,21,.95);
-        border: 1px solid rgba(255,255,255,.1);
-        color: var(--earn-t1);
-        font-size: .68rem;
-        font-weight: 600;
-        padding: 4px 10px;
-        border-radius: 6px;
-        white-space: nowrap;
-        opacity: 0;
-        pointer-events: none;
-        transition: opacity .15s;
-        z-index: 400;
-      }
-
-      .earning-sb-icon:hover .earning-sb-tip {
-        opacity: 1;
-      }
-
-      .earning-sb-div {
-        width: 26px;
-        height: 1px;
-        background: rgba(255,255,255,0.05);
-        margin: 6px 0;
-      }
-
-      .earning-sb-spacer {
-        flex: 1;
-      }
-
       .earning-main {
         padding: 28px 32px;
         overflow-y: auto;
-        max-height: calc(100vh - 32px);
+        max-height: 100%;
       }
 
       .earning-content-grid {
@@ -1579,41 +1470,6 @@ function ShellStyles() {
       }
 
       @media (max-width: 768px) {
-        .earning-mobile-bar {
-          display: flex;
-          align-items: center;
-          border-bottom: 1px solid rgba(255,255,255,0.06);
-          background: rgba(7,8,12,0.75);
-          padding: 6px 12px;
-        }
-
-        .earning-layout {
-          grid-template-columns: 1fr;
-        }
-
-        .earning-sidebar {
-          position: fixed;
-          top: 32px;
-          bottom: 0;
-          left: 0;
-          z-index: 250;
-          width: 64px;
-          transform: translateX(-100%);
-          transition: transform .2s;
-        }
-
-        .earning-sidebar.open {
-          transform: translateX(0);
-        }
-
-        .earning-mobile-backdrop {
-          position: fixed;
-          inset: 32px 0 0 0;
-          z-index: 240;
-          background: rgba(0,0,0,.6);
-          backdrop-filter: blur(6px);
-        }
-
         .earning-main {
           padding: 16px;
         }
@@ -1657,97 +1513,6 @@ function ShellStyles() {
         }
       }
     `}</style>
-  );
-}
-
-function SidebarIcon({
-  item,
-  active,
-  onClose,
-}: {
-  item: SidebarItem;
-  active: boolean;
-  onClose?: () => void;
-}) {
-  const className = `earning-sb-icon${active ? " on" : ""}`;
-  const content = (
-    <>
-      <item.icon />
-      <span className="earning-sb-tip">{item.title}</span>
-    </>
-  );
-
-  if (item.external) {
-    return (
-      <a
-        href={item.href}
-        target="_blank"
-        rel="noreferrer"
-        className={className}
-        onClick={onClose}
-        aria-label={item.title}
-      >
-        {content}
-      </a>
-    );
-  }
-
-  return (
-    <Link to={item.href} className={className} onClick={onClose} aria-label={item.title}>
-      {content}
-    </Link>
-  );
-}
-
-function EarningSidebar({
-  isOpen,
-  onClose,
-}: {
-  isOpen: boolean;
-  onClose: () => void;
-}) {
-  const navigate = useNavigate();
-
-  const handleLogout = () => {
-    clearAuthenticatedSession();
-    onClose();
-    navigate("/");
-  };
-
-  return (
-    <>
-      {isOpen && <button className="earning-mobile-backdrop md:hidden" onClick={onClose} />}
-      <aside className={`earning-sidebar${isOpen ? " open" : ""}`}>
-        {topSidebarItems.map((item) => (
-          <SidebarIcon
-            key={item.title}
-            item={item}
-            active={item.href === "/main/savings"}
-            onClose={onClose}
-          />
-        ))}
-        <div className="earning-sb-div" />
-        {midSidebarItems.map((item) => (
-          <SidebarIcon
-            key={item.title}
-            item={item}
-            active={item.href === "/main/savings"}
-            onClose={onClose}
-          />
-        ))}
-        <div className="earning-sb-spacer" />
-        <div className="earning-sb-div" />
-        <SidebarIcon
-          item={{ title: "Settings", icon: Settings, href: "/main/settings" }}
-          active={false}
-          onClose={onClose}
-        />
-        <button className="earning-sb-icon" onClick={handleLogout} aria-label="Logout">
-          <LogOut />
-          <span className="earning-sb-tip">Logout</span>
-        </button>
-      </aside>
-    </>
   );
 }
 
@@ -1984,26 +1749,24 @@ export default function SavingsPage() {
       <ShellStyles />
       <div className="earning-page fixed inset-0 z-30 flex flex-col">
         <TickerBar />
+        <DashboardNavbar />
 
-        <div className="earning-mobile-bar">
-          <button
-            type="button"
-            onClick={() => setIsSidebarOpen(true)}
-            aria-label="Open navigation"
-            className="flex h-9 w-9 items-center justify-center rounded-[10px] border border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.03)] text-[#8b97a8] transition-colors hover:bg-[rgba(255,255,255,0.06)] hover:text-[#eef2f7]"
-          >
-            <Menu className="h-[1.05rem] w-[1.05rem]" />
-          </button>
-        </div>
-
-        <div className="earning-layout">
-          <EarningSidebar
+        <div className="grid flex-1 grid-cols-1 md:grid-cols-[60px_1fr] min-h-0">
+          <DashboardSidebar
             isOpen={isSidebarOpen}
             onClose={() => setIsSidebarOpen(false)}
           />
 
           <main className="earning-main">
             <div className="earning-pg-header">
+              <button
+                type="button"
+                onClick={() => setIsSidebarOpen(true)}
+                aria-label="Open navigation"
+                className="md:hidden flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] border border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.03)] text-[#8b97a8] transition-colors hover:bg-[rgba(255,255,255,0.06)] hover:text-[#eef2f7]"
+              >
+                <Menu className="h-[1.1rem] w-[1.1rem]" />
+              </button>
               <div className="earning-pg-icon">
                 <Coins />
               </div>

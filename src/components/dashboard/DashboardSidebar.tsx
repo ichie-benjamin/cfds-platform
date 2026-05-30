@@ -6,6 +6,7 @@ import {
   Wallet,
   ArrowDownToLine,
   Clock,
+  Coins,
   ShieldCheck,
   Users,
   Gift,
@@ -27,6 +28,7 @@ const navMid = [
   { title: "Trading Plans", icon: Clock, href: "/main/trading-plans" },
   { title: "Fund Protection", icon: ShieldCheck, href: "/main/fund-protection" },
   { title: "Fund Managers", icon: Users, href: "/main/fund-managers" },
+  { title: "Earning", icon: Coins, href: "/main/savings" },
   { title: "Welcome Bonus", icon: Gift, href: "/main/welcome-bonus" },
 ];
 
