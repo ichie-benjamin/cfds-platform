@@ -1441,6 +1441,9 @@ function SectionDivider({
 }
 
 function FooterCol({ title, items }: { title: string; items: string[] }) {
+  const getFooterHref = (item: string) =>
+    item === "Staking and Earn" ? "/main/savings" : "#";
+
   return (
     <div className="flex flex-col">
       <div
@@ -1452,7 +1455,7 @@ function FooterCol({ title, items }: { title: string; items: string[] }) {
       {items.map((item) => (
         <a
           key={item}
-          href="#"
+          href={getFooterHref(item)}
           className="block py-[5px] text-[0.76rem] text-[#4a5468] transition-all duration-200 hover:pl-2 hover:text-[#00dfa2]"
         >
           {item}
