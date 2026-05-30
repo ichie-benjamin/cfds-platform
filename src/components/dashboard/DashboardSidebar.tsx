@@ -10,6 +10,7 @@ import {
   ShieldCheck,
   Users,
   Gift,
+  Flame,
   Settings,
   LogOut,
 } from "lucide-react";
@@ -29,6 +30,7 @@ const navMid = [
   { title: "Fund Protection", icon: ShieldCheck, href: "/main/fund-protection" },
   { title: "Fund Managers", icon: Users, href: "/main/fund-managers" },
   { title: "Earning", icon: Coins, href: "/main/savings" },
+  { title: "Meme Explorer", icon: Flame, href: "/main/meme-explorer" },
   { title: "Welcome Bonus", icon: Gift, href: "/main/welcome-bonus" },
 ];
 
