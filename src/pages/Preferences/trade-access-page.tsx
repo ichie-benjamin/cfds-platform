@@ -253,6 +253,31 @@ export default function TradeAccessPage() {
   const [accessKey, setAccessKey] = useState("XXXXXXXXXXXXXXXX");
   const [clock, setClock] = useState("00:00:00");
 
+  // Generate Trade Only Access confirmation modal — local UI only
+  const [showGenModal, setShowGenModal] = useState(false);
+  const [genChecks, setGenChecks] = useState<[boolean, boolean, boolean, boolean]>([
+    false,
+    false,
+    false,
+    false,
+  ]);
+  const genAllChecked = genChecks.every(Boolean);
+  const toggleGenCheck = (i: number) =>
+    setGenChecks((prev) => {
+      const next = [...prev] as typeof prev;
+      next[i] = !next[i];
+      return next;
+    });
+  const closeGenModal = () => {
+    setShowGenModal(false);
+    setGenChecks([false, false, false, false]);
+  };
+  const confirmAndGenerate = () => {
+    if (!genAllChecked) return;
+    closeGenModal();
+    revealKey();
+  };
+
   // Hide MainLayout chrome while this page is mounted (mirrors Trading Plans)
   useEffect(() => {
     document.body.classList.add("ta-active");
@@ -1035,7 +1060,7 @@ export default function TradeAccessPage() {
                     </div>
                     <button
                       type="button"
-                      onClick={revealKey}
+                      onClick={() => setShowGenModal(true)}
                       className="inline-flex cursor-pointer items-center gap-[7px] overflow-hidden rounded-lg px-[18px] py-2 font-[Outfit,sans-serif] text-[0.74rem] font-extrabold text-black transition-transform duration-300"
                       style={{
                         background:
@@ -1389,6 +1414,116 @@ export default function TradeAccessPage() {
           </footer>
         </main>
       </div>
+
+      {/* ─── Generate Trade Only Access — confirmation modal ─── */}
+      {showGenModal && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="ta-gen-modal-title"
+          onClick={closeGenModal}
+          className="fixed inset-0 z-[10000] flex items-center justify-center p-5"
+          style={{ background: "rgba(0,0,0,0.7)", backdropFilter: "blur(8px)" }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="flex w-full max-w-[540px] max-h-[90vh] flex-col overflow-y-auto rounded-[20px]"
+            style={{
+              background: "rgba(16,19,26,0.94)",
+              backdropFilter: "blur(40px) saturate(1.4)",
+              border: "1px solid rgba(255,255,255,0.1)",
+              boxShadow: "0 24px 64px rgba(0,0,0,0.5)",
+            }}
+          >
+            {/* Modal header */}
+            <div
+              className="flex items-center gap-3 rounded-t-[20px] px-8 py-7"
+              style={{
+                background: "linear-gradient(135deg,#00dfa2,#00b881)",
+                color: "#000",
+              }}
+            >
+              <ShieldHalf className="h-[1.4rem] w-[1.4rem]" />
+              <h2
+                id="ta-gen-modal-title"
+                className="m-0 font-[Outfit,sans-serif] text-[1.05rem] font-bold"
+              >
+                Generate Trade Only Access
+              </h2>
+            </div>
+
+            {/* Modal body */}
+            <div className="px-8 py-7">
+              <div
+                className="mb-5 rounded-[10px] px-4 py-3.5 text-[0.74rem] leading-[1.6] text-[#8b97a8]"
+                style={{
+                  background: "rgba(244,63,94,0.08)",
+                  border: "1px solid rgba(244,63,94,0.2)",
+                }}
+              >
+                <strong className="text-[#eef2f7]">Critical Restrictions:</strong>{" "}
+                The appointed fund manager cannot withdraw, transfer, or close
+                your account. All trading activity is recorded and your funds
+                remain under your full custody at all times.
+              </div>
+
+              {[
+                "I understand that the assigned fund manager is not authorized to withdraw or transfer funds from my account",
+                "I acknowledge that all trades and activity will be recorded for audit purposes",
+                "I confirm my funds are kept in my full custody and control",
+                "I have read and agree to these Terms and Conditions",
+              ].map((label, i) => (
+                <label
+                  key={i}
+                  className="mb-4 flex cursor-pointer items-start gap-2.5 text-[0.76rem] leading-[1.5] text-[#8b97a8] last:mb-0"
+                >
+                  <input
+                    type="checkbox"
+                    checked={genChecks[i]}
+                    onChange={() => toggleGenCheck(i)}
+                    className="mt-0.5 h-[18px] w-[18px] shrink-0 cursor-pointer"
+                    style={{ accentColor: "#00dfa2" }}
+                  />
+                  <span>{label}</span>
+                </label>
+              ))}
+            </div>
+
+            {/* Modal actions */}
+            <div className="flex items-center justify-end gap-2.5 px-8 pb-8">
+              <button
+                type="button"
+                onClick={closeGenModal}
+                className="cursor-pointer rounded-[10px] px-5 py-2.5 font-[Outfit,sans-serif] text-[0.78rem] font-bold text-[#8b97a8] transition-colors duration-150 hover:text-[#eef2f7]"
+                style={{
+                  background: "rgba(255,255,255,0.04)",
+                  border: "1px solid rgba(255,255,255,0.08)",
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={confirmAndGenerate}
+                disabled={!genAllChecked}
+                className="inline-flex cursor-pointer items-center gap-2 rounded-[10px] px-5 py-2.5 font-[Outfit,sans-serif] text-[0.78rem] font-extrabold text-black transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50"
+                style={{
+                  background: genAllChecked
+                    ? "linear-gradient(135deg,#00dfa2,#00b881)"
+                    : "rgba(0,223,162,0.25)",
+                  boxShadow: genAllChecked
+                    ? "0 3px 14px rgba(0,223,162,0.25)"
+                    : "none",
+                  letterSpacing: "-0.01em",
+                }}
+              >
+                <Bolt className="h-[0.78rem] w-[0.78rem]" />
+                Agree and Generate API Key
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

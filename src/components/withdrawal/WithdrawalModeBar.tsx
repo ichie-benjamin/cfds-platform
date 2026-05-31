@@ -12,13 +12,13 @@ export function WithdrawalModeBar({ clientMode, onModeChange }: WithdrawalModeBa
         <Sliders className="h-3.5 w-3.5 text-[#FF9800]" />
         Select Your Withdrawal Type
       </div>
-      <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border-[1.5px] border-[#FF9800]/30 bg-gradient-to-br from-[#00dfa2]/[0.04] to-[#FF9800]/[0.04] p-4 shadow-[0_2px_16px_rgba(0,0,0,0.15)]">
+      <div className="flex flex-wrap items-center justify-between gap-4 rounded-[12px] border-[1.5px] border-[#FF9800]/30 bg-gradient-to-br from-[#3DDBA9]/[0.04] to-[#FF9800]/[0.04] p-4 shadow-[0_2px_16px_rgba(0,0,0,0.15)]">
         <div className="flex items-center gap-3">
           <div
             className="h-3.5 w-3.5 flex-shrink-0 rounded-full"
             style={{
-              background: clientMode === "fresh" ? "#00dfa2" : "#FF9800",
-              boxShadow: `0 0 8px ${clientMode === "fresh" ? "#00dfa2" : "#FF9800"}`,
+              background: clientMode === "fresh" ? "#3DDBA9" : "#FF9800",
+              boxShadow: `0 0 8px ${clientMode === "fresh" ? "#3DDBA9" : "#FF9800"}`,
             }}
           />
           <div>
@@ -42,7 +42,7 @@ export function WithdrawalModeBar({ clientMode, onModeChange }: WithdrawalModeBa
               onClick={() => onModeChange("fresh")}
               className={`flex items-center gap-1.5 rounded-md px-4 py-1.5 text-xs font-bold transition-all duration-200 ${
                 clientMode === "fresh"
-                  ? "bg-[#00dfa2] text-white shadow-[0_2px_8px_rgba(0,0,0,0.3)]"
+                  ? "bg-[#3DDBA9] text-[#07080c] shadow-[0_2px_8px_rgba(0,0,0,0.3)]"
                   : "text-[#4a5468]"
               }`}
             >

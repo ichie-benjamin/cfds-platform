@@ -1,11 +1,9 @@
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   Form,
   FormControl,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
 } from "@/components/ui/form";
 import {
@@ -33,6 +31,9 @@ import {
   ChartPie,
   Coins,
   History,
+  Info,
+  ShieldCheck,
+  CircleCheck,
 } from "lucide-react";
 import { WithdrawalModeBar } from "@/components/withdrawal/WithdrawalModeBar";
 import { CoinGrid } from "@/components/withdrawal/CoinGrid";
@@ -53,6 +54,8 @@ import { WalletAssetsPanel } from "@/components/wallet/WalletAssetsPanel";
 import { WalletGoldPanel } from "@/components/wallet/WalletGoldPanel";
 import { WalletTransactionHistory } from "@/components/wallet/WalletTransactionHistory";
 import { GoldTierBanner } from "@/components/wallet/GoldTierBanner";
+import { WalletThemeStyles } from "@/components/wallet/WalletThemeStyles";
+import { TierUpgradeAlert } from "@/components/wallet/TierUpgradeAlert";
 
 // ── Schemas (unchanged) ──────────────────────────────────────────────
 
@@ -194,16 +197,20 @@ export default function WithdrawalForm() {
       toast.success("Withdrawal request submitted successfully");
       form.reset();
       setRefreshTrigger((prev) => prev + 1);
-    } catch (error: any) {
+    } catch (error: unknown) {
       // Extract error message from API response
       let errorMessage = "Failed to submit withdrawal request";
 
-      if (error?.response?.data) {
-        // Handle the error format: { status: "failed", error: "Insufficient balance", message: "Insufficient balance", error_type: "error" }
-        const responseData = error.response.data;
+      const err = error as {
+        response?: { data?: { message?: string; error?: string } };
+        message?: string;
+      };
+
+      if (err?.response?.data) {
+        const responseData = err.response.data;
         errorMessage = responseData.message || responseData.error || errorMessage;
-      } else if (error?.message) {
-        errorMessage = error.message;
+      } else if (err?.message) {
+        errorMessage = err.message;
       }
 
       toast.error(errorMessage);
@@ -227,7 +234,13 @@ export default function WithdrawalForm() {
     form.setValue("network", network, { shouldValidate: true });
   };
 
-  const tabs: Array<{ id: WalletView; label: string; icon: React.ComponentType<{ className?: string }>; tag?: string }> = [
+  type Tab = {
+    id: WalletView;
+    label: string;
+    icon: React.ComponentType<{ className?: string }>;
+    tag?: string;
+  };
+  const tabs: Tab[] = [
     { id: "overview", label: "Overview", icon: ChartPie },
     { id: "assets", label: "Assets", icon: Coins },
     { id: "dep", label: "Deposit", icon: ArrowDownToLine },
@@ -237,61 +250,42 @@ export default function WithdrawalForm() {
 
   return (
     <>
-      {/* Hide MainLayout chrome while wallet is mounted */}
-      <style>{`
-        body.wallet-active .fixed.top-0.left-0.right-0.z-20,
-        body.wallet-active .fixed.top-\\[60px\\].left-0.bottom-0 {
-          display: none !important;
-        }
-        body.wallet-active .flex.flex-1.pt-\\[90px\\] {
-          padding-top: 0 !important;
-        }
-        body.wallet-active .flex-1.md\\:ml-\\[80px\\] {
-          margin-left: 0 !important;
-        }
-      `}</style>
+      <WalletThemeStyles />
 
       <div
-        className="fixed inset-0 z-30 flex flex-col font-[Inter,-apple-system,sans-serif]"
+        className="wallet-root fixed inset-0 z-30 flex flex-col"
         style={{
-          background:
-            "linear-gradient(135deg,#07080c 0%,#0a0d15 100%)",
-          color: "#eef2f7",
+          background: "linear-gradient(135deg,#07080c 0%,#0a0d15 100%)",
         }}
       >
-        {/* Top scrolling ticker bar (Markets page pattern) */}
+        {/* Platform ticker bar (kept) */}
         <TickerBar />
 
-        {/* Dashboard navbar */}
+        {/* Platform navbar (kept) */}
         <DashboardNavbar />
 
-        {/* Layout: sidebar + main */}
+        {/* Layout: platform sidebar + main */}
         <div className="grid flex-1 grid-cols-1 md:grid-cols-[60px_1fr] min-h-0">
           <MarketSidebar
             isOpen={isSidebarOpen}
             onClose={() => setIsSidebarOpen(false)}
           />
 
-          <main className="overflow-y-auto px-4 py-7 md:px-8" style={{ maxHeight: "100%" }}>
+          <main className="wmain overflow-y-auto" style={{ maxHeight: "100%" }}>
             {/* Page Head */}
-            <div className="mb-7">
-              <h1 className="flex items-center gap-2.5 font-[Outfit,sans-serif] text-[1.65rem] font-extrabold leading-tight tracking-[-0.03em] text-[#eef2f7]">
-                <ChartPie className="h-[1.4rem] w-[1.4rem] text-[#00dfa2]" />
+            <div className="pg-head">
+              <h1>
+                <ChartPie
+                  className="h-4 w-4"
+                  style={{ color: "var(--accent)" }}
+                />
                 My Wallet
               </h1>
-              <p className="mt-1 text-[0.87rem] text-[#4a5468]">
-                Manage your portfolio, deposit, and withdraw funds
-              </p>
+              <p>Manage your portfolio, deposit, and withdraw funds</p>
             </div>
 
             {/* Mode Switch (5 tabs) */}
-            <div
-              className="mb-7 inline-flex rounded-[12px] border-[1.5px] border-[rgba(255,255,255,0.08)] p-[5px] backdrop-blur-[40px]"
-              style={{
-                background:
-                  "linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01))",
-              }}
-            >
+            <div className="mode-switch">
               {tabs.map((tab) => {
                 const Icon = tab.icon;
                 const active = viewMode === tab.id;
@@ -299,30 +293,11 @@ export default function WithdrawalForm() {
                   <button
                     key={tab.id}
                     onClick={() => setViewMode(tab.id)}
-                    className={`flex items-center gap-1.5 whitespace-nowrap rounded-[9px] px-4 py-2.5 text-[0.82rem] font-bold transition-all duration-200 sm:px-6 ${
-                      active
-                        ? "text-[#07080c] shadow-[0_4px_15px_rgba(0,223,162,0.4),inset_0_1px_2px_rgba(255,255,255,0.3),inset_0_-2px_4px_rgba(0,0,0,0.2)]"
-                        : "text-[#4a5468] hover:text-[#eef2f7]"
-                    }`}
-                    style={
-                      active
-                        ? {
-                            background:
-                              "linear-gradient(145deg,#00ffc3,#00dfa2,#00b881)",
-                          }
-                        : undefined
-                    }
+                    className={`ms-btn ${active ? "on" : ""}`}
                   >
                     <Icon className="h-[0.82rem] w-[0.82rem]" />
-                    <span className="hidden sm:inline">{tab.label}</span>
-                    {tab.tag && (
-                      <span
-                        className="ml-1 rounded-full border border-[rgba(0,223,162,0.3)] px-1.5 py-0.5 text-[0.62rem] font-bold text-[#00dfa2]"
-                        style={{ background: "rgba(0,223,162,0.1)" }}
-                      >
-                        {tab.tag}
-                      </span>
-                    )}
+                    <span>{tab.label}</span>
+                    {tab.tag && <span className="ms-tag">{tab.tag}</span>}
                   </button>
                 );
               })}
@@ -330,6 +305,9 @@ export default function WithdrawalForm() {
 
             {/* Gold tier banner (conditional on user.balance) */}
             <GoldTierBanner />
+
+            {/* Tier upgrade banner — UI-only, derived from user.balance */}
+            {viewMode === "dep" && <TierUpgradeAlert />}
 
             {/* ═══ OVERVIEW VIEW ═══ */}
             {viewMode === "overview" && (
@@ -344,423 +322,540 @@ export default function WithdrawalForm() {
             {viewMode === "assets" && <WalletAssetsPanel />}
 
             {/* ═══ GOLD VIEW ═══ */}
-            {viewMode === "gold" && <WalletGoldPanel />}
+            {viewMode === "gold" && (
+              <div className="wgrid-split">
+                <div>
+                  <WalletGoldPanel />
+                </div>
+                <div>
+                  <div className="icard">
+                    <div className="icard-title">
+                      <Info
+                        className="h-3.5 w-3.5"
+                        style={{ color: "var(--accent)" }}
+                      />
+                      Gold Specification
+                    </div>
+                    <div className="ic-row"><span className="ic-k">Purity</span><span className="ic-v" style={{ color: "var(--accent-light)" }}>999.9 Fine (24K)</span></div>
+                    <div className="ic-row"><span className="ic-k">Certification</span><span className="ic-v">LBMA Good Delivery</span></div>
+                    <div className="ic-row"><span className="ic-k">Refinery</span><span className="ic-v">PAMP Suisse</span></div>
+                    <div className="ic-row"><span className="ic-k">Bar Origin</span><span className="ic-v">Switzerland / UK</span></div>
+                    <div className="ic-row"><span className="ic-k">Insurance</span><span className="ic-v" style={{ color: "var(--accent)" }}>100% via Brinks</span></div>
+                    <div className="ic-row"><span className="ic-k">Assay Certificate</span><span className="ic-v" style={{ color: "var(--accent)" }}>Included</span></div>
+                  </div>
+                </div>
+              </div>
+            )}
 
-            {/* ═══ DEPOSIT / WITHDRAW VIEW ═══ */}
-            {(viewMode === "dep" || viewMode === "wit") && (
-              <div className="grid items-start gap-5 xl:grid-cols-[1fr_360px]">
-                {/* LEFT COLUMN */}
-                <div className="flex flex-col gap-4">
-                  {/* Withdrawal Mode Bar (only withdraw) */}
+            {/* ═══ DEPOSIT VIEW ═══ */}
+            {viewMode === "dep" && (
+              <div className="wgrid-split">
+                <div>
                   {activeMode === "withdraw" && (
                     <WithdrawalModeBar
                       clientMode={clientMode}
                       onModeChange={setClientMode}
                     />
                   )}
+                  <ContributePanel
+                    onDepositSuccess={() =>
+                      setRefreshTrigger((p) => p + 1)
+                    }
+                  />
+                </div>
+                <div>
+                  <div className="icard">
+                    <div className="icard-title">
+                      <Info
+                        className="h-3.5 w-3.5"
+                        style={{ color: "var(--accent)" }}
+                      />
+                      Deposit Info
+                    </div>
+                    <div className="ic-row"><span className="ic-k">Min. Deposit</span><span className="ic-v">$50</span></div>
+                    <div className="ic-row"><span className="ic-k">Platform Fee</span><span className="ic-v" style={{ color: "var(--accent)" }}>0% Free</span></div>
+                    <div className="ic-row"><span className="ic-k">Processing</span><span className="ic-v">5 - 30 min</span></div>
+                    <div className="ic-row"><span className="ic-k">Daily Limit</span><span className="ic-v">$100,000</span></div>
+                  </div>
+                  <div className="icard">
+                    <div className="icard-title">
+                      <ShieldCheck
+                        className="h-3.5 w-3.5"
+                        style={{ color: "var(--accent)" }}
+                      />
+                      Security
+                    </div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
+                      <div style={{ display: "flex", gap: 9 }}>
+                        <CircleCheck className="mt-[3px] h-3 w-3 shrink-0" style={{ color: "var(--accent)" }} />
+                        <p style={{ fontSize: ".75rem", color: "var(--t3)", lineHeight: 1.6 }}>
+                          All deposits are protected with SSL encryption and reviewed against AML compliance.
+                        </p>
+                      </div>
+                      <div style={{ display: "flex", gap: 9 }}>
+                        <CircleCheck className="mt-[3px] h-3 w-3 shrink-0" style={{ color: "var(--accent)" }} />
+                        <p style={{ fontSize: ".75rem", color: "var(--t3)", lineHeight: 1.6 }}>
+                          Funds are credited to your trading balance once on-chain confirmation completes.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
 
-                  {activeMode === "deposit" ? (
-                    <ContributePanel
-                      onDepositSuccess={() =>
-                        setRefreshTrigger((p) => p + 1)
-                      }
-                    />
-                  ) : (
+            {/* ═══ WITHDRAW VIEW (3 numbered steps + sidebar) ═══ */}
+            {viewMode === "wit" && (
+              <div className="wgrid-split">
+                {/* LEFT COLUMN */}
+                <div>
+                  <WithdrawalModeBar
+                    clientMode={clientMode}
+                    onModeChange={setClientMode}
+                  />
+
+                  {clientMode === "fresh" ? (
                     <>
-                      {clientMode === "fresh" ? (
-                        <>
-                          {/* Fresh Withdrawal Form */}
-                          <div
-                            className="relative overflow-hidden rounded-2xl border-[1.5px] border-[rgba(255,255,255,0.08)] p-6 shadow-[0_8px_32px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.06)]"
-                            style={{
-                              background:
-                                "linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01))",
-                            }}
-                          >
-                            <div
-                              className="pointer-events-none absolute inset-0 rounded-2xl"
-                              style={{
-                                background:
-                                  "linear-gradient(175deg,rgba(255,255,255,0.04),transparent 40%)",
-                              }}
-                            />
-                            <div className="relative">
-                              <div className="mb-5 flex items-center gap-2.5 border-b border-[rgba(255,255,255,0.06)] pb-4 text-[0.95rem] font-extrabold text-[#eef2f7]">
-                                <ArrowUpFromLine className="h-4 w-4 text-[#00dfa2]" />
-                                Withdraw Crypto Assets
-                              </div>
-
-                              <Form {...form}>
-                                <form
-                                  onSubmit={form.handleSubmit(onSubmit)}
-                                  className="space-y-5"
-                                >
-                                  {/* Coin selection grid */}
-                                  <CoinGrid
-                                    selectedCoin={selectedCoin}
-                                    formNetwork={watchedNetwork || ""}
-                                    onCoinSelect={handleCoinSelect}
-                                  />
-
-                                  {/* Amount + Method row */}
-                                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                                    <div>
-                                      <FormField
-                                        control={form.control}
-                                        name="amount"
-                                        render={({ field }) => (
-                                          <FormItem>
-                                            <FormLabel className="text-[11px] font-bold uppercase tracking-[0.08em] text-[#4a5468]">
-                                              Withdrawal Amount
-                                            </FormLabel>
-                                            <FormControl>
-                                              <div className="flex overflow-hidden rounded-xl border-[1.5px] border-white/[0.08] bg-[#0a0d15] transition-all duration-200 focus-within:border-[#00dfa2] focus-within:shadow-[0_0_0_3px_rgba(0,223,162,0.1)]">
-                                                <div className="flex items-center border-r border-white/[0.04] bg-[#131a28] px-3.5 text-sm font-bold text-[#00dfa2]">
-                                                  $
-                                                </div>
-                                                <Input
-                                                  placeholder="0.00"
-                                                  {...field}
-                                                  type="number"
-                                                  className="border-0 bg-transparent font-mono text-[#eef2f7] shadow-none focus-visible:ring-0"
-                                                />
-                                              </div>
-                                            </FormControl>
-                                            <FormMessage />
-                                            {/* Quick amount buttons */}
-                                            <div className="mt-1.5 flex gap-1.5">
-                                              {["1000", "5000", "10000"].map(
-                                                (v) => (
-                                                  <button
-                                                    key={v}
-                                                    type="button"
-                                                    onClick={() =>
-                                                      form.setValue(
-                                                        "amount",
-                                                        v,
-                                                        { shouldValidate: true },
-                                                      )
-                                                    }
-                                                    className="flex-1 rounded-md border border-white/[0.06] bg-[#131a28] py-1 text-[11px] font-bold text-[#4a5468] transition-colors hover:border-white/[0.1] hover:text-[#a8b5c8]"
-                                                  >
-                                                    ${Number(v).toLocaleString()}
-                                                  </button>
-                                                ),
-                                              )}
-                                              <button
-                                                type="button"
-                                                onClick={() =>
-                                                  form.setValue(
-                                                    "amount",
-                                                    String(availableBalance),
-                                                    { shouldValidate: true },
-                                                  )
-                                                }
-                                                className="flex-1 rounded-md border border-[#00dfa2]/30 bg-[#00dfa2]/[0.06] py-1 text-[11px] font-bold text-[#00dfa2] transition-colors hover:bg-[#00dfa2]/10"
-                                              >
-                                                Max
-                                              </button>
-                                            </div>
-                                          </FormItem>
-                                        )}
-                                      />
-                                    </div>
-
-                                    <div>
-                                      <FormField
-                                        control={form.control}
-                                        name="method"
-                                        render={({ field }) => (
-                                          <FormItem>
-                                            <FormLabel className="text-[11px] font-bold uppercase tracking-[0.08em] text-[#4a5468]">
-                                              Payment Method
-                                            </FormLabel>
-                                            <Select
-                                              onValueChange={field.onChange}
-                                              defaultValue={field.value}
-                                            >
-                                              <FormControl>
-                                                <SelectTrigger className="input-focus-glow">
-                                                  <SelectValue placeholder="Select payment method" />
-                                                </SelectTrigger>
-                                              </FormControl>
-                                              <SelectContent className="border-white/[0.08] bg-[#0f1220]">
-                                                <SelectItem value="crypto">
-                                                  Cryptocurrency
-                                                </SelectItem>
-                                                <SelectItem value="wire_transfer">
-                                                  Wire Transfer
-                                                </SelectItem>
-                                              </SelectContent>
-                                            </Select>
-                                            <FormMessage />
-                                          </FormItem>
-                                        )}
-                                      />
-                                    </div>
-                                  </div>
-
-                                  {/* Crypto fields */}
-                                  {method === "crypto" && (
-                                    <div className="space-y-4 rounded-xl border border-white/[0.04] bg-[#0a0d15] p-4">
-                                      <FormField
-                                        control={form.control}
-                                        name="network"
-                                        render={({ field }) => (
-                                          <FormItem>
-                                            <FormLabel className="text-[11px] font-bold uppercase tracking-[0.08em] text-[#4a5468]">
-                                              Network
-                                            </FormLabel>
-                                            <Select
-                                              onValueChange={field.onChange}
-                                              defaultValue={field.value}
-                                            >
-                                              <FormControl>
-                                                <SelectTrigger className="input-focus-glow">
-                                                  <SelectValue placeholder="Select network" />
-                                                </SelectTrigger>
-                                              </FormControl>
-                                              <SelectContent className="border-white/[0.08] bg-[#0f1220]">
-                                                {data?.crypto_networks?.map(
-                                                  (network) => (
-                                                    <SelectItem
-                                                      key={network}
-                                                      value={network}
-                                                    >
-                                                      {network}
-                                                    </SelectItem>
-                                                  ),
-                                                )}
-                                              </SelectContent>
-                                            </Select>
-                                            <FormMessage />
-                                          </FormItem>
-                                        )}
-                                      />
-
-                                      <FormField
-                                        control={form.control}
-                                        name="wallet_address"
-                                        render={({ field }) => (
-                                          <FormItem>
-                                            <FormLabel className="text-[11px] font-bold uppercase tracking-[0.08em] text-[#4a5468]">
-                                              Destination Wallet Address
-                                            </FormLabel>
-                                            <FormControl>
-                                              <Input
-                                                placeholder="Enter your external wallet address (e.g. bc1q...)"
-                                                {...field}
-                                                className="input-focus-glow font-mono text-xs"
-                                              />
-                                            </FormControl>
-                                            <div className="mt-1.5 flex items-center gap-1 text-[11px] text-[#5f6b7f]">
-                                              <TriangleAlert className="h-3 w-3 text-[#FF9800]" />
-                                              Double-check the address and network.
-                                              Transactions cannot be reversed.
-                                            </div>
-                                            <FormMessage />
-                                          </FormItem>
-                                        )}
-                                      />
-                                    </div>
-                                  )}
-
-                                  {/* Wire transfer fields */}
-                                  {method === "wire_transfer" && (
-                                    <div className="space-y-4 rounded-xl border border-white/[0.04] bg-[#0a0d15] p-4">
-                                      <FormField
-                                        control={form.control}
-                                        name="bank_name"
-                                        render={({ field }) => (
-                                          <FormItem>
-                                            <FormLabel className="text-[11px] font-bold uppercase tracking-[0.08em] text-[#4a5468]">
-                                              Bank Name
-                                            </FormLabel>
-                                            <FormControl>
-                                              <Input
-                                                placeholder="Enter bank name"
-                                                {...field}
-                                                className="input-focus-glow"
-                                              />
-                                            </FormControl>
-                                            <FormMessage />
-                                          </FormItem>
-                                        )}
-                                      />
-
-                                      <FormField
-                                        control={form.control}
-                                        name="bank_address"
-                                        render={({ field }) => (
-                                          <FormItem>
-                                            <FormLabel className="text-[11px] font-bold uppercase tracking-[0.08em] text-[#4a5468]">
-                                              Bank Address
-                                            </FormLabel>
-                                            <FormControl>
-                                              <Input
-                                                placeholder="Enter bank address"
-                                                {...field}
-                                                className="input-focus-glow"
-                                              />
-                                            </FormControl>
-                                            <FormMessage />
-                                          </FormItem>
-                                        )}
-                                      />
-
-                                      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                                        <FormField
-                                          control={form.control}
-                                          name="account_number"
-                                          render={({ field }) => (
-                                            <FormItem>
-                                              <FormLabel className="text-[11px] font-bold uppercase tracking-[0.08em] text-[#4a5468]">
-                                                Account Number
-                                              </FormLabel>
-                                              <FormControl>
-                                                <Input
-                                                  placeholder="Enter account number"
-                                                  {...field}
-                                                  className="input-focus-glow font-mono"
-                                                />
-                                              </FormControl>
-                                              <FormMessage />
-                                            </FormItem>
-                                          )}
-                                        />
-
-                                        <FormField
-                                          control={form.control}
-                                          name="account_name"
-                                          render={({ field }) => (
-                                            <FormItem>
-                                              <FormLabel className="text-[11px] font-bold uppercase tracking-[0.08em] text-[#4a5468]">
-                                                Account Name
-                                              </FormLabel>
-                                              <FormControl>
-                                                <Input
-                                                  placeholder="Enter account name"
-                                                  {...field}
-                                                  className="input-focus-glow"
-                                                />
-                                              </FormControl>
-                                              <FormMessage />
-                                            </FormItem>
-                                          )}
-                                        />
-                                      </div>
-
-                                      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                                        <FormField
-                                          control={form.control}
-                                          name="iban_number"
-                                          render={({ field }) => (
-                                            <FormItem>
-                                              <FormLabel className="text-[11px] font-bold uppercase tracking-[0.08em] text-[#4a5468]">
-                                                IBAN Number
-                                              </FormLabel>
-                                              <FormControl>
-                                                <Input
-                                                  placeholder="Enter IBAN Number"
-                                                  {...field}
-                                                  className="input-focus-glow font-mono"
-                                                />
-                                              </FormControl>
-                                              <FormMessage />
-                                            </FormItem>
-                                          )}
-                                        />
-
-                                        <FormField
-                                          control={form.control}
-                                          name="swiftcode"
-                                          render={({ field }) => (
-                                            <FormItem>
-                                              <FormLabel className="text-[11px] font-bold uppercase tracking-[0.08em] text-[#4a5468]">
-                                                Swift Code
-                                              </FormLabel>
-                                              <FormControl>
-                                                <Input
-                                                  placeholder="Enter SWIFT code"
-                                                  {...field}
-                                                  className="input-focus-glow font-mono"
-                                                />
-                                              </FormControl>
-                                              <FormMessage />
-                                            </FormItem>
-                                          )}
-                                        />
-                                      </div>
-                                    </div>
-                                  )}
-
-                                  {/* Withdrawal Summary */}
-                                  <WithdrawalSummary
-                                    coinSymbol={selectedCoin}
-                                    coinName={selectedCoinName}
-                                    amount={watchedAmount || "0"}
-                                    network={watchedNetwork || ""}
-                                  />
-
-                                  {/* Submit / Reset */}
-                                  <div className="flex gap-3 pt-1">
-                                    <Button
-                                      type="submit"
-                                      className="gradient-btn-green flex-1 gap-2 px-8 py-3 text-sm sm:flex-none"
-                                      disabled={isSubmitting}
-                                    >
-                                      <ArrowUpFromLine className="h-4 w-4" />
-                                      {isSubmitting
-                                        ? "Submitting..."
-                                        : "Submit Withdrawal Request"}
-                                    </Button>
-                                    <Button
-                                      type="button"
-                                      variant="outline"
-                                      className="rounded-xl border-white/[0.08] bg-[#131a28] text-[#8b97a8] transition-all duration-200 hover:border-white/[0.14] hover:bg-[#1a2438] hover:text-white"
-                                      onClick={() => form.reset()}
-                                    >
-                                      Reset
-                                    </Button>
-                                  </div>
-                                </form>
-                              </Form>
+                      <Form {...form}>
+                        <form
+                          onSubmit={form.handleSubmit(onSubmit)}
+                          className="space-y-0"
+                        >
+                          {/* STEP 1: Select Asset & Network */}
+                          <div className="scard">
+                            <div className="scard-title">
+                              <span className="scard-step">1</span>
+                              Select Asset & Network
                             </div>
+                            <div className="field">
+                              <CoinGrid
+                                selectedCoin={selectedCoin}
+                                formNetwork={watchedNetwork || ""}
+                                onCoinSelect={handleCoinSelect}
+                              />
+                            </div>
+                            <FormField
+                              control={form.control}
+                              name="network"
+                              render={({ field }) => (
+                                <FormItem className="field">
+                                  <div className="flabel">Network</div>
+                                  <Select
+                                    onValueChange={field.onChange}
+                                    value={field.value}
+                                  >
+                                    <FormControl>
+                                      <SelectTrigger className="w-full border-white/[0.08] bg-[linear-gradient(145deg,rgba(255,255,255,0.05),rgba(255,255,255,0.02))] text-[0.82rem] text-[#eef2f7] focus:ring-0 focus:border-[rgba(61,219,169,0.5)]">
+                                        <SelectValue placeholder="Select network" />
+                                      </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent className="border-white/[0.08] bg-[#0a0d15]">
+                                      {data?.crypto_networks?.map(
+                                        (network) => (
+                                          <SelectItem
+                                            key={network}
+                                            value={network}
+                                          >
+                                            {network}
+                                          </SelectItem>
+                                        ),
+                                      )}
+                                    </SelectContent>
+                                  </Select>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
                           </div>
 
-                          {/* Processing Timeline */}
-                          <ProcessingTimeline />
-                        </>
-                      ) : (
-                        <>
-                          {/* Staked Withdrawal Panel */}
-                          <StakedWithdrawalPanel />
-                        </>
-                      )}
+                          {/* STEP 2: Withdrawal Method & Bank Details */}
+                          <div className="scard">
+                            <div className="scard-title">
+                              <span className="scard-step">2</span>
+                              Withdrawal Method
+                            </div>
+                            <FormField
+                              control={form.control}
+                              name="method"
+                              render={({ field }) => (
+                                <FormItem className="field">
+                                  <div className="flabel">Payment Method</div>
+                                  <Select
+                                    onValueChange={field.onChange}
+                                    defaultValue={field.value}
+                                  >
+                                    <FormControl>
+                                      <SelectTrigger className="w-full border-white/[0.08] bg-[linear-gradient(145deg,rgba(255,255,255,0.05),rgba(255,255,255,0.02))] text-[0.82rem] text-[#eef2f7] focus:ring-0 focus:border-[rgba(61,219,169,0.5)]">
+                                        <SelectValue placeholder="Select payment method" />
+                                      </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent className="border-white/[0.08] bg-[#0a0d15]">
+                                      <SelectItem value="crypto">
+                                        Cryptocurrency
+                                      </SelectItem>
+                                      <SelectItem value="wire_transfer">
+                                        Wire Transfer
+                                      </SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+
+                            {/* Crypto fields */}
+                            {method === "crypto" && (
+                              <FormField
+                                control={form.control}
+                                name="wallet_address"
+                                render={({ field }) => (
+                                  <FormItem className="field">
+                                    <div className="flabel">
+                                      Destination Wallet Address
+                                    </div>
+                                    <FormControl>
+                                      <Input
+                                        placeholder="Enter your external wallet address (e.g. bc1q...)"
+                                        {...field}
+                                        className="font-mono text-[0.78rem]"
+                                      />
+                                    </FormControl>
+                                    <div
+                                      className="mt-1.5 flex items-center gap-1"
+                                      style={{
+                                        fontSize: ".7rem",
+                                        color: "var(--t3)",
+                                      }}
+                                    >
+                                      <TriangleAlert
+                                        className="h-3 w-3"
+                                        style={{ color: "var(--orange)" }}
+                                      />
+                                      Double-check the address and network.
+                                      Transactions cannot be reversed.
+                                    </div>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                            )}
+
+                            {/* Wire transfer fields */}
+                            {method === "wire_transfer" && (
+                              <div className="space-y-0">
+                                <FormField
+                                  control={form.control}
+                                  name="bank_name"
+                                  render={({ field }) => (
+                                    <FormItem className="field">
+                                      <div className="flabel">Bank Name</div>
+                                      <FormControl>
+                                        <Input
+                                          placeholder="Enter bank name"
+                                          {...field}
+                                        />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                                <FormField
+                                  control={form.control}
+                                  name="bank_address"
+                                  render={({ field }) => (
+                                    <FormItem className="field">
+                                      <div className="flabel">Bank Address</div>
+                                      <FormControl>
+                                        <Input
+                                          placeholder="Enter bank address"
+                                          {...field}
+                                        />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                                <div className="wgrid-2">
+                                  <FormField
+                                    control={form.control}
+                                    name="account_number"
+                                    render={({ field }) => (
+                                      <FormItem className="field">
+                                        <div className="flabel">
+                                          Account Number
+                                        </div>
+                                        <FormControl>
+                                          <Input
+                                            placeholder="Enter account number"
+                                            {...field}
+                                            className="font-mono"
+                                          />
+                                        </FormControl>
+                                        <FormMessage />
+                                      </FormItem>
+                                    )}
+                                  />
+                                  <FormField
+                                    control={form.control}
+                                    name="account_name"
+                                    render={({ field }) => (
+                                      <FormItem className="field">
+                                        <div className="flabel">
+                                          Account Name
+                                        </div>
+                                        <FormControl>
+                                          <Input
+                                            placeholder="Enter account name"
+                                            {...field}
+                                          />
+                                        </FormControl>
+                                        <FormMessage />
+                                      </FormItem>
+                                    )}
+                                  />
+                                </div>
+                                <div className="wgrid-2">
+                                  <FormField
+                                    control={form.control}
+                                    name="iban_number"
+                                    render={({ field }) => (
+                                      <FormItem className="field">
+                                        <div className="flabel">
+                                          IBAN Number
+                                        </div>
+                                        <FormControl>
+                                          <Input
+                                            placeholder="Enter IBAN Number"
+                                            {...field}
+                                            className="font-mono"
+                                          />
+                                        </FormControl>
+                                        <FormMessage />
+                                      </FormItem>
+                                    )}
+                                  />
+                                  <FormField
+                                    control={form.control}
+                                    name="swiftcode"
+                                    render={({ field }) => (
+                                      <FormItem className="field">
+                                        <div className="flabel">Swift Code</div>
+                                        <FormControl>
+                                          <Input
+                                            placeholder="Enter SWIFT code"
+                                            {...field}
+                                            className="font-mono"
+                                          />
+                                        </FormControl>
+                                        <FormMessage />
+                                      </FormItem>
+                                    )}
+                                  />
+                                </div>
+                              </div>
+                            )}
+                          </div>
+
+                          {/* STEP 3: Withdrawal Details */}
+                          <div className="scard">
+                            <div className="scard-title">
+                              <span className="scard-step">3</span>
+                              Withdrawal Details
+                            </div>
+
+                            <FormField
+                              control={form.control}
+                              name="amount"
+                              render={({ field }) => (
+                                <FormItem className="field">
+                                  <div className="flabel">
+                                    Amount{" "}
+                                    <small>
+                                      Available: ${availableBalance.toLocaleString()}
+                                    </small>
+                                  </div>
+                                  <FormControl>
+                                    <div className="finput">
+                                      <Input
+                                        placeholder="0.00"
+                                        {...field}
+                                        type="number"
+                                        className="font-mono pr-12"
+                                      />
+                                      <span
+                                        className="input-max"
+                                        onClick={() =>
+                                          form.setValue(
+                                            "amount",
+                                            String(availableBalance),
+                                            { shouldValidate: true },
+                                          )
+                                        }
+                                      >
+                                        MAX
+                                      </span>
+                                    </div>
+                                  </FormControl>
+                                  <div className="presets">
+                                    {["1000", "5000", "10000"].map((v) => (
+                                      <span
+                                        key={v}
+                                        className="preset"
+                                        onClick={() =>
+                                          form.setValue("amount", v, {
+                                            shouldValidate: true,
+                                          })
+                                        }
+                                      >
+                                        ${Number(v).toLocaleString()}
+                                      </span>
+                                    ))}
+                                  </div>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+
+                            <WithdrawalSummary
+                              coinSymbol={selectedCoin}
+                              coinName={selectedCoinName}
+                              amount={watchedAmount || "0"}
+                              network={watchedNetwork || ""}
+                            />
+
+                            <div className="step-nav" style={{ marginTop: 14 }}>
+                              <button
+                                type="submit"
+                                disabled={isSubmitting}
+                                className="btn-sub btn-wit"
+                                style={{ flex: 1 }}
+                              >
+                                <ArrowUpFromLine className="h-4 w-4" />
+                                {isSubmitting
+                                  ? "Submitting..."
+                                  : "Submit Withdrawal"}
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => form.reset()}
+                                className="btn-sub btn-outline"
+                                style={{ flex: "0 0 auto", padding: "10px 18px" }}
+                              >
+                                Reset
+                              </button>
+                            </div>
+                            <p
+                              style={{
+                                textAlign: "center",
+                                fontSize: ".72rem",
+                                color: "var(--t4)",
+                                marginTop: 8,
+                              }}
+                            >
+                              <ShieldCheck
+                                className="inline h-3 w-3"
+                                style={{ color: "var(--accent)", marginRight: 4 }}
+                              />
+                              Secured with 256-bit SSL
+                            </p>
+                          </div>
+                        </form>
+                      </Form>
+
+                      <ProcessingTimeline />
                     </>
+                  ) : (
+                    <StakedWithdrawalPanel />
                   )}
 
-                  {/* FAQ (shown for both modes) */}
                   <WithdrawalFAQ />
                 </div>
 
                 {/* RIGHT COLUMN */}
-                <div className="flex flex-col gap-4">
-                  {/* Penalty Schedule + Milestones (withdraw only) */}
-                  {activeMode === "withdraw" && <PenaltySchedule />}
-
-                  {/* Transaction History */}
-                  <div
-                    className="rounded-[14px] border border-[rgba(255,255,255,0.06)] p-[22px] [&_tr]:!bg-transparent [&_tr]:hover:!bg-white/[0.04] [&_.border-border\/40]:!border-white/[0.06]"
-                    style={{
-                      background:
-                        "linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01))",
-                    }}
-                  >
-                    <div className="mb-3.5 flex items-center gap-2 border-b border-[rgba(255,255,255,0.06)] pb-3 text-[0.85rem] font-extrabold text-[#eef2f7]">
-                      <History className="h-[0.95rem] w-[0.95rem] text-[#00dfa2]" />
-                      Transaction History
+                <div>
+                  <div className="icard">
+                    <div className="icard-title">
+                      <Info
+                        className="h-3.5 w-3.5"
+                        style={{ color: "var(--accent)" }}
+                      />
+                      Withdrawal Info
                     </div>
+                    <div className="ic-row"><span className="ic-k">Min. Withdrawal</span><span className="ic-v">0.0002 BTC</span></div>
+                    <div className="ic-row"><span className="ic-k">Platform Fee</span><span className="ic-v" style={{ color: "var(--accent)" }}>0% Free</span></div>
+                    <div className="ic-row"><span className="ic-k">Network Fee</span><span className="ic-v" style={{ color: "var(--t2)" }}>~0.00005 BTC</span></div>
+                    <div className="ic-row"><span className="ic-k">Processing</span><span className="ic-v">15 - 60 min</span></div>
+                    <div className="ic-row"><span className="ic-k">Daily Limit</span><span className="ic-v">$25,000</span></div>
+                    <div className="ic-row"><span className="ic-k">Monthly Limit</span><span className="ic-v">$500,000</span></div>
+                    <div className="lbar-wrap">
+                      <div className="lb-head">
+                        <span className="lb-lbl">Daily Used</span>
+                        <span className="lb-val">$8,500 / $25,000</span>
+                      </div>
+                      <div className="lb-track">
+                        <div className="lb-fill" style={{ width: "34%" }} />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="icard">
+                    <div className="icard-title">
+                      <ShieldCheck
+                        className="h-3.5 w-3.5"
+                        style={{ color: "var(--accent)" }}
+                      />
+                      Security
+                    </div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
+                      <div style={{ display: "flex", gap: 9 }}>
+                        <CircleCheck
+                          className="mt-[3px] h-3 w-3 shrink-0"
+                          style={{ color: "var(--accent)" }}
+                        />
+                        <p style={{ fontSize: ".75rem", color: "var(--t3)", lineHeight: 1.6 }}>
+                          Withdrawals over $10,000 require email confirmation.
+                        </p>
+                      </div>
+                      <div style={{ display: "flex", gap: 9 }}>
+                        <CircleCheck
+                          className="mt-[3px] h-3 w-3 shrink-0"
+                          style={{ color: "var(--accent)" }}
+                        />
+                        <p style={{ fontSize: ".75rem", color: "var(--t3)", lineHeight: 1.6 }}>
+                          New addresses are whitelisted for 24h before first use.
+                        </p>
+                      </div>
+                      <div style={{ display: "flex", gap: 9 }}>
+                        <TriangleAlert
+                          className="mt-[3px] h-3 w-3 shrink-0"
+                          style={{ color: "var(--orange)" }}
+                        />
+                        <p style={{ fontSize: ".75rem", color: "var(--t2)", lineHeight: 1.6 }}>
+                          Crypto transactions are irreversible. Verify address before confirming.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {activeMode === "withdraw" && <PenaltySchedule />}
+                </div>
+              </div>
+            )}
+
+            {/* Bottom transaction history — kept inside dep/wit views */}
+            {(viewMode === "dep" || viewMode === "wit") && (
+              <div className="hist-section">
+                <div className="hist-head">
+                  <div className="hist-title">
+                    <History
+                      className="h-4 w-4"
+                      style={{ color: "var(--accent)" }}
+                    />
+                    Transaction History
+                  </div>
+                </div>
+                <div className="hist-table-wrap">
+                  <div style={{ padding: 14 }}>
                     {activeMode === "deposit" ? (
                       <DepositHistory key={refreshTrigger} />
                     ) : (

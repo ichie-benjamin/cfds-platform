@@ -59,15 +59,8 @@ export function ContributePanel({ onDepositSuccess }: ContributePanelProps) {
     }
 
     return (
-      <div
-      className="relative overflow-hidden rounded-2xl border border-white/[0.06] p-5 shadow-[0_8px_32px_rgba(0,0,0,0.35),inset_0_1px_0_rgba(255,255,255,0.04)] sm:p-6"
-      style={{
-        background:
-          "linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01))",
-      }}
-    >
-        <div className="pointer-events-none absolute inset-0 rounded-2xl bg-gradient-to-b from-white/[0.02] to-transparent" />
-        <div className='relative [&_[class*="bg-card"]]:!bg-transparent [&_[class*="bg-muted"]]:!bg-white/[0.04]'>
+      <div className="scard">
+        <div className='[&_[class*="bg-card"]]:!bg-transparent [&_[class*="bg-muted"]]:!bg-white/[0.04]'>
           {selectedMethod === "crypto" ? (
             <CryptoFunding
               onChangeMethod={handleBack}
@@ -87,149 +80,188 @@ export function ContributePanel({ onDepositSuccess }: ContributePanelProps) {
     );
   }
 
-  // Method-selection view (matches HTML reference design)
+  // Method-selection view (matches reference)
   return (
-    <div
-      className="relative overflow-hidden rounded-2xl border border-white/[0.06] p-5 shadow-[0_8px_32px_rgba(0,0,0,0.35),inset_0_1px_0_rgba(255,255,255,0.04)] sm:p-6"
-      style={{
-        background:
-          "linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01))",
-      }}
-    >
-      <div className="pointer-events-none absolute inset-0 rounded-2xl bg-gradient-to-b from-white/[0.02] to-transparent" />
+    <div className="scard">
+      <div className="scard-title">
+        <ArrowDownToLine
+          className="h-[0.85rem] w-[0.85rem]"
+          style={{ color: "var(--accent)" }}
+        />
+        Deposit Funds
+      </div>
+      <div
+        style={{
+          fontSize: ".72rem",
+          color: "var(--t3)",
+          marginTop: "-6px",
+          marginBottom: 10,
+          position: "relative",
+        }}
+      >
+        Choose how you want to add funds to your account
+      </div>
 
-      <div className="relative">
-        {/* Header */}
-        <div className="mb-5">
-          <div className="mb-1 flex items-center gap-2 text-sm font-extrabold text-white sm:text-base">
-            <ArrowDownToLine className="h-4 w-4 text-[#00dfa2]" />
-            Deposit Funds
-          </div>
-          <div className="text-xs text-[#4a5468]">
-            Choose how you want to add funds to your account
-          </div>
-        </div>
-
-        {/* Method Cards */}
-        <div className="flex flex-col gap-3">
-          {/* Crypto Deposit */}
-          {cryptoEnabled && (
-            <button
-              type="button"
-              onClick={() => handleMethodSelect("crypto")}
-              className={`flex w-full items-center gap-4 rounded-xl border p-4 text-left transition-all duration-200 ${
-                selectedMethod === "crypto"
-                  ? "border-[#00dfa2]/40 bg-[#00dfa2]/[0.06] shadow-[0_0_16px_rgba(0,223,162,0.08)]"
-                  : "border-white/[0.06] bg-transparent hover:border-white/[0.12] hover:bg-white/[0.04]"
-              }`}
-            >
-              <div
-                className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl"
-                style={{
-                  background: "rgba(0,223,162,0.1)",
-                  color: "#00dfa2",
-                }}
-              >
-                <Wallet className="h-5 w-5" />
-              </div>
-              <div className="flex-1">
-                <div className="text-sm font-bold text-white">
-                  Crypto Deposit
-                </div>
-                <div className="text-xs text-[#5f6b7f]">
-                  Send from external wallet
-                </div>
-                <span className="mt-1 inline-block rounded-full bg-[#c8e64e]/10 px-2 py-0.5 text-[10px] font-bold text-[#c8e64e]">
-                  Recommended
-                </span>
-              </div>
-              <ChevronRight className="h-4 w-4 flex-shrink-0 text-[#4a5468]" />
-            </button>
-          )}
-
-          {/* Bank Wire Transfer */}
-          <button
-            type="button"
-            onClick={() => handleMethodSelect("bank-wire")}
-            className={`flex w-full items-center gap-4 rounded-xl border p-4 text-left transition-all duration-200 ${
-              selectedMethod === "bank-wire"
-                ? "border-[#4A90E2]/40 bg-[#4A90E2]/[0.06] shadow-[0_0_16px_rgba(74,144,226,0.08)]"
-                : "border-white/[0.06] bg-transparent hover:border-white/[0.12] hover:bg-white/[0.04]"
-            }`}
-          >
-            <div
-              className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl"
-              style={{
-                background: "rgba(74,144,226,0.1)",
-                color: "#4A90E2",
-              }}
-            >
-              <Building2 className="h-5 w-5" />
-            </div>
-            <div className="flex-1">
-              <div className="text-sm font-bold text-white">
-                Bank Wire Transfer
-              </div>
-              <div className="text-xs text-[#5f6b7f]">
-                Via trusted exchange partners
-              </div>
-              <span className="mt-1 inline-block rounded-full bg-[#4A90E2]/10 px-2 py-0.5 text-[10px] font-bold text-[#4A90E2]">
-                Trusted Partners
-              </span>
-            </div>
-            <ChevronRight className="h-4 w-4 flex-shrink-0 text-[#4a5468]" />
-          </button>
-
-          {/* Credit / Debit Card */}
-          {cardEnabled && (
-            <button
-              type="button"
-              onClick={() => handleMethodSelect("card")}
-              className={`flex w-full items-center gap-4 rounded-xl border p-4 text-left transition-all duration-200 ${
-                selectedMethod === "card"
-                  ? "border-[#4A90E2]/40 bg-[#4A90E2]/[0.06] shadow-[0_0_16px_rgba(74,144,226,0.08)]"
-                  : "border-white/[0.06] bg-transparent hover:border-white/[0.12] hover:bg-white/[0.04]"
-              }`}
-            >
-              <div
-                className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl"
-                style={{
-                  background: "rgba(74,144,226,0.1)",
-                  color: "#4A90E2",
-                }}
-              >
-                <CreditCard className="h-5 w-5" />
-              </div>
-              <div className="flex-1">
-                <div className="text-sm font-bold text-white">
-                  Credit / Debit Card
-                </div>
-                <div className="text-xs text-[#5f6b7f]">
-                  Buy instantly via card
-                </div>
-                <span className="mt-1 inline-block rounded-full bg-[#4A90E2]/10 px-2 py-0.5 text-[10px] font-bold text-[#4A90E2]">
-                  Visa · MC · Amex
-                </span>
-              </div>
-              <ChevronRight className="h-4 w-4 flex-shrink-0 text-[#4a5468]" />
-            </button>
-          )}
-        </div>
-
-        {/* Proceed Button */}
-        {selectedMethod && (
-          <div className="mt-5">
-            <button
-              type="button"
-              onClick={handleProceed}
-              className="gradient-btn-green flex w-full items-center justify-center gap-2 rounded-xl px-8 py-3 text-sm font-bold sm:w-auto"
-            >
-              <ArrowDownToLine className="h-4 w-4" />
-              Proceed to Deposit
-            </button>
-          </div>
+      {/* Method Cards */}
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: 10,
+          position: "relative",
+        }}
+      >
+        {cryptoEnabled && (
+          <MethodCard
+            icon={<Wallet className="h-4 w-4" />}
+            iconBg="rgba(61,219,169,0.1)"
+            iconColor="var(--accent)"
+            title="Crypto Deposit"
+            desc="Send from external wallet"
+            tag="Recommended"
+            tagBg="rgba(61,219,169,0.1)"
+            tagColor="var(--accent)"
+            selected={selectedMethod === "crypto"}
+            onClick={() => handleMethodSelect("crypto")}
+          />
+        )}
+        <MethodCard
+          icon={<Building2 className="h-4 w-4" />}
+          iconBg="rgba(74,144,226,0.1)"
+          iconColor="#4A90E2"
+          title="Bank Wire Transfer"
+          desc="Via trusted exchange partners"
+          tag="Trusted Partners"
+          tagBg="rgba(74,144,226,0.1)"
+          tagColor="#4A90E2"
+          selected={selectedMethod === "bank-wire"}
+          onClick={() => handleMethodSelect("bank-wire")}
+        />
+        {cardEnabled && (
+          <MethodCard
+            icon={<CreditCard className="h-4 w-4" />}
+            iconBg="rgba(74,144,226,0.1)"
+            iconColor="#4A90E2"
+            title="Credit / Debit Card"
+            desc="Buy instantly via card"
+            tag="Visa · MC · Amex"
+            tagBg="rgba(74,144,226,0.1)"
+            tagColor="#4A90E2"
+            selected={selectedMethod === "card"}
+            onClick={() => handleMethodSelect("card")}
+          />
         )}
       </div>
+
+      {selectedMethod && (
+        <div style={{ marginTop: 14, position: "relative" }}>
+          <button
+            type="button"
+            onClick={handleProceed}
+            className="btn-sub btn-dep"
+            style={{ width: "auto", padding: "10px 22px" }}
+          >
+            <ArrowDownToLine className="h-4 w-4" />
+            Proceed to Deposit
+          </button>
+        </div>
+      )}
     </div>
+  );
+}
+
+function MethodCard({
+  icon,
+  iconBg,
+  iconColor,
+  title,
+  desc,
+  tag,
+  tagBg,
+  tagColor,
+  selected,
+  onClick,
+}: {
+  icon: React.ReactNode;
+  iconBg: string;
+  iconColor: string;
+  title: string;
+  desc: string;
+  tag: string;
+  tagBg: string;
+  tagColor: string;
+  selected: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 12,
+        padding: "12px 14px",
+        border: selected
+          ? "1.5px solid rgba(61,219,169,0.35)"
+          : "1px solid rgba(255,255,255,0.07)",
+        borderRadius: 10,
+        background: selected
+          ? "linear-gradient(145deg,rgba(61,219,169,.06),rgba(61,219,169,.02))"
+          : "linear-gradient(145deg,rgba(255,255,255,.04),rgba(255,255,255,.015))",
+        boxShadow: selected ? "0 0 16px rgba(61,219,169,0.08)" : "none",
+        color: "var(--t1)",
+        cursor: "pointer",
+        textAlign: "left",
+        transition: "all .2s",
+      }}
+    >
+      <div
+        style={{
+          display: "flex",
+          height: 38,
+          width: 38,
+          flexShrink: 0,
+          alignItems: "center",
+          justifyContent: "center",
+          borderRadius: 10,
+          background: iconBg,
+          color: iconColor,
+        }}
+      >
+        {icon}
+      </div>
+      <div style={{ flex: 1 }}>
+        <div
+          style={{
+            fontSize: ".82rem",
+            fontWeight: 800,
+            color: "var(--t1)",
+            marginBottom: 1,
+          }}
+        >
+          {title}
+        </div>
+        <div style={{ fontSize: ".68rem", color: "var(--t3)" }}>{desc}</div>
+        <span
+          style={{
+            display: "inline-block",
+            marginTop: 4,
+            padding: "1px 8px",
+            borderRadius: 16,
+            background: tagBg,
+            color: tagColor,
+            fontSize: ".6rem",
+            fontWeight: 700,
+          }}
+        >
+          {tag}
+        </span>
+      </div>
+      <ChevronRight
+        className="h-[0.85rem] w-[0.85rem] shrink-0"
+        style={{ color: "var(--t4)" }}
+      />
+    </button>
   );
 }

@@ -2,6 +2,10 @@ import { Wallet, CircleCheck, ChartLine, Clock } from "lucide-react";
 import useUserStore from "@/store/userStore";
 import { useCurrency } from "@/hooks/useCurrency";
 
+/**
+ * Four balance cards matching `.bal-row` / `.bal-card` in the reference.
+ * Dynamic values still come from `useUserStore` exactly as before.
+ */
 export function WalletOverviewPanel() {
   const user = useUserStore((state) => state.user);
   const { formatCurrency } = useCurrency();
@@ -13,82 +17,45 @@ export function WalletOverviewPanel() {
       value: formatCurrency(balance),
       sub: "Total wallet value",
       icon: Wallet,
-      valueColor: "#00ffc3",
+      valueColor: "var(--accent-light)",
     },
     {
       label: "Available",
       value: formatCurrency(balance),
       sub: "Ready to trade",
       icon: CircleCheck,
-      valueColor: "#00dfa2",
+      valueColor: "var(--accent)",
     },
     {
       label: "Trade Balance",
       value: "—",
       sub: "In active positions",
       icon: ChartLine,
-      valueColor: "#00dfa2",
+      valueColor: "var(--accent)",
     },
     {
       label: "Pending Orders",
       value: "—",
       sub: "Open limit orders",
       icon: Clock,
-      valueColor: "#00dfa2",
+      valueColor: "var(--accent)",
     },
   ];
 
   return (
-    <div className="mb-7 grid grid-cols-1 gap-[14px] sm:grid-cols-2 xl:grid-cols-4">
+    <div className="bal-row">
       {cards.map((card) => {
         const Icon = card.icon;
         return (
-          <div
-            key={card.label}
-            className="relative overflow-hidden rounded-[14px] border-[1.5px] border-[rgba(255,255,255,0.08)] px-5 py-[18px] shadow-[0_8px_32px_rgba(0,0,0,0.4),0_2px_8px_rgba(0,0,0,0.2),inset_0_1px_0_rgba(255,255,255,0.06)]"
-            style={{
-              background:
-                "linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01))",
-            }}
-          >
-            {/* inner highlight overlay */}
-            <div
-              className="pointer-events-none absolute inset-0 rounded-[14px]"
-              style={{
-                background:
-                  "linear-gradient(175deg,rgba(255,255,255,0.04),transparent 40%)",
-              }}
-            />
-            {/* top accent stripe */}
-            <div
-              className="pointer-events-none absolute inset-x-0 top-0 h-[2px] rounded-t-[14px]"
-              style={{
-                background: "linear-gradient(90deg,#00dfa2,#00ffc3)",
-              }}
-            />
-            {/* top-right icon chip */}
-            <div
-              className="absolute right-[14px] top-[14px] flex h-8 w-8 items-center justify-center rounded-[9px]"
-              style={{
-                background: "rgba(0,223,162,0.1)",
-                color: "#00dfa2",
-              }}
-            >
-              <Icon className="h-[0.82rem] w-[0.82rem]" />
+          <div key={card.label} className="bal-card">
+            <div className="bci">
+              <Icon className="h-[0.78rem] w-[0.78rem]" />
             </div>
-
-            <div className="relative pr-10">
-              <div className="mb-[7px] text-[0.68rem] font-bold uppercase tracking-[0.08em] text-[#3a4556]">
-                {card.label}
-              </div>
-              <div
-                className="mb-[3px] font-mono text-[1.4rem] font-bold leading-none"
-                style={{ color: card.valueColor }}
-              >
-                {card.value}
-              </div>
-              <div className="text-[0.72rem] text-[#4a5468]">{card.sub}</div>
+            <div className="bc-lbl">{card.label}</div>
+            <div className="bc-num" style={{ color: card.valueColor }}>
+              {card.value}
             </div>
+            <div className="bc-sub">{card.sub}</div>
           </div>
         );
       })}

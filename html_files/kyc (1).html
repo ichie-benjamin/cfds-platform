@@ -1,0 +1,1585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Identity Verification · 1 Trade Market</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --accent:#00dfa2;--accent-dim:rgba(0,223,162,.10);--accent-glow:rgba(0,223,162,.25);
+  --red:#f43f5e;--red-dim:rgba(244,63,94,.10);
+  --gold:#F0B429;--gold-dim:rgba(240,180,41,.1);--gold-border:rgba(240,180,41,.3);
+  --green:#1ED760;--green-dim:rgba(30,215,96,.1);--green-border:rgba(30,215,96,.28);
+  --orange:#FF9800;--orange-dim:rgba(255,152,0,.1);
+  --purple:#8b5cf6;--purple-dim:rgba(139,92,246,.08);
+  --blue:#5b8def;--blue-dim:rgba(91,141,239,.10);
+  --amber:#f5a623;--amber-dim:rgba(245,166,35,.10);
+  --silver:#C0C0C0;--silver-dim:rgba(192,192,192,.10);--silver-border:rgba(192,192,192,.3);
+  --blend:#60D4A8;--blend-dim:rgba(96,212,168,.10);--blend-border:rgba(96,212,168,.3);
+  --bg:#07080c;--bg1:#0d0f15;--bg2:#10131a;--bg3:#151821;--bg4:#13161f;
+  --b1:rgba(255,255,255,.05);--b2:rgba(255,255,255,.07);--b3:rgba(255,255,255,.12);
+  --t1:#eef2f7;--t2:#8b97a8;--t3:#4a5468;--t4:#2a3040;
+  --mono:'JetBrains Mono',monospace;--body:'Inter',system-ui,sans-serif;--heading:'Outfit',sans-serif;
+  --radius:8px;--radius-lg:14px;--radius-xl:18px;
+  --shadow-sm:0 1px 4px rgba(0,0,0,.3);--shadow-md:0 4px 16px rgba(0,0,0,.4);--shadow-lg:0 8px 28px rgba(0,0,0,.55);
+  --ease:cubic-bezier(.4,0,.2,1);
+}
+html{scroll-behavior:smooth;-webkit-font-smoothing:antialiased}
+body{font-family:var(--body);background:var(--bg);color:var(--t1);line-height:1.6;-webkit-font-smoothing:antialiased;min-height:100vh;overflow-x:hidden;position:relative}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:var(--bg1)}
+::-webkit-scrollbar-thumb{background:rgba(0,223,162,.2);border-radius:3px}
+
+/* ═══ ANIMATED ATMOSPHERIC LAYERS ═══ */
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:
+    radial-gradient(ellipse 1200px 800px at 15% 0%,rgba(0,223,162,.12) 0%,transparent 55%),
+    radial-gradient(ellipse 900px 700px at 90% 45%,rgba(91,141,239,.07) 0%,transparent 55%),
+    radial-gradient(ellipse 800px 600px at 45% 100%,rgba(139,92,246,.05) 0%,transparent 55%);
+}
+body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;opacity:.022;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.7' numOctaves='5' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+}
+canvas#particleCanvas{position:fixed;inset:0;width:100%;height:100%;z-index:1;pointer-events:none;}
+
+/* Animated floating orbs */
+.orb{position:fixed;border-radius:50%;pointer-events:none;z-index:0;filter:blur(80px);animation:orbFloat 20s ease-in-out infinite alternate;}
+.orb-1{width:400px;height:400px;background:rgba(0,223,162,.06);top:-100px;left:-100px;animation-duration:25s;}
+.orb-2{width:300px;height:300px;background:rgba(91,141,239,.05);bottom:10%;right:-80px;animation-duration:20s;animation-delay:-5s;}
+.orb-3{width:250px;height:250px;background:rgba(139,92,246,.04);top:50%;left:30%;animation-duration:22s;animation-delay:-10s;}
+@keyframes orbFloat{
+  0%{transform:translate(0,0) scale(1);}
+  33%{transform:translate(40px,-30px) scale(1.1);}
+  66%{transform:translate(-20px,40px) scale(.95);}
+  100%{transform:translate(30px,20px) scale(1.05);}
+}
+
+/* Grid texture */
+.grid-tex{position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.01;
+  background-image:linear-gradient(rgba(0,223,162,.4) 1px,transparent 1px),linear-gradient(90deg,rgba(0,223,162,.4) 1px,transparent 1px);
+  background-size:72px 72px;
+  mask-image:radial-gradient(ellipse 70% 60% at 50% 30%,black 20%,transparent);-webkit-mask-image:radial-gradient(ellipse 70% 60% at 50% 30%,black 20%,transparent);
+}
+
+/* ─── NAV ─── */
+nav{background:rgba(13,15,21,.7);backdrop-filter:blur(20px) saturate(1.2);-webkit-backdrop-filter:blur(20px) saturate(1.2);border-bottom:1px solid rgba(255,255,255,.06);position:sticky;top:0;z-index:100;padding:0 32px;height:62px;display:flex;align-items:center;justify-content:space-between}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--t1);font-size:1.05rem;font-weight:700}
+.brand em{color:var(--accent);font-style:normal}
+.nav-brand{display:flex;align-items:center;gap:10px;}
+/* ── 7D Nav Logo ── */
+.logo-box{width:34px;height:34px;background:linear-gradient(145deg,#00ffc3 0%,#00e8aa 25%,var(--accent) 50%,#00c78a 75%,#00b881 100%);border-radius:8px;display:flex;align-items:baseline;justify-content:center;flex-shrink:0;box-shadow:0 0 20px rgba(0,223,162,.2),0 4px 14px var(--accent-glow),0 2px 4px rgba(0,0,0,.3),0 8px 20px rgba(0,0,0,.25),inset 0 2px 0 rgba(255,255,255,.4),inset 0 -3px 6px rgba(0,0,0,.22),inset 2px 0 4px rgba(0,0,0,.06),inset -2px 0 4px rgba(0,0,0,.06);position:relative;overflow:hidden;padding-top:4px;transition:transform .3s var(--ease),box-shadow .3s;transform-style:preserve-3d;animation:navLogoPulse 3s ease-in-out infinite;}
+.logo-box:hover{transform:scale(1.1) rotateY(-5deg) rotateX(3deg);box-shadow:0 0 30px rgba(0,223,162,.35),0 6px 20px var(--accent-glow),0 3px 6px rgba(0,0,0,.3),0 10px 25px rgba(0,0,0,.3),inset 0 2px 0 rgba(255,255,255,.4),inset 0 -3px 6px rgba(0,0,0,.22);}
+/* Gloss overlay */
+.logo-box::before{content:'';position:absolute;top:0;left:0;right:0;height:45%;background:linear-gradient(175deg,rgba(255,255,255,.32) 0%,rgba(255,255,255,.08) 40%,transparent 100%);pointer-events:none;border-radius:8px 8px 50% 50%;z-index:3;}
+/* Light sweep */
+.logo-box::after{content:'';position:absolute;top:-50%;left:-80%;width:60%;height:200%;background:linear-gradient(105deg,transparent 30%,rgba(255,255,255,.15) 45%,rgba(255,255,255,.22) 50%,rgba(255,255,255,.15) 55%,transparent 70%);transform:rotate(25deg);pointer-events:none;z-index:4;animation:navLightSweep 4s ease-in-out 1s infinite;}
+/* Holographic rim */
+.logo-rim{position:absolute;top:-1px;left:-1px;right:-1px;bottom:-1px;border-radius:9px;border:1px solid transparent;background:linear-gradient(145deg,rgba(255,255,255,.25),rgba(0,223,162,.3),rgba(91,141,239,.2),rgba(139,92,246,.2),rgba(0,223,162,.15)) border-box;-webkit-mask:linear-gradient(#fff 0 0) padding-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none;z-index:5;animation:rimShift 5s linear infinite;}
+/* Depth edges */
+.logo-depth-b{position:absolute;bottom:-3px;left:2px;right:2px;height:4px;background:linear-gradient(180deg,#008a62,#006b4d);border-radius:0 0 6px 6px;filter:blur(.3px);z-index:-1;}
+.logo-depth-l{position:absolute;top:2px;bottom:2px;left:-2px;width:3px;background:linear-gradient(90deg,#007a58,#009e72);border-radius:6px 0 0 6px;filter:blur(.3px);z-index:-1;}
+.logo-depth-r{position:absolute;top:2px;bottom:2px;right:-2px;width:2px;background:linear-gradient(270deg,#006b4d,#008a62);border-radius:0 6px 6px 0;filter:blur(.3px);z-index:-1;}
+.logo-1{font-family:var(--heading);font-size:.95rem;font-weight:900;color:#000;line-height:1;text-shadow:0 1px 0 rgba(255,255,255,.35),0 2px 0 rgba(255,255,255,.12);position:relative;z-index:2;}
+.logo-tm{font-family:var(--heading);font-size:.48rem;font-weight:800;color:rgba(0,0,0,.65);line-height:1;margin-left:.5px;letter-spacing:-.02em;align-self:flex-start;margin-top:1px;text-shadow:0 1px 0 rgba(255,255,255,.18);position:relative;z-index:2;}
+@keyframes navLogoPulse{0%,100%{box-shadow:0 0 20px rgba(0,223,162,.2),0 4px 14px var(--accent-glow),0 2px 4px rgba(0,0,0,.3),0 8px 20px rgba(0,0,0,.25),inset 0 2px 0 rgba(255,255,255,.4),inset 0 -3px 6px rgba(0,0,0,.22),inset 2px 0 4px rgba(0,0,0,.06),inset -2px 0 4px rgba(0,0,0,.06);}50%{box-shadow:0 0 30px rgba(0,223,162,.3),0 6px 18px rgba(0,223,162,.3),0 2px 4px rgba(0,0,0,.3),0 10px 24px rgba(0,0,0,.28),inset 0 2px 0 rgba(255,255,255,.45),inset 0 -3px 6px rgba(0,0,0,.22),inset 2px 0 4px rgba(0,0,0,.06),inset -2px 0 4px rgba(0,0,0,.06);}}
+@keyframes navLightSweep{0%,100%{left:-80%;opacity:0;}10%{opacity:1;}50%{left:130%;opacity:1;}60%,100%{left:130%;opacity:0;}}
+@keyframes rimShift{0%{filter:hue-rotate(0deg);}100%{filter:hue-rotate(360deg);}}
+.brand-name{font-family:var(--heading);font-size:.95rem;font-weight:700;letter-spacing:-.02em;}
+.brand-name em{font-style:normal;color:var(--accent);}
+.nav-links{display:flex;list-style:none;gap:2px}
+.nav-links a{text-decoration:none;color:var(--t3);font-size:.83rem;font-weight:500;padding:7px 13px;border-radius:var(--radius);transition:all .18s}
+.nav-links a:hover{color:var(--t1);background:var(--bg2)}
+.nav-links a.active{color:var(--accent);background:var(--accent-dim);font-weight:600}
+.nav-right{display:flex;align-items:center;gap:10px}
+.nav-icon{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--t3);cursor:pointer;transition:all .18s;background:linear-gradient(145deg,rgba(255,255,255,.06),transparent);border:1px solid rgba(255,255,255,.06);box-shadow:inset 0 1px 0 rgba(255,255,255,.06),inset 0 -1px 3px rgba(0,0,0,.1);position:relative;overflow:hidden}
+.nav-icon::after{content:'';position:absolute;top:0;left:0;right:0;height:45%;background:linear-gradient(175deg,rgba(255,255,255,.08),transparent);pointer-events:none;border-radius:50%}
+.nav-icon:hover{background:linear-gradient(145deg,rgba(255,255,255,.1),var(--bg2));color:var(--t1);border-color:rgba(255,255,255,.1)}
+.user-menu{position:relative}
+.user-avatar{width:34px;height:34px;border-radius:50%;background:var(--accent);color:#000;display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:700;cursor:pointer;letter-spacing:.02em}
+.user-dropdown{display:none;position:absolute;top:calc(100% + 8px);right:0;background:var(--bg1);border:1px solid rgba(255,255,255,.08);border-radius:var(--radius-lg);padding:6px 0;min-width:200px;box-shadow:var(--shadow-lg);z-index:200}
+.user-menu:hover .user-dropdown{display:block}
+.user-dropdown a{display:flex;align-items:center;gap:10px;padding:10px 16px;color:var(--t2);text-decoration:none;font-size:.83rem;transition:background .15s}
+.user-dropdown a:hover{background:var(--bg2)}
+
+/* ─── PAGE HERO STRIP ─── */
+.page-hero{background:linear-gradient(135deg,var(--bg1),rgba(13,15,21,.6));border-bottom:1px solid rgba(255,255,255,.06);padding:28px 32px 24px}
+.page-hero-inner{max-width:1280px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.page-hero-left{display:flex;flex-direction:column;gap:4px}
+.page-hero-eyebrow{display:flex;align-items:center;gap:8px;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--t3);margin-bottom:4px}
+.page-hero-eyebrow span{display:inline-block;width:20px;height:1px;background:rgba(255,255,255,.12)}
+.page-hero-title{font-size:1.55rem;font-weight:800;letter-spacing:-.02em;background:linear-gradient(135deg,#ffffff 0%,#e0f7ef 25%,#00ffc3 50%,#e0f7ef 75%,#ffffff 100%);background-size:200% auto;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:heroTextShimmer 4s linear infinite;filter:drop-shadow(0 2px 4px rgba(0,223,162,.15))}
+@keyframes heroTextShimmer{0%{background-position:200% center}100%{background-position:-200% center}}
+.page-hero-sub{font-size:.83rem;color:var(--t3);margin-top:2px}
+.page-hero-badges{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.trust-badge-strip{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;padding:16px 0 0;margin-top:18px;border-top:1px solid rgba(255,255,255,.06);position:relative;z-index:2}
+.trust-badge{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:20px;font-size:.7rem;font-weight:600;border:1px solid;position:relative;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.2),inset 0 1px 0 rgba(255,255,255,.1),inset 0 -1px 3px rgba(0,0,0,.15)}
+.trust-badge::after{content:'';position:absolute;top:0;left:0;right:0;height:50%;background:linear-gradient(175deg,rgba(255,255,255,.12),transparent);pointer-events:none;border-radius:20px 20px 50% 50%}
+.trust-badge.green{background:linear-gradient(145deg,rgba(30,215,96,.18),rgba(30,215,96,.06));color:var(--green);border-color:var(--green-border);box-shadow:0 2px 8px rgba(30,215,96,.15),0 4px 12px rgba(0,0,0,.2),inset 0 1px 0 rgba(255,255,255,.12),inset 0 -1px 3px rgba(0,0,0,.15)}
+.trust-badge.gold{background:linear-gradient(145deg,rgba(240,180,41,.18),rgba(240,180,41,.06));color:var(--gold);border-color:var(--gold-border);box-shadow:0 2px 8px rgba(240,180,41,.15),0 4px 12px rgba(0,0,0,.2),inset 0 1px 0 rgba(255,255,255,.12),inset 0 -1px 3px rgba(0,0,0,.15)}
+.trust-badge.blue{background:linear-gradient(145deg,rgba(74,144,226,.18),rgba(74,144,226,.06));color:#4A90E2;border-color:rgba(74,144,226,.3);box-shadow:0 2px 8px rgba(74,144,226,.15),0 4px 12px rgba(0,0,0,.2),inset 0 1px 0 rgba(255,255,255,.12),inset 0 -1px 3px rgba(0,0,0,.15)}
+
+/* ─── MAIN LAYOUT ─── */
+.container{display:grid;grid-template-columns:1fr 320px;gap:28px;padding:32px;max-width:1280px;margin:0 auto}
+.main-content{min-width:0}
+.sidebar{display:flex;flex-direction:column;gap:20px}
+
+/* ─── STEP PROGRESS BAR ─── */
+.step-bar{backdrop-filter:blur(28px) saturate(1.3);-webkit-backdrop-filter:blur(28px) saturate(1.3);background:rgba(13,15,21,.6);border:1px solid rgba(255,255,255,.08);border-radius:var(--radius-xl);padding:20px 28px;margin-bottom:28px;display:flex;align-items:center;justify-content:space-between;position:relative}
+.step-bar-track{position:absolute;left:80px;right:80px;top:50%;transform:translateY(-50%);height:2px;background:rgba(255,255,255,.08);z-index:0}
+.step-bar-fill{position:absolute;left:0;top:0;height:100%;background:var(--green);transition:width .5s ease;border-radius:2px}
+.step-node{display:flex;flex-direction:column;align-items:center;gap:8px;flex:1;position:relative;z-index:1}
+.step-circle{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700;transition:all .3s;position:relative;overflow:hidden}
+.step-node.done .step-circle{background:linear-gradient(145deg,#2EE080,var(--green),#18a84e);color:#fff;box-shadow:0 0 0 4px var(--green-dim),0 4px 12px rgba(30,215,96,.25),inset 0 2px 0 rgba(255,255,255,.3),inset 0 -2px 4px rgba(0,0,0,.2)}
+.step-node.done .step-circle::after{content:'';position:absolute;top:0;left:0;right:0;height:45%;background:linear-gradient(175deg,rgba(255,255,255,.28),transparent);border-radius:50% 50% 40% 40%;pointer-events:none}
+.step-node.active .step-circle{background:linear-gradient(145deg,#00ffc3,var(--accent),#00b881);color:#000;box-shadow:0 0 0 4px var(--accent-dim),0 4px 14px rgba(0,223,162,.3),inset 0 2px 0 rgba(255,255,255,.35),inset 0 -2px 4px rgba(0,0,0,.2)}
+.step-node.active .step-circle::after{content:'';position:absolute;top:0;left:0;right:0;height:45%;background:linear-gradient(175deg,rgba(255,255,255,.3),transparent);border-radius:50% 50% 40% 40%;pointer-events:none}
+.step-node.wait .step-circle{background:linear-gradient(145deg,var(--bg3),var(--bg2));color:var(--t4);border:2px solid rgba(255,255,255,.08);box-shadow:inset 0 1px 0 rgba(255,255,255,.06),inset 0 -2px 4px rgba(0,0,0,.15)}
+.step-node-label{font-size:.68rem;font-weight:600;text-align:center;max-width:74px;line-height:1.3}
+.step-node.done .step-node-label{color:var(--green)}
+.step-node.active .step-node-label{color:var(--accent)}
+.step-node.wait .step-node-label{color:var(--t4)}
+.step-connector{flex:1;height:2px;background:rgba(255,255,255,.08);transition:background .4s;z-index:0;margin-top:-20px}
+.step-connector.done{background:var(--green)}
+
+/* ─── SECTION CARD ─── */
+.section-card{backdrop-filter:blur(28px) saturate(1.3);-webkit-backdrop-filter:blur(28px) saturate(1.3);background:rgba(13,15,21,.6);border:1px solid rgba(255,255,255,.08);border-radius:var(--radius-xl);overflow:hidden;margin-bottom:20px}
+.section-card-hd{display:flex;align-items:center;gap:14px;padding:20px 24px;border-bottom:1px solid rgba(255,255,255,.08)}
+.section-card-icon{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.05rem;flex-shrink:0;background:linear-gradient(145deg,rgba(0,223,162,.28),rgba(0,223,162,.08));box-shadow:0 6px 16px rgba(0,223,162,.2),0 2px 4px rgba(0,0,0,.3),inset 0 2px 0 rgba(255,255,255,.2),inset 0 -3px 6px rgba(0,0,0,.25);border:1px solid rgba(0,223,162,.22);position:relative;overflow:hidden}
+.section-card-icon::after{content:'';position:absolute;top:0;left:0;right:0;height:45%;background:linear-gradient(175deg,rgba(255,255,255,.22) 0%,rgba(255,255,255,.05) 60%,transparent 100%);pointer-events:none;border-radius:12px 12px 50% 50%}
+.section-card-hd-text{}
+.section-card-title{font-size:1rem;font-weight:700;color:var(--t1);line-height:1.2;text-shadow:0 1px 2px rgba(0,0,0,.3),0 0 12px rgba(0,223,162,.08)}
+.section-card-sub{font-size:.75rem;color:var(--t3);margin-top:2px}
+.section-card-body{padding:24px}
+
+/* ─── TIER CARDS ─── */
+.tier-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.tier-card{border-radius:var(--radius-lg);border:1.5px solid rgba(255,255,255,.08);background:var(--bg2);padding:0;overflow:hidden;position:relative;transition:all .25s}
+.tier-card:hover{border-color:rgba(255,255,255,.12);transform:translateY(-1px)}
+.tier-card.current{border-color:var(--silver-border);background:linear-gradient(160deg,var(--bg2),var(--silver-dim))}
+.tier-card.recommended{border-color:var(--accent);background:linear-gradient(160deg,var(--bg2),var(--accent-dim));box-shadow:0 0 0 1px rgba(0,223,162,.2),0 8px 24px rgba(0,223,162,.12)}
+.tier-card.advanced{border-color:var(--blend-border);background:linear-gradient(160deg,var(--bg2),var(--blend-dim))}
+.tier-card.selectable{cursor:pointer;transition:all .25s}
+.tier-card.selectable:hover{transform:translateY(-2px)}
+.tier-card.selectable.selected{border-color:var(--accent);box-shadow:0 0 0 2px rgba(0,223,162,.3),0 8px 24px rgba(0,223,162,.12)}
+.tier-ribbon{font-size:.58rem;font-weight:800;text-transform:uppercase;letter-spacing:.1em;padding:5px 14px;text-align:center}
+.tier-ribbon.gold-ribbon{background:var(--silver);color:#0E1529}
+.tier-ribbon.red-ribbon{background:var(--accent);color:#000}
+.tier-ribbon.blue-ribbon{background:var(--blend);color:#fff}
+.tier-inner{padding:18px}
+.tier-name-row{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.tier-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:.95rem;background:linear-gradient(145deg,rgba(0,223,162,.28),rgba(0,223,162,.08));box-shadow:0 4px 12px rgba(0,223,162,.2),0 2px 4px rgba(0,0,0,.25),inset 0 2px 0 rgba(255,255,255,.2),inset 0 -3px 6px rgba(0,0,0,.22);border:1px solid rgba(0,223,162,.22);position:relative;overflow:hidden}
+.tier-icon::after{content:'';position:absolute;top:0;left:0;right:0;height:45%;background:linear-gradient(175deg,rgba(255,255,255,.22),transparent);pointer-events:none;border-radius:10px 10px 50% 50%}
+.tier-name{font-size:.95rem;font-weight:800;letter-spacing:-.01em;text-shadow:0 1px 3px rgba(0,0,0,.3),0 0 10px currentColor}
+.tier-limits-block{margin-bottom:14px;padding:12px;background:rgba(0,0,0,.18);border-radius:10px}
+.tier-limit-row{display:flex;justify-content:space-between;align-items:center;padding:4px 0}
+.tier-limit-row:not(:last-child){border-bottom:1px solid rgba(255,255,255,.05);padding-bottom:7px;margin-bottom:3px}
+.tier-limit-label{font-size:.65rem;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--t3)}
+.tier-limit-val{font-size:.88rem;font-weight:800;font-family:var(--mono);color:var(--t1)}
+.tier-feats{display:grid;gap:7px}
+.tier-feat{display:flex;align-items:center;gap:8px;font-size:.78rem;color:var(--t2)}
+.tier-feat-icon{width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.6rem;flex-shrink:0}
+.tier-feat-icon.green-ic{background:var(--green-dim);color:var(--green)}
+.tier-feat-icon.gold-ic{background:var(--gold-dim);color:var(--gold)}
+.tier-feat-icon.blue-ic{background:var(--blend-dim);color:var(--blend)}
+.tier-status-pill{display:inline-flex;align-items:center;gap:5px;margin-top:12px;padding:5px 10px;border-radius:6px;font-size:.67rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em}
+
+/* ─── 3D GOLD DELIVERY NOTICE ─── */
+.gold-notice-3d{position:relative;padding:16px 20px;border-radius:var(--radius-lg);background:linear-gradient(145deg,rgba(240,180,41,.15),rgba(240,180,41,.05));border:1px solid rgba(240,180,41,.25);box-shadow:0 4px 16px rgba(240,180,41,.1),inset 0 1px 0 rgba(255,255,255,.12),inset 0 -2px 6px rgba(0,0,0,.15);font-size:.82rem;color:var(--t2);line-height:1.6;margin-top:12px;overflow:hidden}
+.gold-notice-3d::after{content:'';position:absolute;top:0;left:0;right:0;height:40%;background:linear-gradient(175deg,rgba(255,255,255,.08) 0%,transparent 100%);pointer-events:none;border-radius:var(--radius-lg) var(--radius-lg) 50% 50%}
+.gold-notice-3d i{color:var(--gold);margin-right:8px}
+
+/* ─── FORM FIELDS ─── */
+.form-section{margin-bottom:24px}
+.form-section-label{font-size:.68rem;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:var(--t3);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.form-section-label::after{content:'';flex:1;height:1px;background:rgba(255,255,255,.06)}
+.form-grid{display:grid;gap:14px}
+.form-grid.col2{grid-template-columns:1fr 1fr}
+.form-grid.col3{grid-template-columns:1fr 1fr 1fr}
+.form-group{display:flex;flex-direction:column;gap:5px}
+.form-label{font-size:.78rem;font-weight:600;color:var(--t2);display:flex;align-items:center;gap:6px}
+.form-label .required{color:var(--accent);font-size:.7rem}
+.input-wrap{position:relative}
+.input-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--t4);font-size:.8rem;pointer-events:none}
+.form-input,.form-select{width:100%;padding:10px 12px 10px 36px;border:1.5px solid rgba(255,255,255,.08);border-radius:10px;font-family:var(--body);font-size:.84rem;color:var(--t1);background:var(--bg2);transition:border-color .2s,box-shadow .2s;-webkit-appearance:none;appearance:none}
+.form-input.no-icon,.form-select.no-icon{padding-left:12px}
+.form-input:focus,.form-select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-dim)}
+.form-input::placeholder{color:var(--t4)}
+.form-select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%238A9CC4' d='M6 8L1 3h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:34px}
+.form-select option{background:#1A2745;color:#E8EEFF}
+.form-hint{font-size:.72rem;color:var(--t4);margin-top:2px}
+
+/* ─── DOC TYPE SELECTOR ─── */
+.doc-type-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px}
+.doc-type-card{background:var(--bg2);border:2px solid rgba(255,255,255,.08);border-radius:var(--radius-lg);padding:16px 12px;display:flex;flex-direction:column;align-items:center;gap:10px;cursor:pointer;transition:all .2s;text-align:center}
+.doc-type-card:hover{border-color:rgba(0,223,162,.4);background:var(--accent-dim)}
+.doc-type-card.selected{border-color:var(--accent);background:var(--accent-dim);box-shadow:0 0 0 1px rgba(0,223,162,.2)}
+.doc-type-illus{width:52px;height:36px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;background:linear-gradient(145deg,rgba(0,223,162,.28),rgba(0,223,162,.08));box-shadow:0 4px 12px rgba(0,223,162,.2),0 2px 4px rgba(0,0,0,.25),inset 0 2px 0 rgba(255,255,255,.2),inset 0 -3px 6px rgba(0,0,0,.22);border:1px solid rgba(0,223,162,.22);position:relative;overflow:hidden}
+.doc-type-illus::after{content:'';position:absolute;top:0;left:0;right:0;height:45%;background:linear-gradient(175deg,rgba(255,255,255,.2),transparent);pointer-events:none;border-radius:6px 6px 50% 50%}
+.doc-type-card.selected .doc-type-illus{border-color:rgba(0,223,162,.5);background:rgba(0,223,162,.1);color:var(--accent)}
+.doc-type-label{font-size:.78rem;font-weight:700;color:var(--t2)}
+.doc-type-card.selected .doc-type-label{color:var(--accent)}
+.doc-type-hint{font-size:.65rem;color:var(--t3)}
+
+/* ─── UPLOAD ZONES ─── */
+.upload-pair{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px}
+.upload-zone{border:2px dashed rgba(255,255,255,.08);border-radius:var(--radius-lg);padding:0;text-align:center;cursor:pointer;transition:all .25s;background:var(--bg2);overflow:hidden;min-height:180px;display:flex;flex-direction:column}
+.upload-zone:hover{border-color:rgba(0,223,162,.45);background:var(--accent-dim)}
+.upload-zone.dragover{border-color:var(--accent);background:rgba(0,223,162,.1)}
+.upload-zone.uploaded{border-color:var(--green);border-style:solid;background:var(--green-dim)}
+.upload-zone-top{background:var(--bg3);padding:18px 16px;display:flex;flex-direction:column;align-items:center;gap:8px;flex:1}
+.upload-zone-label{background:var(--bg2);padding:8px 12px;display:flex;align-items:center;justify-content:space-between;gap:8px;border-top:1px solid rgba(255,255,255,.06)}
+.upload-zone-label-text{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--t3)}
+.upload-zone-action{font-size:.7rem;color:var(--accent);font-weight:600}
+.upload-doc-icon{font-size:2rem;color:var(--t4);margin-bottom:4px;transition:color .2s}
+.upload-zone:hover .upload-doc-icon{color:var(--accent)}
+.upload-zone.uploaded .upload-doc-icon{color:var(--green)}
+.upload-title{font-size:.8rem;font-weight:600;color:var(--t2)}
+.upload-hint{font-size:.67rem;color:var(--t4)}
+.upload-input{display:none}
+.upload-preview{display:none;padding:10px}
+.upload-preview.active{display:block}
+.preview-img{width:100%;height:80px;object-fit:cover;border-radius:6px;margin-bottom:6px}
+.preview-name{font-size:.68rem;color:var(--t3);word-break:break-all;display:flex;align-items:center;gap:4px}
+.preview-name i{color:var(--green)}
+
+/* ─── PHOTO TIPS ─── */
+.photo-tips{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px}
+.tip-block{background:var(--bg2);border-radius:var(--radius-lg);padding:14px}
+.tip-block-hd{display:flex;align-items:center;gap:6px;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px}
+.tip-block-hd.good{color:var(--green)}
+.tip-block-hd.bad{color:var(--accent)}
+.tip-item{display:flex;align-items:center;gap:8px;font-size:.75rem;color:var(--t2);margin-bottom:6px}
+.tip-item:last-child{margin-bottom:0}
+.tip-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.tip-dot.green{background:var(--green)}
+.tip-dot.red{background:var(--accent)}
+
+/* ─── ADDRESS PROOF ─── */
+.accepted-docs-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:20px}
+.accepted-doc-card{background:var(--bg2);border:1.5px solid rgba(255,255,255,.08);border-radius:var(--radius-lg);padding:14px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:all .2s}
+.accepted-doc-card.selected{border-color:var(--accent);background:var(--accent-dim)}
+.accepted-doc-card-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1rem;color:var(--t3);flex-shrink:0;background:linear-gradient(145deg,rgba(0,223,162,.28),rgba(0,223,162,.08));box-shadow:0 4px 12px rgba(0,223,162,.2),0 2px 4px rgba(0,0,0,.25),inset 0 2px 0 rgba(255,255,255,.2),inset 0 -3px 6px rgba(0,0,0,.22);border:1px solid rgba(0,223,162,.22);position:relative;overflow:hidden}
+.accepted-doc-card-icon::after{content:'';position:absolute;top:0;left:0;right:0;height:45%;background:linear-gradient(175deg,rgba(255,255,255,.2),transparent);pointer-events:none;border-radius:10px 10px 50% 50%}
+.accepted-doc-card.selected .accepted-doc-card-icon{background:rgba(0,223,162,.15);color:var(--accent)}
+.accepted-doc-info{}
+.accepted-doc-name{font-size:.82rem;font-weight:700;color:var(--t1)}
+.accepted-doc-hint{font-size:.68rem;color:var(--t3);margin-top:1px}
+
+/* ─── REVIEW SUMMARY ─── */
+.review-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px}
+.review-block{background:var(--bg2);border:1px solid rgba(255,255,255,.08);border-radius:var(--radius-lg);padding:18px}
+.review-block-title{font-size:.68rem;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:var(--t3);margin-bottom:12px;display:flex;align-items:center;gap:6px}
+.review-row{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.06)}
+.review-row:last-child{border-bottom:none;padding-bottom:0}
+.review-key{font-size:.77rem;color:var(--t3)}
+.review-val{font-size:.77rem;font-weight:600;color:var(--t1);text-align:right}
+.doc-status-row{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.06)}
+.doc-status-row:last-child{border-bottom:none}
+.doc-status-icon{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:.78rem;color:var(--t3);flex-shrink:0;background:linear-gradient(145deg,rgba(0,223,162,.28),rgba(0,223,162,.08));box-shadow:0 4px 10px rgba(0,223,162,.18),0 2px 4px rgba(0,0,0,.25),inset 0 2px 0 rgba(255,255,255,.2),inset 0 -2px 5px rgba(0,0,0,.22);border:1px solid rgba(0,223,162,.22);position:relative;overflow:hidden}
+.doc-status-icon::after{content:'';position:absolute;top:0;left:0;right:0;height:45%;background:linear-gradient(175deg,rgba(255,255,255,.2),transparent);pointer-events:none;border-radius:8px 8px 50% 50%}
+.doc-status-name{font-size:.78rem;font-weight:600;color:var(--t1);flex:1}
+.doc-status-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:5px;font-size:.64rem;font-weight:700}
+.doc-status-badge.ready{background:var(--green-dim);color:var(--green);border:1px solid var(--green-border)}
+.doc-status-badge.pending{background:var(--orange-dim);color:var(--orange);border:1px solid rgba(255,152,0,.3)}
+
+/* ─── PROCESSING TIMELINE ─── */
+.processing-timeline{display:flex;flex-direction:column;gap:0;margin-bottom:16px}
+.ptl-item{display:flex;align-items:flex-start;gap:14px;position:relative;padding-bottom:14px}
+.ptl-item:last-child{padding-bottom:0}
+.ptl-item:not(:last-child)::after{content:'';position:absolute;left:14px;top:30px;bottom:0;width:1.5px;background:rgba(255,255,255,.08)}
+.ptl-dot{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.65rem;flex-shrink:0;position:relative;z-index:1;overflow:hidden}
+.ptl-dot::after{content:'';position:absolute;top:0;left:0;right:0;height:45%;background:linear-gradient(175deg,rgba(255,255,255,.15),transparent);pointer-events:none;border-radius:50%}
+.ptl-dot.done{background:linear-gradient(145deg,rgba(30,215,96,.2),rgba(30,215,96,.06));color:var(--green);border:1.5px solid var(--green-border);box-shadow:0 2px 8px rgba(30,215,96,.15),inset 0 1px 0 rgba(255,255,255,.1),inset 0 -1px 3px rgba(0,0,0,.12)}
+.ptl-dot.active{background:linear-gradient(145deg,rgba(0,223,162,.2),rgba(0,223,162,.06));color:var(--accent);border:1.5px solid rgba(0,223,162,.4);box-shadow:0 2px 8px rgba(0,223,162,.15),inset 0 1px 0 rgba(255,255,255,.1),inset 0 -1px 3px rgba(0,0,0,.12)}
+.ptl-dot.wait{background:linear-gradient(145deg,var(--bg3),var(--bg2));color:var(--t4);border:1.5px solid rgba(255,255,255,.08);box-shadow:inset 0 1px 0 rgba(255,255,255,.04),inset 0 -1px 3px rgba(0,0,0,.1)}
+.ptl-text{}
+.ptl-name{font-size:.8rem;font-weight:700;color:var(--t1)}
+.ptl-sub{font-size:.71rem;color:var(--t3);margin-top:1px}
+
+/* ─── CONSENT BOX ─── */
+.consent-box{background:var(--bg2);border:1.5px solid rgba(255,255,255,.08);border-radius:var(--radius-lg);padding:16px 18px;display:flex;align-items:flex-start;gap:14px;margin-bottom:20px;cursor:pointer;transition:border-color .2s}
+.consent-box:has(.consent-cb:checked){border-color:var(--green)}
+.consent-cb{width:18px;height:18px;accent-color:var(--green);cursor:pointer;margin-top:2px;flex-shrink:0}
+.consent-text{font-size:.8rem;color:var(--t2);line-height:1.6}
+.consent-text a{color:var(--accent);text-decoration:none;font-weight:600}
+.consent-text a:hover{text-decoration:underline}
+
+/* ─── NOTICE BAR ─── */
+.notice-bar{display:flex;align-items:flex-start;gap:10px;padding:12px 14px;border-radius:10px;margin-bottom:16px;font-size:.8rem;color:var(--t2);line-height:1.5;position:relative;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.15),inset 0 1px 0 rgba(255,255,255,.06)}
+.notice-bar::after{content:'';position:absolute;top:0;left:0;right:0;height:40%;background:linear-gradient(175deg,rgba(255,255,255,.06),transparent);pointer-events:none;border-radius:10px 10px 50% 50%}
+.notice-bar.red{background:linear-gradient(145deg,rgba(0,223,162,.12),rgba(0,223,162,.04));border:1px solid rgba(0,223,162,.25)}
+.notice-bar.gold{background:linear-gradient(145deg,rgba(240,180,41,.12),rgba(240,180,41,.04));border:1px solid var(--gold-border)}
+.notice-bar.green{background:linear-gradient(145deg,rgba(30,215,96,.12),rgba(30,215,96,.04));border:1px solid var(--green-border)}
+.notice-bar.blue{background:linear-gradient(145deg,rgba(74,144,226,.1),rgba(74,144,226,.03));border:1px solid rgba(74,144,226,.25)}
+.notice-bar i{font-size:.9rem;margin-top:1px;flex-shrink:0}
+.notice-bar.red i{color:var(--accent)}
+.notice-bar.gold i{color:var(--gold)}
+.notice-bar.green i{color:var(--green)}
+.notice-bar.blue i{color:#4A90E2}
+
+/* ─── FORM BUTTONS ─── */
+.form-foot{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:28px;padding-top:20px;border-top:1px solid rgba(255,255,255,.06)}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:11px 26px;border:none;border-radius:10px;font-size:.85rem;font-weight:700;cursor:pointer;transition:all .2s;font-family:var(--body);letter-spacing:.01em;position:relative;overflow:hidden}
+.btn::after{content:'';position:absolute;top:0;left:0;right:0;height:50%;background:linear-gradient(175deg,rgba(255,255,255,.15),transparent);pointer-events:none;border-radius:10px 10px 50% 50%}
+.btn-ghost{background:linear-gradient(145deg,rgba(255,255,255,.06),transparent);color:var(--t2);border:1.5px solid rgba(255,255,255,.08);box-shadow:0 2px 6px rgba(0,0,0,.2),inset 0 1px 0 rgba(255,255,255,.06),inset 0 -1px 3px rgba(0,0,0,.1)}
+.btn-ghost:hover{background:linear-gradient(145deg,rgba(255,255,255,.1),var(--bg2));color:var(--t1);border-color:rgba(255,255,255,.15);box-shadow:0 3px 10px rgba(0,0,0,.25),inset 0 1px 0 rgba(255,255,255,.08);transform:translateY(-1px)}
+.btn-secondary{background:linear-gradient(145deg,rgba(255,255,255,.1),rgba(255,255,255,.04));color:var(--t2);border:1.5px solid rgba(255,255,255,.08);box-shadow:0 2px 6px rgba(0,0,0,.2),inset 0 1px 0 rgba(255,255,255,.06),inset 0 -1px 3px rgba(0,0,0,.1)}
+.btn-secondary:hover{background:linear-gradient(145deg,rgba(255,255,255,.14),rgba(255,255,255,.06));color:var(--t1);box-shadow:0 3px 10px rgba(0,0,0,.25);transform:translateY(-1px)}
+.btn-primary{background:linear-gradient(145deg,#00ffc3,var(--accent),#00b881);color:#000;box-shadow:0 4px 14px rgba(0,223,162,.3),0 2px 4px rgba(0,0,0,.2),inset 0 2px 0 rgba(255,255,255,.25),inset 0 -3px 6px rgba(0,0,0,.15)}
+.btn-primary:hover{background:linear-gradient(145deg,#00e8b0,#00b881,#009e72);box-shadow:0 6px 20px rgba(0,223,162,.45),0 2px 4px rgba(0,0,0,.2),inset 0 2px 0 rgba(255,255,255,.25),inset 0 -3px 6px rgba(0,0,0,.15);transform:translateY(-1px)}
+.btn-primary:disabled{background:var(--t4);box-shadow:none;cursor:not-allowed;transform:none}
+.btn-success{background:linear-gradient(145deg,#2EE080,var(--green),#18a84e);color:#0E1529;box-shadow:0 4px 14px rgba(30,215,96,.25),0 2px 4px rgba(0,0,0,.2),inset 0 2px 0 rgba(255,255,255,.25),inset 0 -3px 6px rgba(0,0,0,.15)}
+.btn-success:hover{box-shadow:0 6px 20px rgba(30,215,96,.4),0 2px 4px rgba(0,0,0,.2),inset 0 2px 0 rgba(255,255,255,.25),inset 0 -3px 6px rgba(0,0,0,.15);transform:translateY(-1px)}
+
+/* ─── FORM STEPS ─── */
+.form-step{display:none;animation:fadeUp .3s}
+.form-step.active{display:block}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+/* ─── SIDEBAR CARDS ─── */
+.sidebar-card{backdrop-filter:blur(28px) saturate(1.3);-webkit-backdrop-filter:blur(28px) saturate(1.3);background:rgba(13,15,21,.6);border:1px solid rgba(255,255,255,.08);border-radius:var(--radius-xl);overflow:hidden}
+.sidebar-card-hd{display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid rgba(255,255,255,.08)}
+.sidebar-card-icon{width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:.85rem;flex-shrink:0;position:relative;overflow:hidden;box-shadow:0 4px 10px rgba(0,0,0,.2),inset 0 1px 0 rgba(255,255,255,.15),inset 0 -2px 4px rgba(0,0,0,.2);border:1px solid rgba(255,255,255,.08)}
+.sidebar-card-icon::after{content:'';position:absolute;top:0;left:0;right:0;height:45%;background:linear-gradient(175deg,rgba(255,255,255,.18),transparent);pointer-events:none;border-radius:9px 9px 50% 50%}
+.sidebar-card-title{font-size:.88rem;font-weight:700;color:var(--t1)}
+.sidebar-card-body{padding:16px 18px}
+
+/* Trust seals */
+.trust-seals{display:grid;gap:10px}
+.trust-seal{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--bg2);border-radius:10px;border:1px solid rgba(255,255,255,.06)}
+.seal-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:.85rem;flex-shrink:0;background:linear-gradient(145deg,rgba(0,223,162,.28),rgba(0,223,162,.08));box-shadow:0 4px 10px rgba(0,223,162,.18),0 2px 4px rgba(0,0,0,.25),inset 0 2px 0 rgba(255,255,255,.2),inset 0 -2px 5px rgba(0,0,0,.22);border:1px solid rgba(0,223,162,.22);position:relative;overflow:hidden}
+.seal-icon::after{content:'';position:absolute;top:0;left:0;right:0;height:45%;background:linear-gradient(175deg,rgba(255,255,255,.2),transparent);pointer-events:none;border-radius:8px 8px 50% 50%}
+.seal-title{font-size:.78rem;font-weight:700;color:var(--t1)}
+.seal-sub{font-size:.66rem;color:var(--t3);margin-top:1px}
+.seal-check{margin-left:auto;width:18px;height:18px;border-radius:50%;background:var(--green-dim);color:var(--green);display:flex;align-items:center;justify-content:center;font-size:.6rem}
+
+/* Timeline ETA */
+.eta-row{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.06)}
+.eta-row:last-child{border-bottom:none}
+.eta-label{font-size:.75rem;color:var(--t3)}
+.eta-val{font-size:.78rem;font-weight:700;color:var(--t1);font-family:var(--mono)}
+
+/* FAQ */
+.faq-item{border-bottom:1px solid rgba(255,255,255,.06)}
+.faq-item:last-child{border-bottom:none}
+.faq-q{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:13px 18px;cursor:pointer;font-size:.82rem;font-weight:600;color:var(--t1);transition:background .15s;background:transparent}
+.faq-q:hover{background:var(--bg2)}
+.faq-toggle{color:var(--t4);font-size:.7rem;transition:transform .2s;flex-shrink:0}
+.faq-item.open .faq-toggle{transform:rotate(180deg)}
+.faq-a{display:none;padding:0 18px 14px;font-size:.78rem;color:var(--t3);line-height:1.6}
+.faq-item.open .faq-a{display:block}
+
+/* ─── SUCCESS SCREEN ─── */
+.success-screen{display:none;text-align:center;padding:48px 24px}
+.success-screen.active{display:block;animation:fadeUp .4s}
+.success-circle{width:80px;height:80px;border-radius:50%;background:linear-gradient(145deg,rgba(30,215,96,.25),rgba(30,215,96,.08));border:2px solid var(--green-border);display:flex;align-items:center;justify-content:center;margin:0 auto 20px;font-size:2rem;color:var(--green);position:relative;overflow:hidden;box-shadow:0 8px 24px rgba(30,215,96,.2),0 4px 10px rgba(0,0,0,.3),inset 0 2px 0 rgba(255,255,255,.15),inset 0 -4px 8px rgba(0,0,0,.2)}
+.success-circle::after{content:'';position:absolute;top:0;left:0;right:0;height:45%;background:linear-gradient(175deg,rgba(255,255,255,.2),transparent);pointer-events:none;border-radius:50%}
+.success-title{font-size:1.5rem;font-weight:800;margin-bottom:8px;background:linear-gradient(135deg,#fff,#e0f7ef,var(--green),#e0f7ef,#fff);background-size:200% auto;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:heroTextShimmer 4s linear infinite;filter:drop-shadow(0 2px 4px rgba(30,215,96,.15))}
+.success-sub{font-size:.88rem;color:var(--t3);max-width:420px;margin:0 auto 24px;line-height:1.6}
+
+/* ─── FOOTER ─── */
+footer{background:rgba(13,15,21,.85);backdrop-filter:blur(20px) saturate(1.2);-webkit-backdrop-filter:blur(20px) saturate(1.2);border-top:1px solid rgba(255,255,255,.06);padding:48px 32px 0;margin-top:48px}
+.footer-inner{max-width:1280px;margin:0 auto;display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr 1fr;gap:32px}
+.footer-brand{display:flex;flex-direction:column;gap:14px}
+.footer-brand .nav-brand{margin-bottom:4px}
+.footer-brand-name{font-family:var(--heading);font-size:1.05rem;font-weight:800;color:var(--t1);display:flex;align-items:center;gap:10px}
+.footer-brand-name em{font-style:normal;color:var(--accent)}
+.footer-brand-desc{font-size:.78rem;color:var(--t3);line-height:1.6;max-width:280px}
+.footer-socials{display:flex;gap:8px;margin-top:4px}
+.footer-social{width:36px;height:36px;border-radius:50%;background:linear-gradient(145deg,rgba(255,255,255,.08),var(--bg2));border:1px solid rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;color:var(--t3);font-size:.85rem;transition:all .2s;text-decoration:none;position:relative;overflow:hidden;box-shadow:0 3px 8px rgba(0,0,0,.25),inset 0 1px 0 rgba(255,255,255,.1),inset 0 -2px 4px rgba(0,0,0,.15)}
+.footer-social::after{content:'';position:absolute;top:0;left:0;right:0;height:45%;background:linear-gradient(175deg,rgba(255,255,255,.12),transparent);pointer-events:none;border-radius:50%}
+.footer-social:hover{background:linear-gradient(145deg,rgba(0,223,162,.2),var(--accent-dim));border-color:rgba(0,223,162,.3);color:var(--accent);box-shadow:0 3px 12px rgba(0,223,162,.2),inset 0 1px 0 rgba(255,255,255,.12),inset 0 -2px 4px rgba(0,0,0,.15)}
+.footer-col h4{font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:var(--t1);margin-bottom:16px}
+.footer-col a{display:block;font-size:.8rem;color:var(--t3);margin-bottom:11px;transition:color .2s;text-decoration:none}
+.footer-col a:hover{color:var(--accent)}
+.footer-compliance{max-width:1280px;margin:0 auto;display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;padding:28px 0;margin-top:36px;border-top:1px solid rgba(255,255,255,.06)}
+.compliance-badge{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:20px;font-size:.7rem;font-weight:600;background:linear-gradient(145deg,rgba(255,255,255,.06),rgba(255,255,255,.02));border:1px solid rgba(255,255,255,.08);color:var(--t3);transition:all .2s;position:relative;overflow:hidden;box-shadow:0 2px 6px rgba(0,0,0,.2),inset 0 1px 0 rgba(255,255,255,.08),inset 0 -1px 3px rgba(0,0,0,.12)}
+.compliance-badge::after{content:'';position:absolute;top:0;left:0;right:0;height:50%;background:linear-gradient(175deg,rgba(255,255,255,.08),transparent);pointer-events:none;border-radius:20px 20px 50% 50%}
+.compliance-badge:hover{border-color:rgba(0,223,162,.25);box-shadow:0 2px 8px rgba(0,223,162,.12),0 4px 12px rgba(0,0,0,.2),inset 0 1px 0 rgba(255,255,255,.1),inset 0 -1px 3px rgba(0,0,0,.12)}
+.compliance-badge i{font-size:.72rem}
+.compliance-badge .cb-green{color:var(--green)}
+.compliance-badge .cb-gold{color:var(--gold)}
+.compliance-badge .cb-accent{color:var(--accent)}
+.compliance-badge .cb-blue{color:#4A90E2}
+.compliance-badge .cb-purple{color:var(--purple)}
+.compliance-badge .cb-red{color:var(--red)}
+.footer-bottom{max-width:1280px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;padding:20px 0;border-top:1px solid rgba(255,255,255,.06);font-size:.72rem;color:var(--t4)}
+.footer-bottom-links{display:flex;gap:20px}
+.footer-bottom-links a{color:var(--t4);text-decoration:none;transition:color .2s;font-size:.72rem}
+.footer-bottom-links a:hover{color:var(--t2)}
+
+/* ─── RESPONSIVE ─── */
+@media(max-width:1100px){.container{grid-template-columns:1fr}.sidebar{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}}
+@media(max-width:768px){
+  nav{padding:0 16px}
+  .nav-links{display:none}
+  .page-hero{padding:20px 16px}
+  .container{padding:20px 16px;gap:20px}
+  .tier-grid{grid-template-columns:1fr}
+  .form-grid.col2,.form-grid.col3{grid-template-columns:1fr}
+  .upload-pair{grid-template-columns:1fr}
+  .photo-tips{grid-template-columns:1fr}
+  .review-grid{grid-template-columns:1fr}
+  .accepted-docs-grid{grid-template-columns:1fr}
+  .step-bar{padding:14px 16px}
+  .step-circle{width:32px;height:32px;font-size:.72rem}
+  .step-node-label{font-size:.6rem;max-width:60px}
+  .footer-inner{grid-template-columns:1fr}
+  .footer-bottom{flex-direction:column;gap:12px;text-align:center}
+  .footer-bottom-links{flex-wrap:wrap;justify-content:center}
+}
+</style>
+</head>
+<body>
+
+<!-- PARTICLE CANVAS -->
+<canvas id="particleCanvas"></canvas>
+
+<!-- FLOATING ORBS -->
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+<div class="orb orb-3"></div>
+<div class="grid-tex"></div>
+
+<!-- NAV -->
+<nav>
+  <div style="display:flex;align-items:center;gap:28px">
+    <a href="index.html" class="brand">
+      <div class="logo-box"><div class="logo-rim"></div><div class="logo-depth-b"></div><div class="logo-depth-l"></div><div class="logo-depth-r"></div><span class="logo-1">1</span><span class="logo-tm">TM</span></div>
+      1 Trade <em>Market</em>
+    </a>
+  </div>
+  <div class="nav-right">
+    <div class="nav-icon"><i class="fas fa-bell"></i></div>
+    <div class="user-menu">
+      <div class="user-avatar">JD</div>
+      <div class="user-dropdown">
+        <a href="kyc.html"><i class="fas fa-file-contract"></i> KYC Verification</a>
+        <a href="security.html"><i class="fas fa-lock"></i> Security Settings</a>
+        <a href="#"><i class="fas fa-sign-out-alt"></i> Logout</a>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- PAGE HERO -->
+<div class="page-hero">
+  <div class="page-hero-inner">
+    <div class="page-hero-left">
+      <div class="page-hero-eyebrow"><span></span> Account Management <span></span></div>
+      <div class="page-hero-title">Identity Verification</div>
+      <div class="page-hero-sub">Complete KYC to unlock full trading limits and premium features</div>
+    </div>
+  </div>
+</div>
+
+<!-- KYC NOTIFICATION BANNER -->
+<div id="kycNotificationBanner" style="display:none;max-width:1280px;margin:16px auto 0;padding:0 32px;">
+  <div style="background:linear-gradient(145deg,rgba(0,223,162,.12),rgba(0,223,162,.04));border:1.5px solid rgba(0,223,162,.25);border-radius:14px;padding:16px 20px;display:flex;align-items:center;gap:14px;position:relative;overflow:hidden;">
+    <div style="position:absolute;top:0;left:0;right:0;height:40%;background:linear-gradient(175deg,rgba(255,255,255,.06),transparent);pointer-events:none;border-radius:14px 14px 50% 50%;"></div>
+    <div style="width:40px;height:40px;border-radius:10px;background:linear-gradient(145deg,rgba(0,223,162,.3),rgba(0,223,162,.1));display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--accent);font-size:1rem;box-shadow:0 4px 12px rgba(0,223,162,.2),inset 0 2px 0 rgba(255,255,255,.2),inset 0 -2px 4px rgba(0,0,0,.15);border:1px solid rgba(0,223,162,.25);"><i class="fa-solid fa-bell"></i></div>
+    <div style="flex:1;">
+      <div style="font-size:.88rem;font-weight:700;color:var(--t1);margin-bottom:2px;" id="kycNotifTitle">Complete your verification</div>
+      <div style="font-size:.78rem;color:var(--t3);line-height:1.5;" id="kycNotifText">All new users must complete Basic and Intermediate KYC to access full trading features. Please fill out your information below.</div>
+    </div>
+    <button onclick="this.parentElement.parentElement.style.display='none'" style="background:none;border:none;color:var(--t3);cursor:pointer;font-size:.85rem;padding:8px;"><i class="fa-solid fa-times"></i></button>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="container">
+  <div class="main-content">
+
+    <!-- STEP PROGRESS BAR -->
+    <div class="step-bar" id="stepBar">
+      <!-- JS renders nodes -->
+    </div>
+
+    <!-- FORM -->
+    <form id="kycForm" onsubmit="return false">
+
+      <!-- ════════════════════════════════════
+           STEP 1 -SELECT TIER
+      ════════════════════════════════════ -->
+      <div class="form-step active" id="step1">
+        <div class="section-card">
+          <div class="section-card-hd">
+            <div class="section-card-icon" style="background:rgba(240,180,41,.1);color:var(--gold)"><i class="fa-solid fa-layer-group"></i></div>
+            <div class="section-card-hd-text">
+              <div class="section-card-title">Select Your Verification Tier</div>
+              <div class="section-card-sub">Choose the tier that matches your trading needs. You can upgrade anytime.</div>
+            </div>
+          </div>
+          <div class="section-card-body">
+            <div class="tier-grid">
+
+              <!-- Basic -->
+              <div class="tier-card current selectable" onclick="selectTier('basic')" id="tierBasic">
+                <div class="tier-ribbon gold-ribbon"><i class="fa-solid fa-check" style="margin-right:4px"></i>Current Tier</div>
+                <div class="tier-inner">
+                  <div class="tier-name-row">
+                    <div class="tier-icon" style="background:var(--silver-dim);color:var(--silver)"><i class="fa-solid fa-star"></i></div>
+                    <div class="tier-name" style="color:var(--silver)">Basic</div>
+                  </div>
+                  <div class="tier-limits-block">
+                    <div class="tier-limit-row"><div class="tier-limit-label">Daily</div><div class="tier-limit-val">$2,000</div></div>
+                    <div class="tier-limit-row"><div class="tier-limit-label">Monthly</div><div class="tier-limit-val">$10,000</div></div>
+                  </div>
+                  <div class="tier-feats">
+                    <div class="tier-feat"><div class="tier-feat-icon green-ic"><i class="fa-solid fa-check"></i></div>Email verification</div>
+                    <div class="tier-feat"><div class="tier-feat-icon green-ic"><i class="fa-solid fa-check"></i></div>Phone verification</div>
+                    <div class="tier-feat"><div class="tier-feat-icon green-ic"><i class="fa-solid fa-check"></i></div>Basic trading access</div>
+                  </div>
+                  <div class="tier-status-pill" style="background:var(--silver-dim);color:var(--silver);border:1px solid var(--silver-border)"><i class="fa-solid fa-circle-check"></i> Active</div>
+                </div>
+              </div>
+
+              <!-- Intermediate (Recommended) -->
+              <div class="tier-card recommended selectable" onclick="selectTier('intermediate')" id="tierIntermediate">
+                <div class="tier-ribbon red-ribbon"><i class="fa-solid fa-bolt" style="margin-right:4px"></i>Recommended</div>
+                <div class="tier-inner">
+                  <div class="tier-name-row">
+                    <div class="tier-icon" style="background:var(--accent-dim);color:var(--accent)"><i class="fa-solid fa-shield-halved"></i></div>
+                    <div class="tier-name" style="color:var(--t1)">Intermediate</div>
+                  </div>
+                  <div class="tier-limits-block">
+                    <div class="tier-limit-row"><div class="tier-limit-label">Daily</div><div class="tier-limit-val">$50,000</div></div>
+                    <div class="tier-limit-row"><div class="tier-limit-label">Monthly</div><div class="tier-limit-val">$500,000</div></div>
+                  </div>
+                  <div class="tier-feats">
+                    <div class="tier-feat"><div class="tier-feat-icon green-ic"><i class="fa-solid fa-check"></i></div>Government-issued ID</div>
+                    <div class="tier-feat"><div class="tier-feat-icon green-ic"><i class="fa-solid fa-check"></i></div>Personal information</div>
+                    <div class="tier-feat"><div class="tier-feat-icon green-ic"><i class="fa-solid fa-check"></i></div>Full trading &amp; withdrawals</div>
+                  </div>
+                  <div class="tier-status-pill" style="background:var(--accent-dim);color:var(--accent);border:1px solid rgba(0,223,162,.3)"><i class="fa-solid fa-arrow-up-right-dots"></i> In Progress</div>
+                </div>
+              </div>
+
+              <!-- Advanced -->
+              <div class="tier-card advanced selectable" onclick="selectTier('advanced')" id="tierAdvanced">
+                <div class="tier-ribbon blue-ribbon"><i class="fa-solid fa-gem" style="margin-right:4px"></i>Advanced</div>
+                <div class="tier-inner">
+                  <div class="tier-name-row">
+                    <div class="tier-icon" style="background:var(--blend-dim);color:var(--blend)"><i class="fa-solid fa-crown"></i></div>
+                    <div class="tier-name" style="color:var(--blend)">Advanced</div>
+                  </div>
+                  <div class="tier-limits-block">
+                    <div class="tier-limit-row"><div class="tier-limit-label">Daily</div><div class="tier-limit-val">Unlimited</div></div>
+                    <div class="tier-limit-row"><div class="tier-limit-label">Monthly</div><div class="tier-limit-val">Unlimited</div></div>
+                  </div>
+                  <div class="tier-feats">
+                    <div class="tier-feat"><div class="tier-feat-icon blue-ic"><i class="fa-solid fa-check"></i></div>Address verification required</div>
+                    <div class="tier-feat"><div class="tier-feat-icon blue-ic"><i class="fa-solid fa-check"></i></div>Enhanced due diligence</div>
+                    <div class="tier-feat"><div class="tier-feat-icon blue-ic"><i class="fa-solid fa-check"></i></div>OTC &amp; institutional access</div>
+                  </div>
+                  <div class="tier-status-pill" style="background:var(--blend-dim);color:var(--blend);border:1px solid var(--blend-border)"><i class="fa-solid fa-lock"></i> Locked</div>
+                </div>
+              </div>
+
+            </div>
+            <div class="gold-notice-3d" id="goldNotice" style="display:none"><i class="fa-solid fa-star"></i> Gold delivery requires a verified KYC Level 3 account and a confirmed postal address. Check your verification status</div>
+          </div>
+        </div>
+        <div class="trust-badge-strip">
+          <div class="trust-badge green"><i class="fa-solid fa-shield-halved"></i> FINMA Compliant</div>
+          <div class="trust-badge gold"><i class="fa-solid fa-lock"></i> 256-bit Encryption</div>
+          <div class="trust-badge blue"><i class="fa-solid fa-user-shield"></i> GDPR Protected</div>
+        </div>
+        <div style="display:flex;gap:12px;margin-top:20px;justify-content:flex-end">
+          <button type="button" class="btn btn-secondary" onclick="prevStep()" style="display:none">Back</button>
+          <button type="button" class="btn btn-primary" onclick="nextStep(1)">Continue</button>
+        </div>
+      </div>
+
+      <!-- ════════════════════════════════════
+           STEP 2 -PERSONAL INFORMATION
+      ════════════════════════════════════ -->
+      <div class="form-step" id="step2">
+        <div class="section-card">
+          <div class="section-card-hd">
+            <div class="section-card-icon" style="background:rgba(30,215,96,.1);color:var(--green)"><i class="fa-solid fa-user"></i></div>
+            <div class="section-card-hd-text">
+              <div class="section-card-title">Personal Information</div>
+              <div class="section-card-sub">Enter your details exactly as they appear on your government-issued ID</div>
+            </div>
+          </div>
+          <div class="section-card-body">
+
+            <div class="form-section">
+              <div class="form-section-label"><i class="fa-solid fa-id-card" style="color:var(--t4)"></i> Identity</div>
+              <div class="form-grid col2">
+                <div class="form-group">
+                  <label class="form-label">First Name <span class="required">*</span></label>
+                  <div class="input-wrap"><i class="fa-solid fa-user input-icon"></i><input type="text" class="form-input" placeholder="John" id="firstName"></div>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Last Name <span class="required">*</span></label>
+                  <div class="input-wrap"><i class="fa-solid fa-user input-icon"></i><input type="text" class="form-input" placeholder="Smith" id="lastName"></div>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Date of Birth <span class="required">*</span></label>
+                  <div class="input-wrap"><i class="fa-solid fa-cake-candles input-icon"></i><input type="date" class="form-input" id="dob"></div>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Gender <span class="required">*</span></label>
+                  <div class="input-wrap"><i class="fa-solid fa-venus-mars input-icon"></i>
+                    <select class="form-select" id="gender">
+                      <option value="">Select gender</option>
+                      <option>Male</option><option>Female</option><option>Other</option><option>Prefer not to say</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-section">
+              <div class="form-section-label"><i class="fa-solid fa-earth-americas" style="color:var(--t4)"></i> Nationality &amp; Residency</div>
+              <div class="form-grid col2">
+                <div class="form-group">
+                  <label class="form-label">Nationality <span class="required">*</span></label>
+                  <div class="input-wrap"><i class="fa-solid fa-flag input-icon"></i>
+                    <select class="form-select" id="nationality">
+                      <option value="">Select nationality</option>
+                      <option>United States</option><option>United Kingdom</option><option>Switzerland</option>
+                      <option>Germany</option><option>France</option><option>Canada</option><option>Australia</option>
+                      <option>Singapore</option><option>UAE</option><option>Other</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Country of Residence <span class="required">*</span></label>
+                  <div class="input-wrap"><i class="fa-solid fa-location-dot input-icon"></i>
+                    <select class="form-select" id="country">
+                      <option value="">Select country</option>
+                      <option>United States</option><option>United Kingdom</option><option>Switzerland</option>
+                      <option>Germany</option><option>France</option><option>Canada</option><option>Australia</option>
+                      <option>Singapore</option><option>UAE</option><option>Other</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-section">
+              <div class="form-section-label"><i class="fa-solid fa-map-pin" style="color:var(--t4)"></i> Residential Address</div>
+              <div class="form-grid" style="gap:14px">
+                <div class="form-group">
+                  <label class="form-label">Street Address <span class="required">*</span></label>
+                  <div class="input-wrap"><i class="fa-solid fa-house input-icon"></i><input type="text" class="form-input" placeholder="123 Main Street, Suite 100" id="address"></div>
+                </div>
+                <div class="form-grid col3">
+                  <div class="form-group">
+                    <label class="form-label">City <span class="required">*</span></label>
+                    <div class="input-wrap"><i class="fa-solid fa-city input-icon"></i><input type="text" class="form-input" placeholder="New York" id="city"></div>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">State / Province <span class="required">*</span></label>
+                    <div class="input-wrap"><i class="fa-solid fa-map input-icon"></i><input type="text" class="form-input" placeholder="NY" id="state"></div>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">ZIP / Postal Code <span class="required">*</span></label>
+                    <div class="input-wrap"><i class="fa-solid fa-hashtag input-icon"></i><input type="text" class="form-input" placeholder="10001" id="zip"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-section">
+              <div class="form-section-label"><i class="fa-solid fa-dollar-sign" style="color:var(--t4)"></i> Financial &amp; Compliance</div>
+              <div class="form-grid col2">
+                <div class="form-group">
+                  <label class="form-label">Phone Number <span class="required">*</span></label>
+                  <div class="input-wrap"><i class="fa-solid fa-phone input-icon"></i><input type="tel" class="form-input" placeholder="+1 (555) 123-4567" id="phone"></div>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Source of Funds <span class="required">*</span></label>
+                  <div class="input-wrap"><i class="fa-solid fa-wallet input-icon"></i>
+                    <select class="form-select" id="sourceFunds">
+                      <option value="">Select source</option>
+                      <option>Employment Income</option><option>Business Income</option>
+                      <option>Investment Returns</option><option>Inheritance</option>
+                      <option>Personal Savings</option><option>Other</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Politically Exposed Person (PEP)? <span class="required">*</span></label>
+                  <div class="input-wrap"><i class="fa-solid fa-landmark input-icon"></i>
+                    <select class="form-select" id="pep">
+                      <option value="">Select answer</option>
+                      <option value="no">No, I am not a PEP</option>
+                      <option value="yes">Yes, I am a PEP</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="notice-bar blue">
+              <i class="fa-solid fa-circle-info"></i>
+              <span>Your information is encrypted with 256-bit SSL and stored on FINMA-compliant Swiss servers. We never share your data with third parties without explicit consent.</span>
+            </div>
+
+            <div class="form-foot">
+              <div style="font-size:.75rem;color:var(--t4)"><i class="fa-solid fa-asterisk" style="font-size:.55rem"></i> Required fields</div>
+              <button type="button" class="btn btn-primary" onclick="nextStep(2)">
+                Continue <i class="fa-solid fa-arrow-right"></i>
+              </button>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 3 (Identity Document) REMOVED — handled by kyc-verify.html / id-verify.html -->
+
+      <!-- ════════════════════════════════════
+           STEP 4 -ADDRESS PROOF
+      ════════════════════════════════════ -->
+      <div class="form-step" id="step4">
+        <div class="section-card">
+          <div class="section-card-hd">
+            <div class="section-card-icon" style="background:rgba(255,152,0,.1);color:var(--orange)"><i class="fa-solid fa-map-location-dot"></i></div>
+            <div class="section-card-hd-text">
+              <div class="section-card-title">Proof of Address</div>
+              <div class="section-card-sub">Upload a document dated within the last 3 months that shows your name and residential address</div>
+            </div>
+          </div>
+          <div class="section-card-body">
+
+            <!-- Accepted document types -->
+            <div class="form-section-label" style="margin-bottom:12px"><i class="fa-solid fa-file-lines" style="color:var(--t4)"></i> Accepted Document Types</div>
+            <div class="accepted-docs-grid" id="adocGrid">
+              <div class="accepted-doc-card selected" onclick="selectAdoc(this, 'utility')">
+                <div class="accepted-doc-card-icon"><i class="fa-solid fa-bolt"></i></div>
+                <div class="accepted-doc-info">
+                  <div class="accepted-doc-name">Utility Bill</div>
+                  <div class="accepted-doc-hint">Electricity, water, gas or internet</div>
+                </div>
+              </div>
+              <div class="accepted-doc-card" onclick="selectAdoc(this, 'bank')">
+                <div class="accepted-doc-card-icon"><i class="fa-solid fa-building-columns"></i></div>
+                <div class="accepted-doc-info">
+                  <div class="accepted-doc-name">Bank Statement</div>
+                  <div class="accepted-doc-hint">Official bank or credit card statement</div>
+                </div>
+              </div>
+              <div class="accepted-doc-card" onclick="selectAdoc(this, 'gov')">
+                <div class="accepted-doc-card-icon"><i class="fa-solid fa-landmark-flag"></i></div>
+                <div class="accepted-doc-info">
+                  <div class="accepted-doc-name">Government Letter</div>
+                  <div class="accepted-doc-hint">Tax assessment or benefits letter</div>
+                </div>
+              </div>
+              <div class="accepted-doc-card" onclick="selectAdoc(this, 'lease')">
+                <div class="accepted-doc-card-icon"><i class="fa-solid fa-file-signature"></i></div>
+                <div class="accepted-doc-info">
+                  <div class="accepted-doc-name">Lease Agreement</div>
+                  <div class="accepted-doc-hint">Signed rental or mortgage letter</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Upload zone -->
+            <div class="form-section-label" style="margin-bottom:12px"><i class="fa-solid fa-upload" style="color:var(--t4)"></i> Upload Document</div>
+            <div class="upload-zone" id="uploadAddress" onclick="triggerUpload('Address')" style="max-width:100%;min-height:160px">
+              <input type="file" id="inputAddress" class="upload-input" accept="image/*,.pdf" onchange="handleUpload('Address')">
+              <div class="upload-zone-top" style="flex-direction:row;justify-content:center;gap:20px;text-align:left;padding:24px">
+                <div class="upload-doc-icon" id="iconAddress" style="font-size:2.4rem"><i class="fa-solid fa-file-arrow-up"></i></div>
+                <div>
+                  <div class="upload-title" style="margin-bottom:4px">Click or drag to upload</div>
+                  <div class="upload-hint">JPG, PNG, or PDF · Max 10 MB</div>
+                  <div class="upload-hint" style="margin-top:3px">Must be dated within the last <strong style="color:var(--t2)">3 months</strong></div>
+                </div>
+                <div class="upload-preview" id="previewAddress">
+                  <img id="imgAddress" class="preview-img" style="height:60px;width:auto" alt="">
+                  <div class="preview-name" id="nameAddress"></div>
+                </div>
+              </div>
+              <div class="upload-zone-label">
+                <span class="upload-zone-label-text"><i class="fa-solid fa-paperclip"></i> Address Proof</span>
+                <span class="upload-zone-action">JPG / PNG / PDF</span>
+              </div>
+            </div>
+
+            <div class="notice-bar blue" style="margin-top:16px">
+              <i class="fa-solid fa-circle-info"></i>
+              <span>The document must display your <strong>full name</strong> and <strong>residential address</strong> exactly as entered in Step 1. PO Box addresses are not accepted.</span>
+            </div>
+
+            <div class="form-foot">
+              <button type="button" class="btn btn-ghost" onclick="prevStep()"><i class="fa-solid fa-arrow-left"></i> Back</button>
+              <button type="button" class="btn btn-primary" onclick="nextStep(4)">Continue <i class="fa-solid fa-arrow-right"></i></button>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- ════════════════════════════════════
+           STEP 5 -REVIEW & SUBMIT
+      ════════════════════════════════════ -->
+      <div class="form-step" id="step5">
+        <div class="section-card">
+          <div class="section-card-hd">
+            <div class="section-card-icon" style="background:var(--green-dim);color:var(--green)"><i class="fa-solid fa-clipboard-check"></i></div>
+            <div class="section-card-hd-text">
+              <div class="section-card-title">Review &amp; Submit</div>
+              <div class="section-card-sub">Confirm your details are correct before final submission</div>
+            </div>
+          </div>
+          <div class="section-card-body">
+
+            <!-- Review Grid -->
+            <div class="review-grid">
+              <div class="review-block">
+                <div class="review-block-title"><i class="fa-solid fa-user" style="color:var(--t4)"></i> Personal Details</div>
+                <div class="review-row"><div class="review-key">Full Name</div><div class="review-val" id="rvName">...</div></div>
+                <div class="review-row"><div class="review-key">Date of Birth</div><div class="review-val" id="rvDob">...</div></div>
+                <div class="review-row"><div class="review-key">Nationality</div><div class="review-val" id="rvNat">...</div></div>
+                <div class="review-row"><div class="review-key">Country</div><div class="review-val" id="rvCountry">...</div></div>
+                <div class="review-row"><div class="review-key">Phone</div><div class="review-val" id="rvPhone">...</div></div>
+                <div class="review-row"><div class="review-key">Source of Funds</div><div class="review-val" id="rvFunds">...</div></div>
+              </div>
+              <div class="review-block">
+                <div class="review-block-title"><i class="fa-solid fa-file-contract" style="color:var(--t4)"></i> Verification Status</div>
+                <div class="doc-status-row">
+                  <div class="doc-status-icon"><i class="fa-solid fa-id-card"></i></div>
+                  <div class="doc-status-name">Identity Document</div>
+                  <div class="doc-status-badge ready" id="dsBadgeId"><i class="fa-solid fa-check"></i> Submitted via ID Verify</div>
+                </div>
+                <div class="doc-status-row">
+                  <div class="doc-status-icon"><i class="fa-solid fa-user"></i></div>
+                  <div class="doc-status-name">Personal Information</div>
+                  <div class="doc-status-badge ready"><i class="fa-solid fa-check"></i> Complete</div>
+                </div>
+                <div class="doc-status-row" id="addrProofRow" style="display:none;">
+                  <div class="doc-status-icon"><i class="fa-solid fa-file-lines"></i></div>
+                  <div class="doc-status-name">Proof of Address</div>
+                  <div class="doc-status-badge ready" id="dsBadgeAddr"><i class="fa-solid fa-check"></i> Ready</div>
+                </div>
+
+                <!-- What happens next -->
+                <div style="margin-top:16px;padding-top:14px;border-top:1px solid rgba(255,255,255,.06)">
+                  <div class="review-block-title" style="margin-bottom:12px"><i class="fa-solid fa-clock" style="color:var(--t4)"></i> What Happens Next</div>
+                  <div class="processing-timeline">
+                    <div class="ptl-item">
+                      <div class="ptl-dot done"><i class="fa-solid fa-check"></i></div>
+                      <div class="ptl-text"><div class="ptl-name">Submission received</div><div class="ptl-sub">Instantly upon submit</div></div>
+                    </div>
+                    <div class="ptl-item">
+                      <div class="ptl-dot active"><i class="fa-solid fa-magnifying-glass"></i></div>
+                      <div class="ptl-text"><div class="ptl-name">Automated checks</div><div class="ptl-sub">AI document validation · ~2 min</div></div>
+                    </div>
+                    <div class="ptl-item">
+                      <div class="ptl-dot wait"><i class="fa-solid fa-user-check"></i></div>
+                      <div class="ptl-text"><div class="ptl-name">Manual review</div><div class="ptl-sub">Compliance team · 1–3 business days</div></div>
+                    </div>
+                    <div class="ptl-item">
+                      <div class="ptl-dot wait"><i class="fa-solid fa-circle-check"></i></div>
+                      <div class="ptl-text"><div class="ptl-name">Tier upgrade confirmed</div><div class="ptl-sub">Email &amp; in-app notification</div></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Consent -->
+            <div class="consent-box">
+              <input type="checkbox" class="consent-cb" id="termsCheck">
+              <div class="consent-text">
+                I confirm that all information provided is accurate, complete, and belongs to me. I understand that submitting false information may result in permanent account suspension and may be reported to relevant authorities. I have read and agree to the <a href="#">Terms of Service</a>, <a href="#">Privacy Policy</a>, and <a href="#">KYC/AML Policy</a>.
+              </div>
+            </div>
+
+            <div class="notice-bar green">
+              <i class="fa-solid fa-circle-check"></i>
+              <span>You can <strong>start trading immediately</strong> with your current Basic tier limits while your verification is being reviewed. Full limits unlock upon approval.</span>
+            </div>
+
+            <div class="form-foot">
+              <button type="button" class="btn btn-ghost" onclick="prevStep()"><i class="fa-solid fa-arrow-left"></i> Back</button>
+              <button type="button" class="btn btn-success" onclick="submitKYC()">
+                <i class="fa-solid fa-paper-plane"></i> Submit Verification
+              </button>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+    </form>
+
+    <!-- SUCCESS SCREEN -->
+    <div class="success-screen" id="successScreen">
+      <div class="success-circle"><i class="fa-solid fa-check"></i></div>
+      <div class="success-title">Verification Submitted!</div>
+      <div class="success-sub">Your documents are being reviewed by our compliance team. You'll receive an email notification within 1–3 business days. You can continue trading with your current tier limits.</div>
+      <a href="dashboard.html" class="btn btn-success" style="display:inline-flex;margin-top:8px">
+        <i class="fa-solid fa-chart-line"></i> Go to Dashboard
+      </a>
+    </div>
+
+  </div><!-- /main-content -->
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+
+    <!-- Security & Trust -->
+    <div class="sidebar-card">
+      <div class="sidebar-card-hd">
+        <div class="sidebar-card-icon" style="background:var(--green-dim);color:var(--green)"><i class="fa-solid fa-shield-halved"></i></div>
+        <div class="sidebar-card-title">Security &amp; Privacy</div>
+      </div>
+      <div class="sidebar-card-body">
+        <div class="trust-seals">
+          <div class="trust-seal">
+            <div class="seal-icon" style="background:rgba(0,223,162,.1);color:var(--accent)"><i class="fa-solid fa-landmark"></i></div>
+            <div><div class="seal-title">FINMA Compliant</div><div class="seal-sub">Swiss regulatory standard</div></div>
+            <div class="seal-check"><i class="fa-solid fa-check"></i></div>
+          </div>
+          <div class="trust-seal">
+            <div class="seal-icon" style="background:rgba(30,215,96,.1);color:var(--green)"><i class="fa-solid fa-lock"></i></div>
+            <div><div class="seal-title">256-bit SSL Encryption</div><div class="seal-sub">Bank-grade data protection</div></div>
+            <div class="seal-check"><i class="fa-solid fa-check"></i></div>
+          </div>
+          <div class="trust-seal">
+            <div class="seal-icon" style="background:rgba(74,144,226,.1);color:#4A90E2"><i class="fa-brands fa-european-union"></i></div>
+            <div><div class="seal-title">GDPR Protected</div><div class="seal-sub">EU data privacy rights</div></div>
+            <div class="seal-check"><i class="fa-solid fa-check"></i></div>
+          </div>
+          <div class="trust-seal">
+            <div class="seal-icon" style="background:rgba(240,180,41,.1);color:var(--gold)"><i class="fa-solid fa-eye-slash"></i></div>
+            <div><div class="seal-title">No Third-Party Sharing</div><div class="seal-sub">Your data stays private</div></div>
+            <div class="seal-check"><i class="fa-solid fa-check"></i></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Estimated Time -->
+    <div class="sidebar-card">
+      <div class="sidebar-card-hd">
+        <div class="sidebar-card-icon" style="background:rgba(240,180,41,.1);color:var(--gold)"><i class="fa-solid fa-clock"></i></div>
+        <div class="sidebar-card-title">Review Timeline</div>
+      </div>
+      <div class="sidebar-card-body">
+        <div class="eta-row"><div class="eta-label">Automated checks</div><div class="eta-val">~2 min</div></div>
+        <div class="eta-row"><div class="eta-label">Compliance review</div><div class="eta-val">1–3 days</div></div>
+        <div class="eta-row"><div class="eta-label">Approval notification</div><div class="eta-val">Email + app</div></div>
+        <div class="eta-row"><div class="eta-label">Trading during review</div><div class="eta-val" style="color:var(--green)">✓ Allowed</div></div>
+        <div class="notice-bar gold" style="margin-top:12px;margin-bottom:0">
+          <i class="fa-solid fa-bolt"></i>
+          <span style="font-size:.75rem">Most verifications are approved within <strong>24 hours</strong> during business days.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- FAQ -->
+    <div class="sidebar-card">
+      <div class="sidebar-card-hd">
+        <div class="sidebar-card-icon" style="background:rgba(74,144,226,.1);color:#4A90E2"><i class="fa-solid fa-circle-question"></i></div>
+        <div class="sidebar-card-title">FAQ</div>
+      </div>
+      <div>
+        <div class="faq-item open">
+          <div class="faq-q" onclick="toggleFaq(this)">
+            <span>How long does verification take?</span>
+            <i class="fa-solid fa-chevron-down faq-toggle"></i>
+          </div>
+          <div class="faq-a">Most verifications complete within 1–3 business days. Automated checks run instantly. You may trade with Basic tier limits while pending.</div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-q" onclick="toggleFaq(this)">
+            <span>Which documents are accepted?</span>
+            <i class="fa-solid fa-chevron-down faq-toggle"></i>
+          </div>
+          <div class="faq-a">Passport, National ID, or Driver's License for identity. Utility bill, bank statement, or government letter (within 3 months) for address proof.</div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-q" onclick="toggleFaq(this)">
+            <span>Can I trade while verifying?</span>
+            <i class="fa-solid fa-chevron-down faq-toggle"></i>
+          </div>
+          <div class="faq-a">Yes, you can trade immediately with Basic tier limits ($2,000/day, $10,000/month). Full limits activate upon approval.</div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-q" onclick="toggleFaq(this)">
+            <span>Why do you need my address?</span>
+            <i class="fa-solid fa-chevron-down faq-toggle"></i>
+          </div>
+          <div class="faq-a">Address verification is a FINMA regulatory requirement under AML/KYC guidelines and is standard across all regulated financial platforms.</div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-q" onclick="toggleFaq(this)">
+            <span>What if my document is rejected?</span>
+            <i class="fa-solid fa-chevron-down faq-toggle"></i>
+          </div>
+          <div class="faq-a">You'll receive an email explaining the reason. You can resubmit immediately. Common reasons include blurry images, expired documents, or mismatched information.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Help -->
+    <div class="sidebar-card">
+      <div class="sidebar-card-body" style="text-align:center">
+        <div style="font-size:.82rem;color:var(--t3);margin-bottom:14px;line-height:1.5">Need help completing your verification? Our support team is available 24/7.</div>
+        <button style="width:100%;padding:10px;background:var(--bg2);border:1.5px solid rgba(255,255,255,.08);border-radius:10px;color:var(--t2);font-size:.82rem;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:all .2s"
+                onmouseover="this.style.borderColor='rgba(255,255,255,.12)';this.style.color='var(--t1)'"
+                onmouseout="this.style.borderColor='rgba(255,255,255,.08)';this.style.color='var(--t2)'">
+          <i class="fa-regular fa-comment-dots"></i> Live Chat Support
+        </button>
+      </div>
+    </div>
+
+  </aside>
+</div>
+
+<!-- Powered by Sumsub removed -->
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+
+    <!-- Brand Column -->
+    <div class="footer-brand">
+      <div class="footer-brand-name">
+        <div class="logo-box" style="width:30px;height:30px;animation:none"><div class="logo-rim"></div><div class="logo-depth-b"></div><div class="logo-depth-l"></div><div class="logo-depth-r"></div><span class="logo-1" style="font-size:.82rem">1</span><span class="logo-tm" style="font-size:.42rem">TM</span></div>
+        1 Trade <em>Market</em>
+      </div>
+      <div class="footer-brand-desc">The next-generation cryptocurrency and precious metals trading platform. Secure, fast, and built for serious traders worldwide.</div>
+      <div class="footer-socials">
+        <a href="#" class="footer-social"><i class="fa-brands fa-x-twitter"></i></a>
+        <a href="#" class="footer-social"><i class="fa-brands fa-discord"></i></a>
+        <a href="#" class="footer-social"><i class="fa-brands fa-telegram"></i></a>
+        <a href="#" class="footer-social"><i class="fa-brands fa-github"></i></a>
+        <a href="#" class="footer-social"><i class="fa-brands fa-reddit-alien"></i></a>
+        <a href="#" class="footer-social"><i class="fa-brands fa-youtube"></i></a>
+      </div>
+    </div>
+
+    <!-- Products -->
+    <div class="footer-col">
+      <h4>Products</h4>
+      <a href="#">Spot Trading</a>
+      <a href="#">Futures</a>
+      <a href="#">Margin Trading</a>
+      <a href="#">Staking &amp; Earn</a>
+      <a href="#">OTC Desk</a>
+      <a href="#">Launchpad</a>
+    </div>
+
+    <!-- Services -->
+    <div class="footer-col">
+      <h4>Services</h4>
+      <a href="#">Buy Crypto</a>
+      <a href="#">P2P Trading</a>
+      <a href="#">Convert</a>
+      <a href="#">Gold Market</a>
+      <a href="#">Institutional</a>
+      <a href="#">VIP Program</a>
+    </div>
+
+    <!-- Support -->
+    <div class="footer-col">
+      <h4>Support</h4>
+      <a href="#">Help Center</a>
+      <a href="#">API Documentation</a>
+      <a href="#">Fee Schedule</a>
+      <a href="#">System Status</a>
+      <a href="#">Submit a Request</a>
+      <a href="#">Bug Bounty</a>
+    </div>
+
+    <!-- Company -->
+    <div class="footer-col">
+      <h4>Company</h4>
+      <a href="#">About Us</a>
+      <a href="#">Careers</a>
+      <a href="#">Blog</a>
+      <a href="#">Press &amp; Media</a>
+      <a href="#">Community</a>
+      <a href="#">Affiliate Program</a>
+    </div>
+
+  </div>
+
+  <!-- Compliance Badges -->
+  <div class="footer-compliance">
+    <div class="compliance-badge"><i class="cb-green fa-solid fa-shield-halved"></i> SOC 2 Type II</div>
+    <div class="compliance-badge"><i class="cb-gold fa-solid fa-lock"></i> 256-bit SSL</div>
+    <div class="compliance-badge"><i class="cb-accent fa-solid fa-certificate"></i> KYC / AML Compliant</div>
+    <div class="compliance-badge"><i class="cb-blue fa-solid fa-globe"></i> VASP Licensed</div>
+    <div class="compliance-badge"><i class="cb-purple fa-solid fa-database"></i> Cold Storage</div>
+    <div class="compliance-badge"><i class="cb-red fa-solid fa-user-shield"></i> 2FA Protected</div>
+  </div>
+
+  <!-- Bottom Bar -->
+  <div class="footer-bottom">
+    <div>&copy; 2026 1 Trade Market. All rights reserved.</div>
+    <div class="footer-bottom-links">
+      <a href="#">Terms of Service</a>
+      <a href="#">Privacy Policy</a>
+      <a href="#">Cookie Policy</a>
+      <a href="#">AML Policy</a>
+      <a href="#">Risk Disclosure</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+// ═══════════════════════════════════════
+// PARTICLE CANVAS
+// ═══════════════════════════════════════
+const canvas = document.getElementById('particleCanvas');
+const ctx = canvas.getContext('2d');
+
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+class Particle {
+  constructor() {
+    this.x = Math.random() * canvas.width;
+    this.y = Math.random() * canvas.height;
+    this.vx = (Math.random() - 0.5) * 0.5;
+    this.vy = (Math.random() - 0.5) * 0.5;
+    this.radius = Math.random() * 1.5 + 0.5;
+    this.color = `rgba(0, 223, 162, ${Math.random() * 0.3 + 0.1})`;
+  }
+
+  update() {
+    this.x += this.vx;
+    this.y += this.vy;
+    if (this.x < 0 || this.x > canvas.width) this.vx *= -1;
+    if (this.y < 0 || this.y > canvas.height) this.vy *= -1;
+  }
+
+  draw() {
+    ctx.fillStyle = this.color;
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+
+const particles = [];
+for (let i = 0; i < 45; i++) {
+  particles.push(new Particle());
+}
+
+function drawConnections() {
+  for (let i = 0; i < particles.length; i++) {
+    for (let j = i + 1; j < particles.length; j++) {
+      const dx = particles[i].x - particles[j].x;
+      const dy = particles[i].y - particles[j].y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist < 150) {
+        ctx.strokeStyle = `rgba(0, 223, 162, ${0.1 * (1 - dist / 150)})`;
+        ctx.lineWidth = 0.5;
+        ctx.beginPath();
+        ctx.moveTo(particles[i].x, particles[i].y);
+        ctx.lineTo(particles[j].x, particles[j].y);
+        ctx.stroke();
+      }
+    }
+  }
+}
+
+function animateParticles() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  particles.forEach(p => {
+    p.update();
+    p.draw();
+  });
+  drawConnections();
+  requestAnimationFrame(animateParticles);
+}
+
+window.addEventListener('resize', () => {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+});
+
+animateParticles();
+
+// ═══════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════
+let currentStep = 1;
+let TOTAL_STEPS = 5;
+
+// Steps for Advanced tier (includes address verification)
+const ADVANCED_STEPS = [
+  { id:1, label:'Select Tier',     icon:'fa-layer-group' },
+  { id:2, label:'Personal Info',   icon:'fa-user' },
+  { id:4, label:'Address Proof',   icon:'fa-map-location-dot' },
+  { id:5, label:'Review & Submit', icon:'fa-clipboard-check' },
+];
+
+// Steps for Basic & Intermediate (no address, no ID upload)
+const BASIC_STEPS = [
+  { id:1, label:'Select Tier',     icon:'fa-layer-group' },
+  { id:2, label:'Personal Info',   icon:'fa-user' },
+  { id:5, label:'Review & Submit', icon:'fa-clipboard-check' },
+];
+
+let STEP_META = BASIC_STEPS;
+
+function updateStepsForTier() {
+  const tier = window.selectedTier || 'basic';
+  if (tier === 'advanced') {
+    STEP_META = ADVANCED_STEPS;
+    TOTAL_STEPS = 4;
+  } else {
+    STEP_META = BASIC_STEPS;
+    TOTAL_STEPS = 3;
+  }
+  renderStepBar();
+}
+
+// ─── Render step bar ───────────────────
+function renderStepBar() {
+  const bar = document.getElementById('stepBar');
+  const stepCount = STEP_META.length;
+  // Calculate progress based on where currentStep falls in our active steps
+  const currentIdx = STEP_META.findIndex(s => s.id >= currentStep);
+  const progressIdx = STEP_META.findIndex(s => s.id === currentStep);
+  const progress = progressIdx >= 0 ? (progressIdx / (stepCount - 1)) * 100 : 0;
+
+  let html = `<div class="step-bar-track"><div class="step-bar-fill" style="width:${progress}%"></div></div>`;
+  STEP_META.forEach((s, i) => {
+    let state = s.id < currentStep ? 'done' : s.id === currentStep ? 'active' : 'wait';
+    let inner = state === 'done'
+      ? '<i class="fa-solid fa-check"></i>'
+      : (i + 1);
+    html += `<div class="step-node ${state}">
+      <div class="step-circle">${inner}</div>
+      <div class="step-node-label">${s.label}</div>
+    </div>`;
+  });
+  bar.innerHTML = html;
+}
+
+// ─── Navigation ───────────────────────
+function showStep(n) {
+  document.querySelectorAll('.form-step').forEach(el => el.classList.remove('active'));
+  const el = document.getElementById('step' + n);
+  if(el) el.classList.add('active');
+  currentStep = n;
+  renderStepBar();
+  window.scrollTo({top:0, behavior:'smooth'});
+  if(n === 2) autoFillFromSignup();
+  if(n === 5) populateReview();
+}
+
+function nextStep(from) {
+  if(!validateStep(from)) return;
+  const tier = window.selectedTier || 'basic';
+
+  if (from === 2) {
+    // After personal info: Advanced goes to address (4), others go to review (5)
+    if (tier === 'advanced') {
+      showStep(4);
+    } else {
+      showStep(5);
+    }
+    return;
+  }
+  if (from === 4) {
+    showStep(5); // Address → Review
+    return;
+  }
+  showStep(from + 1);
+}
+
+function prevStep() {
+  if(currentStep <= 1) return;
+  const tier = window.selectedTier || 'basic';
+
+  if (currentStep === 5) {
+    // Review → Address (Advanced) or Personal Info (others)
+    showStep(tier === 'advanced' ? 4 : 2);
+    return;
+  }
+  if (currentStep === 4) {
+    showStep(2); // Address → Personal Info
+    return;
+  }
+  showStep(currentStep - 1);
+}
+
+function validateStep(n) {
+  if(n === 1) {
+    // Validate tier selection
+    if(!window.selectedTier) {
+      showToast('Please select a verification tier to continue', 'error');
+      return false;
+    }
+  }
+  if(n === 2) {
+    const fields = ['firstName','lastName','dob','gender','nationality','country','address','city','state','zip','phone','sourceFunds','pep'];
+    for(let f of fields) {
+      const el = document.getElementById(f);
+      if(el && !el.value.trim()) {
+        el.focus();
+        el.style.borderColor = 'var(--accent)';
+        setTimeout(()=>el.style.borderColor='', 1800);
+        showToast('Please fill in all required fields', 'error');
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
+// ─── Tier selection ───────────────────
+function selectTier(tier) {
+  window.selectedTier = tier;
+  ['basic','intermediate','advanced'].forEach(t => {
+    document.getElementById('tier' + t.charAt(0).toUpperCase() + t.slice(1)).classList.remove('selected');
+  });
+  const tierEl = document.getElementById('tier' + tier.charAt(0).toUpperCase() + tier.slice(1));
+  if(tierEl) tierEl.classList.add('selected');
+
+  // Show gold notice if gold tier selected (advanced)
+  const goldNotice = document.getElementById('goldNotice');
+  if(goldNotice) goldNotice.style.display = tier === 'advanced' ? 'block' : 'none';
+
+  // Update step flow — address proof only for Advanced
+  updateStepsForTier();
+}
+
+// ─── Auto-fill from signup ────────────
+function autoFillFromSignup() {
+  try {
+    const data = JSON.parse(localStorage.getItem('signup_data') || '{}');
+    const map = {
+      firstName: data.firstName || '',
+      lastName: data.lastName || '',
+      dob: data.dob || '',
+      phone: data.phone || '',
+      nationality: data.nationality || '',
+      country: data.country || '',
+      address: data.address || '',
+      city: data.city || '',
+      state: data.state || '',
+      zip: data.zip || '',
+      gender: data.gender || '',
+      sourceFunds: data.sourceFunds || '',
+      pep: data.pep || '',
+    };
+    Object.entries(map).forEach(([id, val]) => {
+      const el = document.getElementById(id);
+      if(el && val) el.value = val;
+    });
+  } catch(e) {
+    // Silent fail
+  }
+}
+
+// ─── Toast ────────────────────────────
+function showToast(msg, type='info') {
+  const t = document.createElement('div');
+  const colors = {success:'var(--green)',error:'var(--accent)',info:'#4A90E2'};
+  t.style.cssText = `position:fixed;bottom:28px;right:28px;z-index:9999;background:var(--bg1);border:1.5px solid ${colors[type]||colors.info};color:var(--t1);padding:12px 18px;border-radius:10px;font-size:.82rem;font-weight:600;box-shadow:var(--shadow-lg);display:flex;align-items:center;gap:10px;animation:fadeUp .25s`;
+  const icons = {success:'fa-circle-check',error:'fa-circle-xmark',info:'fa-circle-info'};
+  t.innerHTML = `<i class="fa-solid ${icons[type]||icons.info}" style="color:${colors[type]||colors.info}"></i>${msg}`;
+  document.body.appendChild(t);
+  setTimeout(()=>{ t.style.opacity='0'; t.style.transition='opacity .3s'; setTimeout(()=>t.remove(),300); }, 2800);
+}
+
+// ─── Doc type selection (removed — handled by id-verify.html) ───
+
+// ─── Address doc selection ────────────
+function selectAdoc(el, type) {
+  document.querySelectorAll('.accepted-doc-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+// ─── File upload handling ─────────────
+function triggerUpload(side) {
+  document.getElementById('input' + side).click();
+}
+
+function handleUpload(side) {
+  const input   = document.getElementById('input' + side);
+  const zone    = document.getElementById('upload' + side);
+  const icon    = document.getElementById('icon' + side);
+  const preview = document.getElementById('preview' + side);
+  const imgEl   = document.getElementById('img' + side);
+  const nameEl  = document.getElementById('name' + side);
+
+  const file = input.files[0];
+  if(!file) return;
+
+  zone.classList.add('uploaded');
+  if(icon) icon.innerHTML = '<i class="fa-solid fa-circle-check"></i>';
+  nameEl.innerHTML = '<i class="fa-solid fa-circle-check"></i> ' + file.name;
+  preview.classList.add('active');
+
+  if(file.type.startsWith('image/') && imgEl) {
+    const reader = new FileReader();
+    reader.onload = e => { imgEl.src = e.target.result; imgEl.style.display = 'block'; };
+    reader.readAsDataURL(file);
+  } else {
+    if(imgEl) imgEl.style.display = 'none';
+  }
+  showToast(file.name + ' uploaded successfully', 'success');
+}
+
+// Drag and drop
+document.querySelectorAll('.upload-zone').forEach(zone => {
+  zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('dragover'); });
+  zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
+  zone.addEventListener('drop', e => {
+    e.preventDefault();
+    zone.classList.remove('dragover');
+    const side = zone.id.replace('upload','');
+    const input = document.getElementById('input' + side);
+    if(input && e.dataTransfer.files.length) {
+      const dt = new DataTransfer();
+      dt.items.add(e.dataTransfer.files[0]);
+      input.files = dt.files;
+      handleUpload(side);
+    }
+  });
+});
+
+// ─── Populate review ─────────────────
+function populateReview() {
+  const g = id => { const el = document.getElementById(id); return el ? el.value.trim() : ''; };
+  const set = (id, v) => { const el = document.getElementById(id); if(el) el.textContent = v || '...'; };
+
+  set('rvName',    [g('firstName'), g('lastName')].filter(Boolean).join(' ') || '...');
+  set('rvDob',     g('dob') ? new Date(g('dob')).toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'}) : '...');
+  set('rvNat',     g('nationality'));
+  set('rvCountry', g('country'));
+  set('rvPhone',   g('phone'));
+  set('rvFunds',   g('sourceFunds'));
+
+  const checkDoc = (inputId, badgeId) => {
+    const input = document.getElementById(inputId);
+    const badge = document.getElementById(badgeId);
+    if(!badge) return;
+    if(input && input.files && input.files.length > 0) {
+      badge.className = 'doc-status-badge ready';
+      badge.innerHTML = '<i class="fa-solid fa-check"></i> Ready';
+    } else {
+      badge.className = 'doc-status-badge pending';
+      badge.innerHTML = '<i class="fa-solid fa-clock"></i> Missing';
+    }
+  };
+  // Check if ID was already submitted via separate KYC verify flow
+  const idBadge = document.getElementById('dsBadgeId');
+  if (idBadge) {
+    const kycStarted = localStorage.getItem('kyc_started') || localStorage.getItem('kyc_docs_submitted');
+    if (kycStarted) {
+      idBadge.className = 'doc-status-badge ready';
+      idBadge.innerHTML = '<i class="fa-solid fa-check"></i> Submitted';
+    } else {
+      idBadge.className = 'doc-status-badge pending';
+      idBadge.innerHTML = '<i class="fa-solid fa-clock"></i> Pending — <a href="kyc-verify.html" style="color:var(--accent);text-decoration:none;font-weight:700;">Complete now</a>';
+    }
+  }
+
+  // Show address proof row only for Advanced tier
+  const addrProofRow = document.getElementById('addrProofRow');
+  if (addrProofRow) {
+    addrProofRow.style.display = (window.selectedTier === 'advanced') ? 'flex' : 'none';
+    if (window.selectedTier === 'advanced') {
+      checkDoc('inputAddress','dsBadgeAddr');
+    }
+  }
+}
+
+// ─── Submit ───────────────────────────
+function submitKYC() {
+  if(!document.getElementById('termsCheck').checked) {
+    showToast('Please accept the Terms of Service to continue', 'error');
+    return;
+  }
+
+  // Save all KYC form data back to localStorage for dashboard sync
+  const g = id => { const el = document.getElementById(id); return el ? el.value.trim() : ''; };
+  const kycData = {
+    firstName: g('firstName'),
+    lastName: g('lastName'),
+    dob: g('dob'),
+    gender: g('gender'),
+    nationality: g('nationality'),
+    country: g('country'),
+    address: g('address'),
+    city: g('city'),
+    state: g('state'),
+    zip: g('zip'),
+    phone: g('phone'),
+    sourceFunds: g('sourceFunds'),
+    pep: g('pep'),
+    tier: window.selectedTier || 'basic',
+    submittedAt: new Date().toISOString()
+  };
+
+  // Merge with existing signup data
+  const existingData = JSON.parse(localStorage.getItem('signup_data') || '{}');
+  const mergedData = { ...existingData, ...kycData };
+  localStorage.setItem('signup_data', JSON.stringify(mergedData));
+  localStorage.setItem('kyc_data', JSON.stringify(kycData));
+  localStorage.setItem('kyc_verified', '1');
+  localStorage.setItem('kyc_tier', window.selectedTier || 'basic');
+  localStorage.removeItem('signup_pending_kyc');
+
+  document.getElementById('kycForm').style.display = 'none';
+  document.getElementById('stepBar').style.display = 'none';
+  document.getElementById('kycNotificationBanner').style.display = 'none';
+  document.getElementById('successScreen').classList.add('active');
+  showToast('Verification submitted successfully!', 'success');
+  setTimeout(() => { window.location.href = 'trade-access.html'; }, 4000);
+}
+
+// ─── FAQ accordion ────────────────────
+function toggleFaq(qEl) {
+  const item = qEl.parentElement;
+  const wasOpen = item.classList.contains('open');
+  document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('open'));
+  if(!wasOpen) item.classList.add('open');
+}
+
+// ─── Init ─────────────────────────────
+
+// Show notification banner for new users
+(function initKYCNotification() {
+  const pendingKyc = localStorage.getItem('signup_pending_kyc');
+  const kycVerified = localStorage.getItem('kyc_verified');
+  const banner = document.getElementById('kycNotificationBanner');
+
+  if (banner && !kycVerified) {
+    banner.style.display = 'block';
+    const title = document.getElementById('kycNotifTitle');
+    const text = document.getElementById('kycNotifText');
+
+    if (pendingKyc) {
+      title.textContent = 'Welcome! Complete your verification to start trading';
+      text.textContent = 'All new users must complete Basic and Intermediate KYC verification. Address verification is only required for the Advanced tier with unlimited trading limits.';
+    } else {
+      title.textContent = 'Update your verification information';
+      text.textContent = 'Complete your KYC verification to unlock higher trading limits and full platform access. Select your desired tier below.';
+    }
+  }
+})();
+
+// Auto-select tier based on stored preference
+(function initTierSelection() {
+  const storedTier = localStorage.getItem('kyc_tier_required') || 'intermediate';
+  selectTier(storedTier);
+})();
+
+renderStepBar();
+showStep(1);
+</script>
+</body>
+</html>

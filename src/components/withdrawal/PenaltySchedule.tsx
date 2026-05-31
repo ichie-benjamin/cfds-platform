@@ -26,10 +26,10 @@ const tiers = [
     label: "After 6-Month Hold Period",
     sub: "Penalty-free access",
     pct: "Zero Fee",
-    bg: "rgba(0,223,162,0.06)",
-    border: "rgba(0,223,162,0.25)",
-    iconBg: "rgba(0,223,162,0.1)",
-    color: "#00dfa2",
+    bg: "rgba(61,219,169,0.06)",
+    border: "rgba(61,219,169,0.25)",
+    iconBg: "rgba(61,219,169,0.1)",
+    color: "#3DDBA9",
   },
   {
     icon: <Star className="h-3 w-3" />,
@@ -47,23 +47,20 @@ const milestones = [
   { label: "Account Opened", value: "Oct 15, 2025", color: "#a8b5c8" },
   { label: "6-Month Hold End", value: "Apr 15, 2026", color: "#FF9800" },
   { label: "5-Year Long-Term", value: "Oct 15, 2030", color: "#8B5CF6" },
-  { label: "No Exit Fees", value: "From Apr 15, 2026", color: "#00dfa2" },
-  { label: "No Forced Distributions", value: "Indefinitely", color: "#00dfa2" },
+  { label: "No Exit Fees", value: "From Apr 15, 2026", color: "#3DDBA9" },
+  { label: "No Forced Distributions", value: "Indefinitely", color: "#3DDBA9" },
 ];
 
 export function PenaltySchedule() {
   return (
     <div className="flex flex-col gap-4">
       {/* Penalty Tiers */}
-      <div
-        className="rounded-2xl border border-white/[0.06] p-5"
-        style={{
-          background:
-            "linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01))",
-        }}
-      >
-        <div className="mb-4 flex items-center gap-2 text-sm font-extrabold text-white">
-          <Scale className="h-4 w-4 text-[#FF9800]" />
+      <div className="icard">
+        <div className="icard-title">
+          <Scale
+            className="h-[0.85rem] w-[0.85rem]"
+            style={{ color: "var(--orange)" }}
+          />
           Penalty Schedule
         </div>
         <div className="flex flex-col gap-2">
@@ -95,15 +92,12 @@ export function PenaltySchedule() {
       </div>
 
       {/* Hold Milestones */}
-      <div
-        className="rounded-2xl border border-white/[0.06] p-5"
-        style={{
-          background:
-            "linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01))",
-        }}
-      >
-        <div className="mb-4 flex items-center gap-2 text-sm font-extrabold text-white">
-          <Flag className="h-4 w-4 text-[#c8e64e]" />
+      <div className="icard">
+        <div className="icard-title">
+          <Flag
+            className="h-[0.85rem] w-[0.85rem]"
+            style={{ color: "var(--accent)" }}
+          />
           Hold Period Milestones
         </div>
         <div className="flex flex-col">

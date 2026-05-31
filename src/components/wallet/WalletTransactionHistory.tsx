@@ -1,14 +1,15 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import axiosInstance from "@/lib/axios";
-import { History, ArrowRight, Coins } from "lucide-react";
-import { cn } from "@/lib/utils";
-
-// ───────────────────────────────────────────────────────────────
-// Types — shape mirrors existing /user/deposits and /user/withdrawals
-// (already used by deposit-history.tsx and withdrawal-history.tsx).
-// We do NOT modify those endpoints; this component only READS them.
-// ───────────────────────────────────────────────────────────────
+import {
+  History,
+  ArrowRight,
+  Coins,
+  ArrowDownToLine,
+  ArrowUpFromLine,
+  CircleCheck,
+  Clock,
+} from "lucide-react";
 
 interface RawTransaction {
   id: string;
@@ -40,7 +41,7 @@ type TxKind = "deposit" | "withdrawal";
 
 interface MergedTransaction extends RawTransaction {
   kind: TxKind;
-  ts: number; // numeric timestamp for sorting
+  ts: number;
 }
 
 type TabKey = "all" | "deposits" | "withdrawals" | "gold";
@@ -69,17 +70,6 @@ function statusLabel(s: string): string {
   return s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
 }
 
-function avatarColorFor(kind: TxKind, account: string): string {
-  if (kind === "deposit") return "#3b82f6";
-  if ((account || "").toLowerCase().includes("crypto")) return "#f7931a";
-  if ((account || "").toLowerCase().includes("wire")) return "#627eea";
-  return "#f59e0b";
-}
-
-function avatarLetter(kind: TxKind): string {
-  return kind === "deposit" ? "D" : "W";
-}
-
 export function WalletTransactionHistory() {
   const [activeTab, setActiveTab] = useState<TabKey>("all");
   const [deposits, setDeposits] = useState<RawTransaction[]>([]);
@@ -89,8 +79,6 @@ export function WalletTransactionHistory() {
   const [errorD, setErrorD] = useState<string | null>(null);
   const [errorW, setErrorW] = useState<string | null>(null);
 
-  // Read-only fetches from existing endpoints. Same calls used by
-  // deposit-history.tsx / withdrawal-history.tsx — no new API.
   useEffect(() => {
     let cancelled = false;
     (async () => {
@@ -146,100 +134,121 @@ export function WalletTransactionHistory() {
   }, [deposits, withdrawals]);
 
   const visibleRows: MergedTransaction[] = useMemo(() => {
-    if (activeTab === "deposits") return merged.filter((m) => m.kind === "deposit");
+    if (activeTab === "deposits")
+      return merged.filter((m) => m.kind === "deposit");
     if (activeTab === "withdrawals")
       return merged.filter((m) => m.kind === "withdrawal");
     if (activeTab === "gold") return [];
     return merged;
   }, [merged, activeTab]);
 
-  const isLoading = activeTab === "gold"
-    ? false
-    : activeTab === "deposits"
-      ? isLoadingD
-      : activeTab === "withdrawals"
-        ? isLoadingW
-        : isLoadingD || isLoadingW;
+  const isLoading =
+    activeTab === "gold"
+      ? false
+      : activeTab === "deposits"
+        ? isLoadingD
+        : activeTab === "withdrawals"
+          ? isLoadingW
+          : isLoadingD || isLoadingW;
 
-  const error = activeTab === "gold"
-    ? null
-    : activeTab === "deposits"
-      ? errorD
-      : activeTab === "withdrawals"
-        ? errorW
-        : errorD && errorW
-          ? "Failed to load transactions"
-          : null;
+  const error =
+    activeTab === "gold"
+      ? null
+      : activeTab === "deposits"
+        ? errorD
+        : activeTab === "withdrawals"
+          ? errorW
+          : errorD && errorW
+            ? "Failed to load transactions"
+            : null;
 
   const showEmpty = !isLoading && !error && visibleRows.length === 0;
 
   return (
-    <div
-      className="mt-6 overflow-hidden rounded-2xl border border-white/[0.06] shadow-[0_8px_32px_rgba(0,0,0,0.35),inset_0_1px_0_rgba(255,255,255,0.04)]"
-      style={{
-        background:
-          "linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01))",
-      }}
-    >
-      {/* Header */}
-      <div className="flex flex-col gap-3 border-b border-white/[0.06] p-5 sm:flex-row sm:items-center sm:justify-between md:p-6">
-        <div className="flex items-center gap-2.5">
-          <History className="h-4 w-4 text-[#00dfa2]" />
-          <span className="text-[0.95rem] font-extrabold text-[#eef2f7]">
-            Transaction history
-          </span>
+    <div className="hist-section">
+      <div className="hist-head">
+        <div className="hist-title">
+          <History
+            className="h-[0.95rem] w-[0.95rem]"
+            style={{ color: "var(--accent)" }}
+          />
+          Transaction History
         </div>
-        <div
-          role="tablist"
-          aria-label="Transaction filter"
-          className="flex flex-wrap gap-1.5 sm:gap-2"
-        >
-          {TABS.map((t) => {
-            const active = activeTab === t.key;
-            return (
-              <button
-                key={t.key}
-                role="tab"
-                aria-selected={active}
-                type="button"
-                onClick={() => setActiveTab(t.key)}
-                className={cn(
-                  "rounded-md px-3 py-1.5 text-[11px] font-bold transition-colors",
-                  active
-                    ? "bg-[#00dfa2] text-[#07080c]"
-                    : "bg-[rgba(255,255,255,0.04)] text-[#8b97a8] hover:bg-[rgba(255,255,255,0.08)] hover:text-[#eef2f7]"
-                )}
-              >
-                {t.label}
-              </button>
-            );
-          })}
+        <div className="hist-filters">
+          {TABS.map((t) => (
+            <button
+              key={t.key}
+              type="button"
+              onClick={() => setActiveTab(t.key)}
+              className={`hf ${activeTab === t.key ? "on" : ""}`}
+            >
+              {t.label}
+            </button>
+          ))}
         </div>
       </div>
-
-      {/* Body */}
-      <div className="p-3 md:p-4">
+      <div className="hist-table-wrap">
         {isLoading && (
-          <div className="px-2 py-12 text-center text-sm text-[#8b97a8]">
+          <div
+            style={{
+              padding: "48px 20px",
+              textAlign: "center",
+              fontSize: ".8rem",
+              color: "var(--t3)",
+            }}
+          >
             Loading transactions…
           </div>
         )}
 
         {!isLoading && error && (
-          <div className="px-2 py-12 text-center text-sm text-[#f43f5e]">
+          <div
+            style={{
+              padding: "48px 20px",
+              textAlign: "center",
+              fontSize: ".8rem",
+              color: "var(--red)",
+            }}
+          >
             {error}
           </div>
         )}
 
         {!isLoading && !error && activeTab === "gold" && (
-          <div className="px-4 py-12 text-center">
-            <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-[rgba(240,180,41,0.1)] text-[#F0B429]">
+          <div style={{ padding: "48px 20px", textAlign: "center" }}>
+            <div
+              style={{
+                margin: "0 auto 12px",
+                width: 48,
+                height: 48,
+                borderRadius: "9999px",
+                background: "rgba(61,219,169,0.1)",
+                color: "var(--accent-light)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
               <Coins className="h-5 w-5" />
             </div>
-            <div className="mb-1 text-[0.95rem] font-extrabold text-[#eef2f7]">
+            <div
+              style={{
+                marginBottom: 4,
+                fontSize: ".92rem",
+                fontWeight: 800,
+                color: "var(--t1)",
+              }}
+            >
               No gold transactions yet
             </div>
-            <div className="mx-auto max-w-[420px] text-[0.82rem] text-[#8b97a8]">
+            <div
+              style={{
+                maxWidth: 420,
+                margin: "0 auto",
+                fontSize: ".78rem",
+                color: "var(--t3)",
+              }}
+            >
               When you place a physical gold order, it will appear here with
               full delivery and serial-number tracking.
             </div>
@@ -247,172 +256,112 @@ export function WalletTransactionHistory() {
         )}
 
         {showEmpty && activeTab !== "gold" && (
-          <div className="px-2 py-12 text-center text-sm text-[#8b97a8]">
+          <div
+            style={{
+              padding: "48px 20px",
+              textAlign: "center",
+              fontSize: ".8rem",
+              color: "var(--t3)",
+            }}
+          >
             No transactions found.
           </div>
         )}
 
         {!isLoading && !error && visibleRows.length > 0 && (
-          <>
-            {/* Desktop table */}
-            <div className="hidden overflow-x-auto md:block">
-              <table className="w-full border-collapse">
-                <thead>
-                  <tr>
-                    <th className="px-3 py-2 text-left text-[0.65rem] font-bold uppercase tracking-[0.08em] text-[#4a5468]">
-                      Asset
-                    </th>
-                    <th className="px-3 py-2 text-left text-[0.65rem] font-bold uppercase tracking-[0.08em] text-[#4a5468]">
-                      Type
-                    </th>
-                    <th className="px-3 py-2 text-left text-[0.65rem] font-bold uppercase tracking-[0.08em] text-[#4a5468]">
-                      Amount
-                    </th>
-                    <th className="px-3 py-2 text-left text-[0.65rem] font-bold uppercase tracking-[0.08em] text-[#4a5468]">
-                      Account
-                    </th>
-                    <th className="px-3 py-2 text-left text-[0.65rem] font-bold uppercase tracking-[0.08em] text-[#4a5468]">
-                      Date
-                    </th>
-                    <th className="px-3 py-2 text-right text-[0.65rem] font-bold uppercase tracking-[0.08em] text-[#4a5468]">
-                      Status
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {visibleRows.map((tx) => {
-                    const sk = statusKey(tx.status);
-                    return (
-                      <tr
-                        key={`${tx.kind}-${tx.id}`}
-                        className="border-t border-white/[0.04] text-[0.82rem]"
-                      >
-                        <td className="px-3 py-3">
-                          <div className="flex items-center gap-2.5">
-                            <div
-                              className="flex h-7 w-7 items-center justify-center rounded-full text-[11px] font-extrabold text-white"
-                              style={{
-                                background: avatarColorFor(tx.kind, tx.account),
-                              }}
-                            >
-                              {avatarLetter(tx.kind)}
-                            </div>
-                            <div className="flex flex-col">
-                              <span className="font-medium capitalize text-[#eef2f7]">
-                                {tx.kind === "deposit" ? "Deposit" : "Withdrawal"}
-                              </span>
-                              <span className="text-[0.7rem] capitalize text-[#4a5468]">
-                                {tx.account || "—"}
-                              </span>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-3 py-3">
-                          <span
-                            className={cn(
-                              "rounded px-2 py-0.5 text-[0.7rem] font-bold",
-                              tx.kind === "deposit"
-                                ? "bg-[rgba(59,130,246,0.12)] text-[#3b82f6]"
-                                : "bg-[rgba(245,158,11,0.12)] text-[#f59e0b]"
-                            )}
-                          >
-                            {tx.kind === "deposit" ? "Deposit" : "Withdraw"}
-                          </span>
-                        </td>
-                        <td className="px-3 py-3 font-mono text-[0.78rem] text-[#eef2f7]">
-                          {tx.amount}
-                        </td>
-                        <td className="px-3 py-3 capitalize text-[#8b97a8]">
-                          {tx.type || "—"}
-                        </td>
-                        <td className="px-3 py-3 text-[#8b97a8]">{tx.date}</td>
-                        <td className="px-3 py-3 text-right">
-                          <span
-                            className={cn(
-                              "rounded px-2 py-1 text-[0.7rem] font-bold",
-                              sk === "approved"
-                                ? "bg-[rgba(0,223,162,0.1)] text-[#00dfa2]"
-                                : sk === "rejected"
-                                  ? "bg-[rgba(244,63,94,0.1)] text-[#f43f5e]"
-                                  : "bg-[rgba(240,180,41,0.1)] text-[#F0B429]"
-                            )}
-                          >
-                            {statusLabel(tx.status)}
-                          </span>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-
-            {/* Mobile cards */}
-            <div className="grid gap-2.5 md:hidden">
+          <table className="htbl">
+            <thead>
+              <tr>
+                <th>Type</th>
+                <th>Asset</th>
+                <th>Amount</th>
+                <th>Status</th>
+                <th>Date &amp; Time</th>
+                <th>Reference</th>
+              </tr>
+            </thead>
+            <tbody>
               {visibleRows.map((tx) => {
                 const sk = statusKey(tx.status);
                 return (
-                  <div
-                    key={`m-${tx.kind}-${tx.id}`}
-                    className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-3.5"
-                  >
-                    <div className="mb-2 flex items-center justify-between">
-                      <div className="flex items-center gap-2.5">
-                        <div
-                          className="flex h-7 w-7 items-center justify-center rounded-full text-[11px] font-extrabold text-white"
-                          style={{
-                            background: avatarColorFor(tx.kind, tx.account),
-                          }}
-                        >
-                          {avatarLetter(tx.kind)}
-                        </div>
-                        <div className="flex flex-col">
-                          <span className="text-[0.85rem] font-medium text-[#eef2f7]">
-                            {tx.kind === "deposit" ? "Deposit" : "Withdrawal"}
-                          </span>
-                          <span className="text-[0.7rem] capitalize text-[#4a5468]">
-                            {tx.account || "—"}
-                          </span>
-                        </div>
-                      </div>
+                  <tr key={`${tx.kind}-${tx.id}`}>
+                    <td>
                       <span
-                        className={cn(
-                          "rounded px-2 py-1 text-[0.65rem] font-bold",
-                          sk === "approved"
-                            ? "bg-[rgba(0,223,162,0.1)] text-[#00dfa2]"
-                            : sk === "rejected"
-                              ? "bg-[rgba(244,63,94,0.1)] text-[#f43f5e]"
-                              : "bg-[rgba(240,180,41,0.1)] text-[#F0B429]"
-                        )}
+                        className={
+                          tx.kind === "deposit" ? "type-dep" : "type-wit"
+                        }
                       >
+                        {tx.kind === "deposit" ? (
+                          <ArrowDownToLine className="h-3 w-3" />
+                        ) : (
+                          <ArrowUpFromLine className="h-3 w-3" />
+                        )}
+                        {tx.kind === "deposit" ? "Deposit" : "Withdraw"}
+                      </span>
+                    </td>
+                    <td>
+                      <span
+                        className="mono"
+                        style={{
+                          color:
+                            tx.kind === "deposit"
+                              ? "var(--accent-light)"
+                              : "var(--accent)",
+                          fontWeight: 700,
+                        }}
+                      >
+                        {tx.type?.toUpperCase() || "—"}
+                      </span>
+                    </td>
+                    <td className="mono">{tx.amount}</td>
+                    <td>
+                      <span
+                        className={`sbadge ${sk === "approved" ? "sb-done" : sk === "rejected" ? "sb-fail" : "sb-pend"}`}
+                      >
+                        {sk === "approved" ? (
+                          <CircleCheck
+                            style={{ fontSize: ".6rem", width: 10, height: 10 }}
+                          />
+                        ) : (
+                          <Clock
+                            style={{ fontSize: ".6rem", width: 10, height: 10 }}
+                          />
+                        )}
                         {statusLabel(tx.status)}
                       </span>
-                    </div>
-                    <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 border-t border-white/[0.04] pt-2 text-[0.78rem]">
-                      <div className="text-[#4a5468]">Amount</div>
-                      <div className="text-right font-mono text-[#eef2f7]">
-                        {tx.amount}
-                      </div>
-                      <div className="text-[#4a5468]">Type</div>
-                      <div className="text-right capitalize text-[#8b97a8]">
-                        {tx.type || "—"}
-                      </div>
-                      <div className="text-[#4a5468]">Date</div>
-                      <div className="text-right text-[#8b97a8]">{tx.date}</div>
-                    </div>
-                  </div>
+                    </td>
+                    <td style={{ color: "var(--t3)", fontSize: ".78rem" }}>
+                      {tx.date}
+                    </td>
+                    <td
+                      style={{
+                        fontSize: ".75rem",
+                        color: "var(--accent)",
+                        fontFamily: "var(--mono)",
+                      }}
+                    >
+                      #{tx.id}
+                    </td>
+                  </tr>
                 );
               })}
-            </div>
-          </>
+            </tbody>
+          </table>
         )}
       </div>
 
       {/* Footer link to full deposit history page (real route) */}
-      <div className="border-t border-white/[0.06] px-5 py-3 text-center md:px-6">
+      <div style={{ textAlign: "center", padding: "12px 20px" }}>
         <Link
           to="/main/deposit-history"
-          className="inline-flex items-center gap-1 text-[0.78rem] font-bold text-[#00dfa2] transition-colors hover:text-[#00ffc3]"
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 4,
+            fontSize: ".78rem",
+            fontWeight: 700,
+            color: "var(--accent)",
+          }}
         >
           View all transactions
           <ArrowRight className="h-3 w-3" />

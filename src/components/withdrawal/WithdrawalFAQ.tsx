@@ -49,15 +49,12 @@ export function WithdrawalFAQ() {
   };
 
   return (
-    <div
-      className="rounded-2xl border border-white/[0.06] p-5"
-      style={{
-        background:
-          "linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01))",
-      }}
-    >
-      <div className="mb-4 flex items-center gap-2 text-sm font-extrabold text-white">
-        <HelpCircle className="h-4 w-4 text-[#c8e64e]" />
+    <div className="scard">
+      <div className="scard-title">
+        <HelpCircle
+          className="h-[0.85rem] w-[0.85rem]"
+          style={{ color: "var(--accent)" }}
+        />
         Withdrawal FAQ
       </div>
       <div className="flex flex-col gap-1.5">
@@ -83,7 +80,7 @@ export function WithdrawalFAQ() {
                 <div className="px-4 pb-4 text-xs leading-relaxed text-[#a8b5c8]">
                   {item.answer}
                   {item.highlight && (
-                    <div className="mt-2.5 flex items-start gap-2 rounded-lg border border-[#00dfa2]/20 bg-[#00dfa2]/[0.06] p-2.5 text-[11px] text-[#00dfa2]">
+                    <div className="mt-2.5 flex items-start gap-2 rounded-lg border border-[#3DDBA9]/20 bg-[#3DDBA9]/[0.06] p-2.5 text-[11px] text-[#3DDBA9]">
                       {item.highlightIcon === "shield" ? (
                         <Shield className="mt-0.5 h-3.5 w-3.5 flex-shrink-0" />
                       ) : (
