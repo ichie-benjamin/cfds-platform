@@ -50,7 +50,6 @@ import { TickerBar } from "@/components/dashboard/TickerBar";
 import DashboardNavbar from "@/components/nav/DashboardNavbar";
 import { WalletOverviewPanel } from "@/components/wallet/WalletOverviewPanel";
 import { WalletOverviewExtras } from "@/components/wallet/WalletOverviewExtras";
-import { WalletAssetsPanel } from "@/components/wallet/WalletAssetsPanel";
 import { WalletGoldPanel } from "@/components/wallet/WalletGoldPanel";
 import { WalletTransactionHistory } from "@/components/wallet/WalletTransactionHistory";
 import { GoldTierBanner } from "@/components/wallet/GoldTierBanner";
@@ -120,7 +119,7 @@ export default function WithdrawalForm() {
       ? "dep"
       : tabParam === "withdraw" || tabParam === "wit"
         ? "wit"
-        : tabParam === "assets" || tabParam === "gold" || tabParam === "overview"
+        : tabParam === "gold" || tabParam === "overview"
           ? (tabParam as WalletView)
           : "overview";
   const [viewMode, setViewMode] = useState<WalletView>(initialView);
@@ -242,7 +241,6 @@ export default function WithdrawalForm() {
   };
   const tabs: Tab[] = [
     { id: "overview", label: "Overview", icon: ChartPie },
-    { id: "assets", label: "Assets", icon: Coins },
     { id: "dep", label: "Deposit", icon: ArrowDownToLine },
     { id: "wit", label: "Withdraw", icon: ArrowUpFromLine },
     { id: "gold", label: "Physical Gold", icon: Coins, tag: "Elite" },
@@ -317,9 +315,6 @@ export default function WithdrawalForm() {
                 <WalletTransactionHistory />
               </>
             )}
-
-            {/* ═══ ASSETS VIEW ═══ */}
-            {viewMode === "assets" && <WalletAssetsPanel />}
 
             {/* ═══ GOLD VIEW ═══ */}
             {viewMode === "gold" && (
