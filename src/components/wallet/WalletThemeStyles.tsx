@@ -436,7 +436,48 @@ body.wallet-active .flex-1.md\\:ml-\\[80px\\] { margin-left: 0 !important; }
 @media(max-width:1100px){ .wallet-root .wgrid-split { grid-template-columns: 1fr; } }
 .wallet-root .wgrid-2 { display:grid; grid-template-columns: 1fr 1fr; gap:10px; }
 @media(max-width:600px){ .wallet-root .wgrid-2 { grid-template-columns: 1fr; } }
-.wallet-root .step-nav { display:flex; gap:8px; align-items:center; margin-top:10px; }
+.wallet-root .step-nav { display:flex; gap:8px; align-items:center; margin-top:12px; }
+
+/* STEP DOTS (wizard indicator) */
+.wallet-root .step-dots { display:flex; align-items:center; justify-content:center; gap:8px; margin-bottom:18px; }
+.wallet-root .step-dot { width:10px; height:10px; border-radius:50%; background:rgba(255,255,255,0.1); transition: all .2s; }
+.wallet-root .step-dot.active { background: var(--accent); box-shadow: 0 0 8px rgba(61,219,169,.4); }
+.wallet-root .step-dot.done { background: var(--accent); opacity:.5; }
+
+/* STEP NAV BUTTONS */
+.wallet-root .step-nav .sn-back {
+  flex:1; padding:9px;
+  background: var(--bg2);
+  border:1px solid rgba(255,255,255,0.07);
+  color: var(--t2);
+  border-radius:8px;
+  font-size:.76rem; font-weight:700;
+  cursor:pointer; font-family: var(--sans);
+  display:flex; align-items:center; justify-content:center; gap:6px;
+  transition: all .15s;
+}
+.wallet-root .step-nav .sn-back:hover { border-color: var(--t3); color: var(--t1); }
+.wallet-root .step-nav .sn-next {
+  flex:2; padding:9px;
+  background: linear-gradient(135deg, var(--accent-light), var(--accent), var(--accent-dark));
+  border:none; color:#07080c;
+  border-radius:8px;
+  font-size:.78rem; font-weight:800;
+  cursor:pointer; font-family: var(--sans);
+  display:flex; align-items:center; justify-content:center; gap:6px;
+  transition: all .15s;
+  box-shadow: inset 0 1px 2px rgba(255,255,255,.25);
+}
+.wallet-root .step-nav .sn-next:hover { box-shadow: 0 3px 12px rgba(61,219,169,.2), inset 0 1px 2px rgba(255,255,255,.3); }
+.wallet-root .step-nav .sn-next:disabled { opacity:.6; cursor:not-allowed; }
+
+/* PASTE/INPUT TRAILING BUTTON */
+.wallet-root .fi-btn {
+  position:absolute; right:13px; top:50%; transform: translateY(-50%);
+  cursor:pointer; color: var(--t3); font-size:.83rem;
+  transition: color .15s; background:none; border:none; padding:0;
+}
+.wallet-root .fi-btn:hover { color: var(--t1); }
 
 /* legacy shadcn inputs inside forms — match wallet field look */
 .wallet-root .field [data-slot="form-label"] {

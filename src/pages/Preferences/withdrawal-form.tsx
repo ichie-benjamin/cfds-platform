@@ -1,4 +1,3 @@
-import { Input } from "@/components/ui/input";
 import {
   Form,
   FormControl,
@@ -6,13 +5,6 @@ import {
   FormItem,
   FormMessage,
 } from "@/components/ui/form";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -39,14 +31,15 @@ import {
   Truck,
   Star,
   BadgeCheck,
+  ArrowLeft,
+  ArrowRight,
+  ClipboardPaste,
+  Tag,
+  Lock,
+  Send,
 } from "lucide-react";
 import { WithdrawalModeBar } from "@/components/withdrawal/WithdrawalModeBar";
 import { CoinGrid } from "@/components/withdrawal/CoinGrid";
-import { WithdrawalSummary } from "@/components/withdrawal/WithdrawalSummary";
-import { ProcessingTimeline } from "@/components/withdrawal/ProcessingTimeline";
-import { PenaltySchedule } from "@/components/withdrawal/PenaltySchedule";
-import { StakedWithdrawalPanel } from "@/components/withdrawal/StakedWithdrawalPanel";
-import { WithdrawalFAQ } from "@/components/withdrawal/WithdrawalFAQ";
 import { ContributePanel } from "@/components/deposit/ContributePanel";
 import type { WalletView } from "@/components/wallet/WalletSidebar";
 import { MarketSidebar } from "@/components/market/MarketSidebar";
@@ -98,6 +91,49 @@ const combinedSchema = z.discriminatedUnion("method", [
 
 type WithdrawalFormData = z.infer<typeof combinedSchema>;
 
+// ── Presentation-only metadata for the Withdraw wizard ───────────────
+// Mirrors the COINS array in html_files/wallet (2).html. Used only for
+// display (network tabs, available label, fee preview). Does NOT change
+// API payloads or stored values.
+type WitCoinMeta = {
+  networks: string[];
+  balanceLabel: string;
+  witBal: number;
+  fee: number;
+};
+const WIT_COIN_META: Record<string, WitCoinMeta> = {
+  BTC: {
+    networks: ["Bitcoin (BTC)", "Lightning", "ERC-20"],
+    balanceLabel: "1.4800 BTC ($124,631)",
+    witBal: 1.48,
+    fee: 0.00005,
+  },
+  ETH: {
+    networks: ["ERC-20", "Base", "Arbitrum", "Optimism"],
+    balanceLabel: "14.20 ETH ($45,184)",
+    witBal: 14.2,
+    fee: 0.001,
+  },
+  USDT: {
+    networks: ["ERC-20", "TRC-20", "BEP-20", "Solana", "Polygon"],
+    balanceLabel: "28,400 USDT ($28,400)",
+    witBal: 28400,
+    fee: 1,
+  },
+  BNB: {
+    networks: ["BEP-20", "ERC-20"],
+    balanceLabel: "18.4 BNB ($11,187)",
+    witBal: 18.4,
+    fee: 0.001,
+  },
+  SOL: {
+    networks: ["Solana", "ERC-20"],
+    balanceLabel: "42.0 SOL ($7,644)",
+    witBal: 42,
+    fee: 0.00025,
+  },
+};
+
 // ── Component ────────────────────────────────────────────────────────
 
 export default function WithdrawalForm() {
@@ -113,7 +149,6 @@ export default function WithdrawalForm() {
   const [activeMode, setActiveMode] = useState<"deposit" | "withdraw">("withdraw");
   const [clientMode, setClientMode] = useState<"fresh" | "staked">("fresh");
   const [selectedCoin, setSelectedCoin] = useState("BTC");
-  const [selectedCoinName, setSelectedCoinName] = useState("Bitcoin");
 
   // New UI-only view state for wallet panels (HTML match)
   const [searchParams] = useSearchParams();
@@ -134,6 +169,14 @@ export default function WithdrawalForm() {
   const [selectedWitAccount, setSelectedWitAccount] =
     useState<WitAccount>("available");
 
+  // Withdraw wizard UI-flow state (matches reference wallet (2).html)
+  const [witStep, setWitStep] = useState<1 | 2 | 3>(1);
+  const initialMeta = WIT_COIN_META["BTC"];
+  const [selectedNetwork, setSelectedNetwork] = useState<string>(
+    initialMeta.networks[0],
+  );
+  const [witMemo, setWitMemo] = useState<string>("");
+
   const form = useForm<WithdrawalFormData>({
     resolver: zodResolver(combinedSchema),
     defaultValues: {
@@ -150,9 +193,7 @@ export default function WithdrawalForm() {
     },
   });
 
-  const method = form.watch("method");
   const watchedAmount = form.watch("amount");
-  const watchedNetwork = form.watch("network");
 
   useEffect(() => {
     fetchData();
@@ -183,6 +224,11 @@ export default function WithdrawalForm() {
   useEffect(() => {
     if (viewMode === "dep") setActiveMode("deposit");
     else if (viewMode === "wit") setActiveMode("withdraw");
+  }, [viewMode]);
+
+  // Reset wizard to Step 1 whenever the Withdraw tab is (re)entered
+  useEffect(() => {
+    if (viewMode === "wit") setWitStep(1);
   }, [viewMode]);
 
   // This function prepares the form submission and shows modal for wire transfers
@@ -235,11 +281,38 @@ export default function WithdrawalForm() {
     }
   };
 
-  const handleCoinSelect = (symbol: string, name: string, network: string) => {
+  const handleCoinSelect = (symbol: string, _name: string, network: string) => {
     setSelectedCoin(symbol);
-    setSelectedCoinName(name);
+    // Pick the first network for this coin from the reference metadata, so
+    // the network tabs in Step 1 always start on a valid value.
+    const meta = WIT_COIN_META[symbol];
+    const firstNet = meta?.networks[0] ?? network;
+    setSelectedNetwork(firstNet);
     // Sync to react-hook-form so the submitted payload always matches the UI
-    form.setValue("network", network, { shouldValidate: true });
+    form.setValue("network", firstNet, { shouldValidate: true });
+  };
+
+  const handleNetworkSelect = (net: string) => {
+    setSelectedNetwork(net);
+    form.setValue("network", net, { shouldValidate: true });
+  };
+
+  const handlePasteAddress = async () => {
+    try {
+      const text = await navigator.clipboard.readText();
+      if (text) {
+        form.setValue("wallet_address", text, { shouldValidate: true });
+      }
+    } catch {
+      // Clipboard permission denied — silently ignore (matches reference UX).
+    }
+  };
+
+  const setAmountPct = (pct: number) => {
+    const meta = WIT_COIN_META[selectedCoin];
+    if (!meta) return;
+    const v = (meta.witBal * pct).toFixed(6);
+    form.setValue("amount", v, { shouldValidate: true });
   };
 
   type Tab = {
@@ -421,89 +494,96 @@ export default function WithdrawalForm() {
               </>
             )}
 
-            {/* ═══ WITHDRAW VIEW (4 numbered steps + sidebar — matches reference) ═══ */}
+            {/* ═══ WITHDRAW VIEW — 3-step wizard + sidebar (matches reference) ═══ */}
             {viewMode === "wit" && (
               <div className="wgrid-split">
-                {/* LEFT COLUMN */}
+                {/* LEFT COLUMN — wizard */}
                 <div>
-                  {/* Step dots indicator (Tailwind, matches reference) */}
-                  <div className="mb-3.5 flex items-center justify-center gap-2">
-                    <span className="h-2 w-6 rounded-[4px] bg-[#3DDBA9] shadow-[0_0_8px_rgba(61,219,169,0.45)]" />
-                    <span className="h-2 w-2 rounded-full border border-white/[0.10] bg-white/[0.10]" />
-                    <span className="h-2 w-2 rounded-full border border-white/[0.10] bg-white/[0.10]" />
-                    <span className="h-2 w-2 rounded-full border border-white/[0.10] bg-white/[0.10]" />
+                  {/* Step dots: ●○○ → ●●○ → ●●● */}
+                  <div className="step-dots">
+                    <span
+                      className={`step-dot ${witStep === 1 ? "active" : "done"}`}
+                    />
+                    <span
+                      className={`step-dot ${
+                        witStep === 2
+                          ? "active"
+                          : witStep > 2
+                            ? "done"
+                            : ""
+                      }`}
+                    />
+                    <span
+                      className={`step-dot ${witStep === 3 ? "active" : ""}`}
+                    />
                   </div>
 
-                  <WithdrawalModeBar
-                    clientMode={clientMode}
-                    onModeChange={setClientMode}
-                  />
-
-                  {clientMode === "fresh" ? (
-                    <>
-                      <Form {...form}>
-                        <form
-                          onSubmit={form.handleSubmit(onSubmit)}
-                          className="space-y-0"
-                        >
-                          {/* STEP 1: Select Asset & Network */}
-                          <div className="scard">
-                            <div className="scard-title">
-                              <span className="scard-step">1</span>
-                              Select Asset & Network
-                            </div>
-                            <div className="field">
-                              <CoinGrid
-                                selectedCoin={selectedCoin}
-                                formNetwork={watchedNetwork || ""}
-                                onCoinSelect={handleCoinSelect}
-                              />
-                            </div>
-                            <FormField
-                              control={form.control}
-                              name="network"
-                              render={({ field }) => (
-                                <FormItem className="field">
-                                  <div className="flabel">Network</div>
-                                  <Select
-                                    onValueChange={field.onChange}
-                                    value={field.value}
-                                  >
-                                    <FormControl>
-                                      <SelectTrigger className="w-full border-white/[0.08] bg-[linear-gradient(145deg,rgba(255,255,255,0.05),rgba(255,255,255,0.02))] text-[0.82rem] text-[#eef2f7] focus:ring-0 focus:border-[rgba(61,219,169,0.5)]">
-                                        <SelectValue placeholder="Select network" />
-                                      </SelectTrigger>
-                                    </FormControl>
-                                    <SelectContent className="border-white/[0.08] bg-[#0a0d15]">
-                                      {data?.crypto_networks?.map(
-                                        (network) => (
-                                          <SelectItem
-                                            key={network}
-                                            value={network}
-                                          >
-                                            {network}
-                                          </SelectItem>
-                                        ),
-                                      )}
-                                    </SelectContent>
-                                  </Select>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
+                  <Form {...form}>
+                    <form
+                      onSubmit={form.handleSubmit(onSubmit)}
+                      className="space-y-0"
+                    >
+                      {/* STEP 1: Select Asset & Network */}
+                      {witStep === 1 && (
+                        <div className="scard">
+                          <div className="scard-title">
+                            <span className="scard-step">1</span>
+                            Select Asset &amp; Network
+                          </div>
+                          <div className="field">
+                            <CoinGrid
+                              selectedCoin={selectedCoin}
+                              formNetwork={selectedNetwork}
+                              onCoinSelect={handleCoinSelect}
                             />
                           </div>
+                          <div className="field">
+                            <div className="flabel">Network</div>
+                            <div className="net-tabs">
+                              {(
+                                WIT_COIN_META[selectedCoin]?.networks ?? []
+                              ).map((n) => (
+                                <button
+                                  key={n}
+                                  type="button"
+                                  onClick={() => handleNetworkSelect(n)}
+                                  className={`ntab ${
+                                    selectedNetwork === n ? "on" : ""
+                                  }`}
+                                >
+                                  {n}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                          <div className="step-nav">
+                            <button
+                              type="button"
+                              className="sn-next"
+                              onClick={() => setWitStep(2)}
+                            >
+                              <span>Continue to Details</span>
+                              <ArrowRight className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
+                        </div>
+                      )}
 
-                          {/* STEP 2: Select Withdrawal Account (UI-only, reference parity) */}
-                          <div className="scard">
-                            <div className="scard-title">
-                              <span className="scard-step">2</span>
-                              Select Withdrawal Account
-                            </div>
-                            <div className="mb-3 text-[0.7rem] leading-[1.5] text-[#6b7a90]">
-                              Choose the account you want to withdraw funds from. Different accounts have different withdrawal conditions.
-                            </div>
-                            <div className="wit-acct-grid">
-                              {([
+                      {/* STEP 2: Select Withdrawal Account */}
+                      {witStep === 2 && (
+                        <div className="scard">
+                          <div className="scard-title">
+                            <span className="scard-step">2</span>
+                            Select Withdrawal Account
+                          </div>
+                          <div className="mb-3 text-[0.7rem] leading-[1.5] text-[#6b7a90]">
+                            Choose the account you want to withdraw funds from.
+                            Different accounts have different withdrawal
+                            conditions.
+                          </div>
+                          <div className="wit-acct-grid">
+                            {(
+                              [
                                 {
                                   id: "available" as const,
                                   name: "Available Balance",
@@ -548,349 +628,306 @@ export default function WithdrawalForm() {
                                     "linear-gradient(145deg,rgba(232,169,77,.18),rgba(232,169,77,.06))",
                                   iconBorder: "rgba(232,169,77,.3)",
                                 },
-                              ] as const).map((acct) => {
-                                const Icon = acct.Icon;
-                                const isOn = selectedWitAccount === acct.id;
-                                return (
-                                  <button
-                                    key={acct.id}
-                                    type="button"
-                                    onClick={() => setSelectedWitAccount(acct.id)}
-                                    className={`wit-acct-opt ${isOn ? "on" : ""}`}
+                              ] as const
+                            ).map((acct) => {
+                              const Icon = acct.Icon;
+                              const isOn = selectedWitAccount === acct.id;
+                              return (
+                                <button
+                                  key={acct.id}
+                                  type="button"
+                                  onClick={() =>
+                                    setSelectedWitAccount(acct.id)
+                                  }
+                                  className={`wit-acct-opt ${isOn ? "on" : ""}`}
+                                >
+                                  <div
+                                    className="wao-icon"
+                                    style={{
+                                      background: acct.iconBg,
+                                      borderColor: acct.iconBorder,
+                                    }}
                                   >
-                                    <div
-                                      className="wao-icon"
+                                    <Icon
+                                      className="h-3.5 w-3.5"
                                       style={{
-                                        background: acct.iconBg,
-                                        borderColor: acct.iconBorder,
+                                        color: acct.iconColor,
+                                        filter:
+                                          "drop-shadow(0 1px 2px rgba(0,0,0,.3))",
                                       }}
-                                    >
-                                      <Icon
-                                        className="h-3.5 w-3.5"
-                                        style={{
-                                          color: acct.iconColor,
-                                          filter: "drop-shadow(0 1px 2px rgba(0,0,0,.3))",
-                                        }}
-                                      />
-                                    </div>
-                                    <div className="wao-info">
-                                      <div className="wao-name">{acct.name}</div>
-                                      <div className="wao-desc">{acct.desc}</div>
-                                    </div>
-                                    <div className="wao-amount">{acct.amount}</div>
-                                    <div className="wao-check">
-                                      <CircleCheck className="h-3 w-3" />
-                                    </div>
-                                  </button>
-                                );
-                              })}
+                                    />
+                                  </div>
+                                  <div className="wao-info">
+                                    <div className="wao-name">{acct.name}</div>
+                                    <div className="wao-desc">{acct.desc}</div>
+                                  </div>
+                                  <div className="wao-amount">
+                                    {acct.amount}
+                                  </div>
+                                  <div className="wao-check">
+                                    <CircleCheck className="h-3 w-3" />
+                                  </div>
+                                </button>
+                              );
+                            })}
+                          </div>
+                          <div className="step-nav">
+                            <button
+                              type="button"
+                              className="sn-back"
+                              onClick={() => setWitStep(1)}
+                            >
+                              <ArrowLeft className="h-3.5 w-3.5" />
+                              <span>Back</span>
+                            </button>
+                            <button
+                              type="button"
+                              className="sn-next"
+                              onClick={() => setWitStep(3)}
+                            >
+                              <span>Continue to Details</span>
+                              <ArrowRight className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* STEP 3: Withdrawal Details */}
+                      {witStep === 3 && (
+                        <div className="scard">
+                          <div className="scard-title">
+                            <span className="scard-step">3</span>
+                            Withdrawal Details
+                          </div>
+
+                          {/* Warning box */}
+                          <div className="mb-3.5 flex items-start gap-2.5 rounded-[9px] border border-[rgba(232,89,89,0.2)] bg-[linear-gradient(135deg,rgba(232,89,89,0.07),rgba(232,89,89,0.02))] px-3.5 py-2.5">
+                            <TriangleAlert className="mt-0.5 h-3 w-3 shrink-0 text-[#E85D5D]" />
+                            <div className="text-[0.68rem] leading-[1.55] text-[#a3adbf]">
+                              Always verify that the{" "}
+                              <strong className="text-[#eef2f7]">
+                                recipient address
+                              </strong>{" "}
+                              and{" "}
+                              <strong className="text-[#eef2f7]">
+                                selected network
+                              </strong>{" "}
+                              match the destination wallet. Withdrawals sent to
+                              an incorrect address or mismatched network are{" "}
+                              <strong className="text-[#E85D5D]">
+                                irreversible and cannot be recovered
+                              </strong>
+                              .
                             </div>
                           </div>
 
-                          {/* STEP 3: Withdrawal Method & Bank Details */}
-                          <div className="scard">
-                            <div className="scard-title">
-                              <span className="scard-step">3</span>
-                              Withdrawal Method
-                            </div>
-                            <FormField
-                              control={form.control}
-                              name="method"
-                              render={({ field }) => (
-                                <FormItem className="field">
-                                  <div className="flabel">Payment Method</div>
-                                  <Select
-                                    onValueChange={field.onChange}
-                                    defaultValue={field.value}
-                                  >
-                                    <FormControl>
-                                      <SelectTrigger className="w-full border-white/[0.08] bg-[linear-gradient(145deg,rgba(255,255,255,0.05),rgba(255,255,255,0.02))] text-[0.82rem] text-[#eef2f7] focus:ring-0 focus:border-[rgba(61,219,169,0.5)]">
-                                        <SelectValue placeholder="Select payment method" />
-                                      </SelectTrigger>
-                                    </FormControl>
-                                    <SelectContent className="border-white/[0.08] bg-[#0a0d15]">
-                                      <SelectItem value="crypto">
-                                        Cryptocurrency
-                                      </SelectItem>
-                                      <SelectItem value="wire_transfer">
-                                        Wire Transfer
-                                      </SelectItem>
-                                    </SelectContent>
-                                  </Select>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-
-                            {/* Crypto fields */}
-                            {method === "crypto" && (
-                              <FormField
-                                control={form.control}
-                                name="wallet_address"
-                                render={({ field }) => (
-                                  <FormItem className="field">
-                                    <div className="flabel">
-                                      Destination Wallet Address
-                                    </div>
-                                    <FormControl>
-                                      <Input
-                                        placeholder="Enter your external wallet address (e.g. bc1q...)"
-                                        {...field}
-                                        className="font-mono text-[0.78rem]"
-                                      />
-                                    </FormControl>
-                                    <div
-                                      className="mt-1.5 flex items-center gap-1"
-                                      style={{
-                                        fontSize: ".7rem",
-                                        color: "var(--t3)",
-                                      }}
+                          {/* Recipient Wallet Address */}
+                          <FormField
+                            control={form.control}
+                            name="wallet_address"
+                            render={({ field }) => (
+                              <FormItem className="field">
+                                <div className="flabel">
+                                  Recipient Wallet Address
+                                </div>
+                                <FormControl>
+                                  <div className="finput">
+                                    <input
+                                      type="text"
+                                      placeholder="Paste destination address here"
+                                      {...field}
+                                      value={field.value ?? ""}
+                                    />
+                                    <button
+                                      type="button"
+                                      className="fi-btn"
+                                      onClick={handlePasteAddress}
+                                      title="Paste"
+                                      aria-label="Paste from clipboard"
                                     >
-                                      <TriangleAlert
-                                        className="h-3 w-3"
-                                        style={{ color: "var(--orange)" }}
-                                      />
-                                      Double-check the address and network.
-                                      Transactions cannot be reversed.
-                                    </div>
-                                    <FormMessage />
-                                  </FormItem>
-                                )}
-                              />
+                                      <ClipboardPaste className="h-3.5 w-3.5" />
+                                    </button>
+                                  </div>
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
                             )}
+                          />
 
-                            {/* Wire transfer fields */}
-                            {method === "wire_transfer" && (
-                              <div className="space-y-0">
-                                <FormField
-                                  control={form.control}
-                                  name="bank_name"
-                                  render={({ field }) => (
-                                    <FormItem className="field">
-                                      <div className="flabel">Bank Name</div>
-                                      <FormControl>
-                                        <Input
-                                          placeholder="Enter bank name"
-                                          {...field}
-                                        />
-                                      </FormControl>
-                                      <FormMessage />
-                                    </FormItem>
-                                  )}
-                                />
-                                <FormField
-                                  control={form.control}
-                                  name="bank_address"
-                                  render={({ field }) => (
-                                    <FormItem className="field">
-                                      <div className="flabel">Bank Address</div>
-                                      <FormControl>
-                                        <Input
-                                          placeholder="Enter bank address"
-                                          {...field}
-                                        />
-                                      </FormControl>
-                                      <FormMessage />
-                                    </FormItem>
-                                  )}
-                                />
-                                <div className="wgrid-2">
-                                  <FormField
-                                    control={form.control}
-                                    name="account_number"
-                                    render={({ field }) => (
-                                      <FormItem className="field">
-                                        <div className="flabel">
-                                          Account Number
-                                        </div>
-                                        <FormControl>
-                                          <Input
-                                            placeholder="Enter account number"
-                                            {...field}
-                                            className="font-mono"
-                                          />
-                                        </FormControl>
-                                        <FormMessage />
-                                      </FormItem>
-                                    )}
-                                  />
-                                  <FormField
-                                    control={form.control}
-                                    name="account_name"
-                                    render={({ field }) => (
-                                      <FormItem className="field">
-                                        <div className="flabel">
-                                          Account Name
-                                        </div>
-                                        <FormControl>
-                                          <Input
-                                            placeholder="Enter account name"
-                                            {...field}
-                                          />
-                                        </FormControl>
-                                        <FormMessage />
-                                      </FormItem>
-                                    )}
-                                  />
-                                </div>
-                                <div className="wgrid-2">
-                                  <FormField
-                                    control={form.control}
-                                    name="iban_number"
-                                    render={({ field }) => (
-                                      <FormItem className="field">
-                                        <div className="flabel">
-                                          IBAN Number
-                                        </div>
-                                        <FormControl>
-                                          <Input
-                                            placeholder="Enter IBAN Number"
-                                            {...field}
-                                            className="font-mono"
-                                          />
-                                        </FormControl>
-                                        <FormMessage />
-                                      </FormItem>
-                                    )}
-                                  />
-                                  <FormField
-                                    control={form.control}
-                                    name="swiftcode"
-                                    render={({ field }) => (
-                                      <FormItem className="field">
-                                        <div className="flabel">Swift Code</div>
-                                        <FormControl>
-                                          <Input
-                                            placeholder="Enter SWIFT code"
-                                            {...field}
-                                            className="font-mono"
-                                          />
-                                        </FormControl>
-                                        <FormMessage />
-                                      </FormItem>
-                                    )}
-                                  />
-                                </div>
-                              </div>
-                            )}
-                          </div>
-
-                          {/* STEP 4: Withdrawal Details */}
-                          <div className="scard">
-                            <div className="scard-title">
-                              <span className="scard-step">4</span>
-                              Withdrawal Details
-                            </div>
-
-                            <FormField
-                              control={form.control}
-                              name="amount"
-                              render={({ field }) => (
+                          {/* Amount */}
+                          <FormField
+                            control={form.control}
+                            name="amount"
+                            render={({ field }) => {
+                              const meta = WIT_COIN_META[selectedCoin];
+                              return (
                                 <FormItem className="field">
                                   <div className="flabel">
                                     Amount{" "}
                                     <small>
-                                      Available: ${availableBalance.toLocaleString()}
+                                      Available:{" "}
+                                      {meta
+                                        ? meta.balanceLabel
+                                        : `$${availableBalance.toLocaleString()}`}
                                     </small>
                                   </div>
                                   <FormControl>
                                     <div className="finput">
-                                      <Input
-                                        placeholder="0.00"
-                                        {...field}
+                                      <input
                                         type="number"
-                                        className="font-mono pr-12"
+                                        placeholder="0.00000000"
+                                        {...field}
+                                        value={field.value ?? ""}
                                       />
                                       <span
                                         className="input-max"
-                                        onClick={() =>
-                                          form.setValue(
-                                            "amount",
-                                            String(availableBalance),
-                                            { shouldValidate: true },
-                                          )
-                                        }
+                                        onClick={() => setAmountPct(1)}
                                       >
                                         MAX
                                       </span>
                                     </div>
                                   </FormControl>
                                   <div className="presets">
-                                    {["1000", "5000", "10000"].map((v) => (
+                                    {[
+                                      { label: "10%", pct: 0.1 },
+                                      { label: "25%", pct: 0.25 },
+                                      { label: "50%", pct: 0.5 },
+                                      { label: "MAX", pct: 1 },
+                                    ].map((p) => (
                                       <span
-                                        key={v}
+                                        key={p.label}
                                         className="preset"
-                                        onClick={() =>
-                                          form.setValue("amount", v, {
-                                            shouldValidate: true,
-                                          })
-                                        }
+                                        onClick={() => setAmountPct(p.pct)}
                                       >
-                                        ${Number(v).toLocaleString()}
+                                        {p.label}
                                       </span>
                                     ))}
                                   </div>
                                   <FormMessage />
                                 </FormItem>
-                              )}
-                            />
+                              );
+                            }}
+                          />
 
-                            <WithdrawalSummary
-                              coinSymbol={selectedCoin}
-                              coinName={selectedCoinName}
-                              amount={watchedAmount || "0"}
-                              network={watchedNetwork || ""}
-                            />
+                          {/* Memo / Tag (UI-only) */}
+                          <div className="field">
+                            <div className="flabel">
+                              Memo / Tag{" "}
+                              <small>Required for XRP, XLM, EOS</small>
+                            </div>
+                            <div className="finput">
+                              <input
+                                type="text"
+                                placeholder="Enter memo if required"
+                                value={witMemo}
+                                onChange={(e) => setWitMemo(e.target.value)}
+                              />
+                              <Tag className="fi-i h-3.5 w-3.5" />
+                            </div>
+                          </div>
 
-                            <div className="step-nav" style={{ marginTop: 14 }}>
-                              <button
-                                type="submit"
-                                disabled={isSubmitting}
-                                className="btn-sub btn-wit"
-                                style={{ flex: 1 }}
-                              >
-                                <ArrowUpFromLine className="h-4 w-4" />
+                          {/* Fee summary */}
+                          {(() => {
+                            const meta = WIT_COIN_META[selectedCoin];
+                            const fee = meta?.fee ?? 0.00005;
+                            const amtNum =
+                              parseFloat(watchedAmount || "0") || 0;
+                            const recv = Math.max(0, amtNum - fee);
+                            const sym = selectedCoin;
+                            return (
+                              <div className="fee-box">
+                                <div className="fb-row">
+                                  <span className="fb-k">You send</span>
+                                  <span className="fb-val">
+                                    {amtNum.toFixed(6)} {sym}
+                                  </span>
+                                </div>
+                                <div className="fb-row">
+                                  <span className="fb-k">
+                                    Network fee (est.)
+                                  </span>
+                                  <span
+                                    className="fb-val"
+                                    style={{ color: "var(--accent)" }}
+                                  >
+                                    {fee} {sym}
+                                  </span>
+                                </div>
+                                <div
+                                  className="fb-row"
+                                  style={{
+                                    borderTop:
+                                      "1px solid rgba(255,255,255,0.06)",
+                                    paddingTop: 8,
+                                    marginTop: 4,
+                                  }}
+                                >
+                                  <span
+                                    className="fb-k"
+                                    style={{
+                                      color: "var(--t2)",
+                                      fontWeight: 600,
+                                    }}
+                                  >
+                                    Recipient receives
+                                  </span>
+                                  <span
+                                    className="fb-val"
+                                    style={{ color: "var(--accent)" }}
+                                  >
+                                    {recv.toFixed(6)} {sym}
+                                  </span>
+                                </div>
+                              </div>
+                            );
+                          })()}
+
+                          <div className="step-nav">
+                            <button
+                              type="button"
+                              className="sn-back"
+                              onClick={() => setWitStep(2)}
+                            >
+                              <ArrowLeft className="h-3.5 w-3.5" />
+                              <span>Back</span>
+                            </button>
+                            <button
+                              type="submit"
+                              disabled={isSubmitting}
+                              className="sn-next"
+                            >
+                              <Send className="h-3.5 w-3.5" />
+                              <span>
                                 {isSubmitting
                                   ? "Submitting..."
                                   : "Submit Withdrawal"}
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => form.reset()}
-                                className="btn-sub btn-outline"
-                                style={{ flex: "0 0 auto", padding: "10px 18px" }}
-                              >
-                                Reset
-                              </button>
-                            </div>
-                            <p
-                              style={{
-                                textAlign: "center",
-                                fontSize: ".72rem",
-                                color: "var(--t4)",
-                                marginTop: 8,
-                              }}
-                            >
-                              <ShieldCheck
-                                className="inline h-3 w-3"
-                                style={{ color: "var(--accent)", marginRight: 4 }}
-                              />
-                              Secured with 256-bit SSL
-                            </p>
+                              </span>
+                            </button>
                           </div>
-                        </form>
-                      </Form>
-
-                      <ProcessingTimeline />
-                    </>
-                  ) : (
-                    <StakedWithdrawalPanel />
-                  )}
-
-                  <WithdrawalFAQ />
+                          <p
+                            style={{
+                              textAlign: "center",
+                              fontSize: ".72rem",
+                              color: "var(--t4)",
+                              marginTop: 8,
+                            }}
+                          >
+                            <Lock
+                              className="inline h-3 w-3"
+                              style={{
+                                color: "var(--accent)",
+                                marginRight: 4,
+                              }}
+                            />
+                            Secured with 256-bit SSL
+                          </p>
+                        </div>
+                      )}
+                    </form>
+                  </Form>
                 </div>
 
-                {/* RIGHT COLUMN */}
+                {/* RIGHT COLUMN — sidebar (visible on all 3 steps) */}
                 <div>
                   <div className="icard">
                     <div className="icard-title">
@@ -900,12 +937,37 @@ export default function WithdrawalForm() {
                       />
                       Withdrawal Info
                     </div>
-                    <div className="ic-row"><span className="ic-k">Min. Withdrawal</span><span className="ic-v">0.0002 BTC</span></div>
-                    <div className="ic-row"><span className="ic-k">Platform Fee</span><span className="ic-v" style={{ color: "var(--accent)" }}>0% Free</span></div>
-                    <div className="ic-row"><span className="ic-k">Network Fee</span><span className="ic-v" style={{ color: "var(--t2)" }}>~0.00005 BTC</span></div>
-                    <div className="ic-row"><span className="ic-k">Processing</span><span className="ic-v">15 - 60 min</span></div>
-                    <div className="ic-row"><span className="ic-k">Daily Limit</span><span className="ic-v">$25,000</span></div>
-                    <div className="ic-row"><span className="ic-k">Monthly Limit</span><span className="ic-v">$500,000</span></div>
+                    <div className="ic-row">
+                      <span className="ic-k">Min. Withdrawal</span>
+                      <span className="ic-v">0.0002 BTC</span>
+                    </div>
+                    <div className="ic-row">
+                      <span className="ic-k">Platform Fee</span>
+                      <span
+                        className="ic-v"
+                        style={{ color: "var(--accent)" }}
+                      >
+                        0% Free
+                      </span>
+                    </div>
+                    <div className="ic-row">
+                      <span className="ic-k">Network Fee</span>
+                      <span className="ic-v" style={{ color: "var(--t2)" }}>
+                        ~0.00005 BTC
+                      </span>
+                    </div>
+                    <div className="ic-row">
+                      <span className="ic-k">Processing</span>
+                      <span className="ic-v">15 - 60 min</span>
+                    </div>
+                    <div className="ic-row">
+                      <span className="ic-k">Daily Limit</span>
+                      <span className="ic-v">$25,000</span>
+                    </div>
+                    <div className="ic-row">
+                      <span className="ic-k">Monthly Limit</span>
+                      <span className="ic-v">$500,000</span>
+                    </div>
                     <div className="lbar-wrap">
                       <div className="lb-head">
                         <span className="lb-lbl">Daily Used</span>
@@ -925,13 +987,25 @@ export default function WithdrawalForm() {
                       />
                       Security
                     </div>
-                    <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
+                    <div
+                      style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: 9,
+                      }}
+                    >
                       <div style={{ display: "flex", gap: 9 }}>
                         <CircleCheck
                           className="mt-[3px] h-3 w-3 shrink-0"
                           style={{ color: "var(--accent)" }}
                         />
-                        <p style={{ fontSize: ".75rem", color: "var(--t3)", lineHeight: 1.6 }}>
+                        <p
+                          style={{
+                            fontSize: ".75rem",
+                            color: "var(--t3)",
+                            lineHeight: 1.6,
+                          }}
+                        >
                           Withdrawals over $10,000 require email confirmation.
                         </p>
                       </div>
@@ -940,8 +1014,15 @@ export default function WithdrawalForm() {
                           className="mt-[3px] h-3 w-3 shrink-0"
                           style={{ color: "var(--accent)" }}
                         />
-                        <p style={{ fontSize: ".75rem", color: "var(--t3)", lineHeight: 1.6 }}>
-                          New addresses are whitelisted for 24h before first use.
+                        <p
+                          style={{
+                            fontSize: ".75rem",
+                            color: "var(--t3)",
+                            lineHeight: 1.6,
+                          }}
+                        >
+                          New addresses are whitelisted for 24h before first
+                          use.
                         </p>
                       </div>
                       <div style={{ display: "flex", gap: 9 }}>
@@ -949,14 +1030,19 @@ export default function WithdrawalForm() {
                           className="mt-[3px] h-3 w-3 shrink-0"
                           style={{ color: "var(--orange)" }}
                         />
-                        <p style={{ fontSize: ".75rem", color: "var(--t2)", lineHeight: 1.6 }}>
-                          Crypto transactions are irreversible. Verify address before confirming.
+                        <p
+                          style={{
+                            fontSize: ".75rem",
+                            color: "var(--t2)",
+                            lineHeight: 1.6,
+                          }}
+                        >
+                          Crypto transactions are irreversible. Verify address
+                          before confirming.
                         </p>
                       </div>
                     </div>
                   </div>
-
-                  {activeMode === "withdraw" && <PenaltySchedule />}
                 </div>
               </div>
             )}
