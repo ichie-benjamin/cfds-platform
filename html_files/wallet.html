@@ -657,19 +657,6 @@ input::placeholder,textarea::placeholder{color:var(--t4)!important;}
 </head>
 <body>
 <div class="ticker-bar"><div class="ticker-track" id="tickerTrack"></div></div>
-<!-- ═══ KYC ACCESS GATE (disabled for reference viewing) ═══ -->
-<script>
-(function(){
-  if(false){
-    document.addEventListener("DOMContentLoaded",function(){
-      var g=document.createElement("div");g.id="kycGate";
-      g.innerHTML='<div style="position:fixed;inset:0;z-index:99999;background:rgba(7,12,24,.97);backdrop-filter:blur(12px);display:flex;align-items:center;justify-content:center;padding:24px;"><div style="max-width:480px;width:100%;background:linear-gradient(145deg,#141E38,#0E1529);border:1.5px solid rgba(232,53,42,.35);border-radius:20px;padding:48px 40px;text-align:center;box-shadow:0 24px 80px rgba(0,0,0,.7);"><div style="width:72px;height:72px;border-radius:50%;background:rgba(232,53,42,.12);border:2px solid rgba(232,53,42,.35);display:flex;align-items:center;justify-content:center;margin:0 auto 24px;font-size:1.8rem;color:#E8352A;"><i class="fas fa-shield-halved"></i></div><h2 style="font-size:1.45rem;font-weight:800;color:#fff;letter-spacing:-.02em;margin-bottom:10px;">Identity Verification Required</h2><p style="font-size:.9rem;color:#8898B8;line-height:1.7;margin-bottom:8px;">You must complete <strong style="color:#C8D4E8;">KYC identity verification</strong> before accessing the trading platform.</p><p style="font-size:.82rem;color:#5E6E88;line-height:1.6;margin-bottom:28px;">This is a FINMA regulatory requirement. The process takes under 10 minutes and your account will be immediately activated once submitted.</p><div style="display:flex;flex-direction:column;gap:12px;"><a href="kyc.html" style="display:flex;align-items:center;justify-content:center;gap:10px;padding:15px 28px;background:linear-gradient(135deg,#E8352A,#C01C1C);border-radius:10px;color:#fff;font-size:.95rem;font-weight:800;text-decoration:none;box-shadow:0 6px 20px rgba(232,53,42,.35);"><i class="fas fa-id-card"></i> Complete Identity Verification</a><a href="signup.html" style="display:flex;align-items:center;justify-content:center;gap:8px;padding:12px;background:transparent;border:1.5px solid rgba(160,190,255,.15);border-radius:10px;color:#8898B8;font-size:.85rem;font-weight:600;text-decoration:none;"><i class="fas fa-arrow-left" style="font-size:.75rem;"></i> Back to Sign Up</a></div><div style="margin-top:20px;padding-top:20px;border-top:1px solid rgba(160,190,255,.08);display:flex;align-items:center;justify-content:center;gap:6px;font-size:.75rem;color:#5E6E88;"><i class="fas fa-lock" style="color:#00dfa2;font-size:.7rem;"></i> 256-bit SSL · FINMA Regulated · Swiss Banking Privacy</div></div></div>';
-      document.body.appendChild(g);
-      document.body.style.overflow="hidden";
-    });
-  }
-})();
-</script>
 
 <div class="toast" id="toast"></div>
 
