@@ -10,7 +10,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { toast } from "sonner";
 import axiosInstance from "@/lib/axios";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import useDataStore from "@/store/dataStore";
 import useUserStore from "@/store/userStore";
@@ -37,9 +37,9 @@ import {
   Tag,
   Lock,
   Send,
+  ChevronDown,
 } from "lucide-react";
 import { WithdrawalModeBar } from "@/components/withdrawal/WithdrawalModeBar";
-import { CoinGrid } from "@/components/withdrawal/CoinGrid";
 import { ContributePanel } from "@/components/deposit/ContributePanel";
 import type { WalletView } from "@/components/wallet/WalletSidebar";
 import { MarketSidebar } from "@/components/market/MarketSidebar";
@@ -93,46 +93,172 @@ type WithdrawalFormData = z.infer<typeof combinedSchema>;
 
 // ── Presentation-only metadata for the Withdraw wizard ───────────────
 // Mirrors the COINS array in html_files/wallet (2).html. Used only for
-// display (network tabs, available label, fee preview). Does NOT change
-// API payloads or stored values.
+// display (dropdown rows, network tabs, available label, fee preview).
+// Does NOT change API payloads or stored values.
 type WitCoinMeta = {
-  networks: string[];
+  sym: string;
+  name: string;
+  glyph: string;
+  color: string;
+  bg: string;
+  price: string;
+  bal: string;
   balanceLabel: string;
+  networks: string[];
   witBal: number;
   fee: number;
 };
-const WIT_COIN_META: Record<string, WitCoinMeta> = {
-  BTC: {
-    networks: ["Bitcoin (BTC)", "Lightning", "ERC-20"],
-    balanceLabel: "1.4800 BTC ($124,631)",
-    witBal: 1.48,
-    fee: 0.00005,
-  },
-  ETH: {
-    networks: ["ERC-20", "Base", "Arbitrum", "Optimism"],
-    balanceLabel: "14.20 ETH ($45,184)",
-    witBal: 14.2,
-    fee: 0.001,
-  },
-  USDT: {
-    networks: ["ERC-20", "TRC-20", "BEP-20", "Solana", "Polygon"],
-    balanceLabel: "28,400 USDT ($28,400)",
-    witBal: 28400,
-    fee: 1,
-  },
-  BNB: {
-    networks: ["BEP-20", "ERC-20"],
-    balanceLabel: "18.4 BNB ($11,187)",
-    witBal: 18.4,
-    fee: 0.001,
-  },
-  SOL: {
-    networks: ["Solana", "ERC-20"],
-    balanceLabel: "42.0 SOL ($7,644)",
-    witBal: 42,
-    fee: 0.00025,
-  },
-};
+const WIT_COINS: WitCoinMeta[] = [
+  { sym: "BTC",   name: "Bitcoin",       glyph: "₿", color: "#F7931A", bg: "rgba(247,147,26,0.13)",  price: "$84,210", bal: "1.4800 BTC",   balanceLabel: "1.4800 BTC ($124,631)",  networks: ["Bitcoin (BTC)", "Lightning", "ERC-20"],                                       witBal: 1.48,    fee: 0.00005 },
+  { sym: "ETH",   name: "Ethereum",      glyph: "Ξ", color: "#627EEA", bg: "rgba(98,126,234,0.13)",  price: "$3,182",  bal: "14.20 ETH",    balanceLabel: "14.20 ETH ($45,184)",    networks: ["ERC-20", "Base", "Arbitrum", "Optimism"],                                     witBal: 14.2,    fee: 0.001 },
+  { sym: "USDT",  name: "Tether USD",    glyph: "₮", color: "#26A17B", bg: "rgba(38,161,123,0.13)",  price: "$1.00",   bal: "28,400 USDT",  balanceLabel: "28,400 USDT ($28,400)",  networks: ["ERC-20", "TRC-20", "BEP-20", "Solana", "Polygon", "Avalanche C-Chain", "Arbitrum", "Optimism"], witBal: 28400, fee: 1 },
+  { sym: "BNB",   name: "BNB Chain",     glyph: "B", color: "#F3BA2F", bg: "rgba(243,186,47,0.13)",  price: "$608",    bal: "18.4 BNB",     balanceLabel: "18.4 BNB ($11,187)",     networks: ["BEP-20", "ERC-20"],                                                            witBal: 18.4,    fee: 0.001 },
+  { sym: "SOL",   name: "Solana",        glyph: "◎", color: "#9945FF", bg: "rgba(153,69,255,0.13)",  price: "$182",    bal: "42.0 SOL",     balanceLabel: "42.0 SOL ($7,644)",      networks: ["Solana", "ERC-20"],                                                            witBal: 42,      fee: 0.00025 },
+  { sym: "XRP",   name: "Ripple XRP",    glyph: "✕", color: "#00AAE4", bg: "rgba(0,170,228,0.13)",   price: "$2.18",   bal: "5,200 XRP",    balanceLabel: "5,200 XRP ($11,336)",    networks: ["XRP Ledger", "ERC-20"],                                                        witBal: 5200,    fee: 0.2 },
+  { sym: "USDC",  name: "USD Coin",      glyph: "$", color: "#2775CA", bg: "rgba(39,117,202,0.13)",  price: "$1.00",   bal: "10,000 USDC",  balanceLabel: "10,000 USDC ($10,000)",  networks: ["ERC-20", "Solana", "BEP-20", "Polygon"],                                       witBal: 10000,   fee: 1 },
+  { sym: "ADA",   name: "Cardano",       glyph: "A", color: "#0033AD", bg: "rgba(0,51,173,0.13)",    price: "$0.74",   bal: "12,400 ADA",   balanceLabel: "12,400 ADA ($9,176)",    networks: ["Cardano", "ERC-20"],                                                           witBal: 12400,   fee: 1 },
+  { sym: "DOGE",  name: "Dogecoin",      glyph: "Ð", color: "#BA9F33", bg: "rgba(186,159,51,0.13)",  price: "$0.18",   bal: "4,200 DOGE",   balanceLabel: "4,200 DOGE ($756)",      networks: ["Dogecoin", "ERC-20"],                                                          witBal: 4200,    fee: 1 },
+  { sym: "MATIC", name: "Polygon",       glyph: "M", color: "#8247E5", bg: "rgba(130,71,229,0.13)",  price: "$1.02",   bal: "2,800 MATIC",  balanceLabel: "2,800 MATIC ($2,856)",   networks: ["Polygon", "ERC-20"],                                                           witBal: 2800,    fee: 0.1 },
+  { sym: "DOT",   name: "Polkadot",      glyph: "D", color: "#E6007A", bg: "rgba(230,0,122,0.13)",   price: "$9.84",   bal: "380 DOT",      balanceLabel: "380 DOT ($3,739)",       networks: ["Polkadot", "ERC-20"],                                                          witBal: 380,     fee: 0.1 },
+  { sym: "AVAX",  name: "Avalanche",     glyph: "A", color: "#E84120", bg: "rgba(232,65,32,0.13)",   price: "$38.20",  bal: "120 AVAX",     balanceLabel: "120 AVAX ($4,584)",      networks: ["C-Chain", "X-Chain", "ERC-20"],                                                witBal: 120,     fee: 0.01 },
+  { sym: "LINK",  name: "Chainlink",     glyph: "L", color: "#2A5ADA", bg: "rgba(42,90,218,0.13)",   price: "$18.40",  bal: "280 LINK",     balanceLabel: "280 LINK ($5,152)",      networks: ["ERC-20", "BEP-20"],                                                            witBal: 280,     fee: 0.1 },
+  { sym: "UNI",   name: "Uniswap",       glyph: "U", color: "#FF007A", bg: "rgba(255,0,122,0.13)",   price: "$12.60",  bal: "150 UNI",      balanceLabel: "150 UNI ($1,890)",       networks: ["ERC-20"],                                                                      witBal: 150,     fee: 0.1 },
+  { sym: "LTC",   name: "Litecoin",      glyph: "Ł", color: "#BFBBBB", bg: "rgba(191,187,187,0.13)", price: "$92",     bal: "22 LTC",       balanceLabel: "22 LTC ($2,024)",        networks: ["Litecoin", "ERC-20"],                                                          witBal: 22,      fee: 0.001 },
+  { sym: "BCH",   name: "Bitcoin Cash",  glyph: "Ƀ", color: "#8DC351", bg: "rgba(141,195,81,0.13)",  price: "$480",    bal: "6 BCH",        balanceLabel: "6 BCH ($2,880)",         networks: ["Bitcoin Cash", "ERC-20"],                                                      witBal: 6,       fee: 0.001 },
+  { sym: "XLM",   name: "Stellar",       glyph: "✶", color: "#14B6E7", bg: "rgba(20,182,231,0.13)",  price: "$0.14",   bal: "8,000 XLM",    balanceLabel: "8,000 XLM ($1,120)",     networks: ["Stellar", "ERC-20"],                                                           witBal: 8000,    fee: 0.00001 },
+  { sym: "ATOM",  name: "Cosmos",        glyph: "⚛", color: "#6F7CBA", bg: "rgba(111,124,186,0.13)", price: "$10.20",  bal: "120 ATOM",     balanceLabel: "120 ATOM ($1,224)",      networks: ["Cosmos", "ERC-20"],                                                            witBal: 120,     fee: 0.005 },
+  { sym: "TRX",   name: "TRON",          glyph: "T", color: "#EF0027", bg: "rgba(239,0,39,0.13)",    price: "$0.14",   bal: "18,000 TRX",   balanceLabel: "18,000 TRX ($2,520)",    networks: ["TRC-20", "ERC-20"],                                                            witBal: 18000,   fee: 1 },
+  { sym: "FIL",   name: "Filecoin",      glyph: "F", color: "#42C1CA", bg: "rgba(66,193,202,0.13)",  price: "$5.80",   bal: "90 FIL",       balanceLabel: "90 FIL ($522)",          networks: ["Filecoin", "ERC-20"],                                                          witBal: 90,      fee: 0.001 },
+];
+const WIT_COIN_META: Record<string, WitCoinMeta> = Object.fromEntries(
+  WIT_COINS.map((c) => [c.sym, c]),
+);
+
+// ── Cryptocurrency dropdown (Withdraw Step 1) ────────────────────────
+// Mirrors the `coin-trigger` / `coin-menu` pattern from
+// html_files/wallet (2).html (lines 1669-1683 + lines 218-243 CSS).
+function WitCoinDropdown({
+  selectedCoin,
+  onSelect,
+}: {
+  selectedCoin: string;
+  onSelect: (symbol: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const searchRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: MouseEvent) => {
+      if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) {
+        setOpen(false);
+        setSearch("");
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [open]);
+
+  useEffect(() => {
+    if (open) {
+      requestAnimationFrame(() => searchRef.current?.focus());
+    } else {
+      setSearch("");
+    }
+  }, [open]);
+
+  const selected = WIT_COIN_META[selectedCoin] ?? WIT_COINS[0];
+  const q = search.trim().toLowerCase();
+  const list = q
+    ? WIT_COINS.filter(
+        (c) =>
+          c.sym.toLowerCase().includes(q) ||
+          c.name.toLowerCase().includes(q),
+      )
+    : WIT_COINS;
+
+  return (
+    <div className="coin-drop-wrap" ref={wrapRef}>
+      <div
+        className={`coin-trigger ${open ? "open" : ""}`}
+        onClick={() => setOpen((v) => !v)}
+        role="button"
+        tabIndex={0}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            setOpen((v) => !v);
+          } else if (e.key === "Escape") {
+            setOpen(false);
+          }
+        }}
+      >
+        <div
+          className="ct-logo"
+          style={{ background: selected.bg, color: selected.color }}
+        >
+          {selected.glyph}
+        </div>
+        <div className="ct-info">
+          <div className="ct-sym">{selected.sym}</div>
+          <div className="ct-name">{selected.name}</div>
+        </div>
+        <div
+          className="ct-price"
+          style={{ color: "var(--accent)", fontSize: ".75rem" }}
+        >
+          {selected.bal}
+        </div>
+        <ChevronDown className={`ct-arrow ${open ? "open" : ""} h-3 w-3`} />
+      </div>
+      <div className={`coin-menu ${open ? "open" : ""}`}>
+        <div className="cm-search">
+          <input
+            ref={searchRef}
+            type="text"
+            placeholder="Search by name or symbol..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            onClick={(e) => e.stopPropagation()}
+            onKeyDown={(e) => {
+              if (e.key === "Escape") setOpen(false);
+            }}
+          />
+        </div>
+        <div className="cm-list" role="listbox">
+          {list.length === 0 ? (
+            <div className="cm-empty">No coins match “{search}”</div>
+          ) : (
+            list.map((coin) => (
+              <div
+                key={coin.sym}
+                role="option"
+                aria-selected={selectedCoin === coin.sym}
+                className={`cm-item ${selectedCoin === coin.sym ? "sel" : ""}`}
+                onClick={() => {
+                  onSelect(coin.sym);
+                  setOpen(false);
+                  setSearch("");
+                }}
+              >
+                <span className="cm-sym" style={{ color: coin.color }}>
+                  {coin.sym}
+                </span>
+                <span className="cm-nm">{coin.name}</span>
+                <span className="cm-pr">{coin.price}</span>
+                <span className="cm-bal">{coin.bal}</span>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 // ── Component ────────────────────────────────────────────────────────
 
@@ -281,12 +407,12 @@ export default function WithdrawalForm() {
     }
   };
 
-  const handleCoinSelect = (symbol: string, _name: string, network: string) => {
+  const handleCoinSelect = (symbol: string) => {
     setSelectedCoin(symbol);
     // Pick the first network for this coin from the reference metadata, so
     // the network tabs in Step 1 always start on a valid value.
     const meta = WIT_COIN_META[symbol];
-    const firstNet = meta?.networks[0] ?? network;
+    const firstNet = meta?.networks[0] ?? selectedNetwork;
     setSelectedNetwork(firstNet);
     // Sync to react-hook-form so the submitted payload always matches the UI
     form.setValue("network", firstNet, { shouldValidate: true });
@@ -531,10 +657,13 @@ export default function WithdrawalForm() {
                             Select Asset &amp; Network
                           </div>
                           <div className="field">
-                            <CoinGrid
+                            <div className="flabel">
+                              Cryptocurrency{" "}
+                              <small>Your holdings shown below</small>
+                            </div>
+                            <WitCoinDropdown
                               selectedCoin={selectedCoin}
-                              formNetwork={selectedNetwork}
-                              onCoinSelect={handleCoinSelect}
+                              onSelect={handleCoinSelect}
                             />
                           </div>
                           <div className="field">
