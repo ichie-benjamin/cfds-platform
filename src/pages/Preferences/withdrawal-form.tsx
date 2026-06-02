@@ -38,6 +38,9 @@ import {
   Lock,
   Send,
   ChevronDown,
+  X,
+  Check,
+  CircleAlert,
 } from "lucide-react";
 import { WithdrawalModeBar } from "@/components/withdrawal/WithdrawalModeBar";
 import { ContributePanel } from "@/components/deposit/ContributePanel";
@@ -295,6 +298,15 @@ export default function WithdrawalForm() {
   const [selectedWitAccount, setSelectedWitAccount] =
     useState<WitAccount>("available");
 
+  // Trade Balance gate acknowledgement — UI-only. Mirrors `witAcctApproved`
+  // in the reference. Does NOT cancel real trades or call any API.
+  const [witTradeAcknowledged, setWitTradeAcknowledged] = useState(false);
+  // Wrapper that resets the acknowledgement on any account change
+  const pickWitAccount = (id: WitAccount) => {
+    setSelectedWitAccount(id);
+    setWitTradeAcknowledged(false);
+  };
+
   // Withdraw wizard UI-flow state (matches reference wallet (2).html)
   const [witStep, setWitStep] = useState<1 | 2 | 3>(1);
   const initialMeta = WIT_COIN_META["BTC"];
@@ -354,7 +366,10 @@ export default function WithdrawalForm() {
 
   // Reset wizard to Step 1 whenever the Withdraw tab is (re)entered
   useEffect(() => {
-    if (viewMode === "wit") setWitStep(1);
+    if (viewMode === "wit") {
+      setWitStep(1);
+      setWitTradeAcknowledged(false);
+    }
   }, [viewMode]);
 
   // This function prepares the form submission and shows modal for wire transfers
@@ -765,9 +780,7 @@ export default function WithdrawalForm() {
                                 <button
                                   key={acct.id}
                                   type="button"
-                                  onClick={() =>
-                                    setSelectedWitAccount(acct.id)
-                                  }
+                                  onClick={() => pickWitAccount(acct.id)}
                                   className={`wit-acct-opt ${isOn ? "on" : ""}`}
                                 >
                                   <div
@@ -800,6 +813,118 @@ export default function WithdrawalForm() {
                               );
                             })}
                           </div>
+
+                          {/* Trade Balance gate — only when "total" is
+                              selected and not yet acknowledged. UI-only:
+                              does NOT call any API or cancel real trades. */}
+                          {selectedWitAccount === "total" &&
+                            !witTradeAcknowledged && (
+                              <div
+                                className="wit-gate-box"
+                                style={{
+                                  background:
+                                    "linear-gradient(135deg,rgba(232,89,89,.07),rgba(232,89,89,.02))",
+                                  border: "1px solid rgba(232,89,89,.2)",
+                                }}
+                              >
+                                <div
+                                  className="wg-icon"
+                                  style={{
+                                    background: "rgba(232,89,89,.12)",
+                                    border: "1.5px solid rgba(232,89,89,.3)",
+                                  }}
+                                >
+                                  <TriangleAlert
+                                    className="h-4 w-4"
+                                    style={{ color: "var(--red)" }}
+                                  />
+                                </div>
+                                <div className="wg-title">
+                                  Pending Trades Detected
+                                </div>
+                                <div className="wg-desc">
+                                  You currently have{" "}
+                                  <strong style={{ color: "var(--t1)" }}>
+                                    5 active trade positions
+                                  </strong>
+                                  . Withdrawing from your trade balance
+                                  requires all pending trades to be cancelled.
+                                  This action is{" "}
+                                  <strong style={{ color: "var(--red)" }}>
+                                    irreversible
+                                  </strong>{" "}
+                                  and will result in the loss of all open
+                                  trade orders.
+                                </div>
+                                <div
+                                  style={{
+                                    display: "flex",
+                                    alignItems: "flex-start",
+                                    gap: 8,
+                                    padding: "10px 12px",
+                                    background: "rgba(232,89,89,.05)",
+                                    border: "1px solid rgba(232,89,89,.12)",
+                                    borderRadius: 8,
+                                    marginBottom: 12,
+                                  }}
+                                >
+                                  <CircleAlert
+                                    className="h-3 w-3 shrink-0"
+                                    style={{
+                                      color: "var(--red)",
+                                      marginTop: 2,
+                                    }}
+                                  />
+                                  <span
+                                    style={{
+                                      fontSize: ".65rem",
+                                      color: "var(--t2)",
+                                      lineHeight: 1.5,
+                                    }}
+                                  >
+                                    By proceeding, you acknowledge that all
+                                    pending trade orders will be permanently
+                                    cancelled and any unrealized gains or
+                                    losses will be finalized.
+                                  </span>
+                                </div>
+                                <div
+                                  style={{
+                                    fontSize: ".72rem",
+                                    color: "var(--t1)",
+                                    textAlign: "center",
+                                    marginBottom: 10,
+                                    fontWeight: 700,
+                                  }}
+                                >
+                                  Do you want to cancel all pending trades?
+                                </div>
+                                <div className="wit-gate-btns">
+                                  <button
+                                    type="button"
+                                    className="wgb-no"
+                                    onClick={() => {
+                                      // Revert to the safe default account
+                                      pickWitAccount("available");
+                                    }}
+                                  >
+                                    <X className="h-3 w-3" />
+                                    <span>No, Keep Trades</span>
+                                  </button>
+                                  <button
+                                    type="button"
+                                    className="wgb-yes"
+                                    onClick={() =>
+                                      setWitTradeAcknowledged(true)
+                                    }
+                                  >
+                                    <Check className="h-3 w-3" />
+                                    <span>Yes, Cancel &amp; Proceed</span>
+                                  </button>
+                                </div>
+                              </div>
+                            )}
+
                           <div className="step-nav">
                             <button
                               type="button"
@@ -813,6 +938,10 @@ export default function WithdrawalForm() {
                               type="button"
                               className="sn-next"
                               onClick={() => setWitStep(3)}
+                              disabled={
+                                selectedWitAccount === "total" &&
+                                !witTradeAcknowledged
+                              }
                             >
                               <span>Continue to Details</span>
                               <ArrowRight className="h-3.5 w-3.5" />

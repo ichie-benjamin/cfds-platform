@@ -408,6 +408,40 @@ body.wallet-active .flex-1.md\\:ml-\\[80px\\] { margin-left: 0 !important; }
 .wallet-root .wao-amount { font-family:var(--mono); font-size:.78rem; font-weight:700; color: var(--accent); flex-shrink:0; }
 .wallet-root .wao-check { font-size:.7rem; color: var(--t4); opacity:0; transition: all .2s; flex-shrink:0; }
 
+/* TRADE BALANCE GATE BOX (Withdraw Step 2 — Trade Balance warning) */
+.wallet-root .wit-gate-box { border-radius:10px; padding:14px 16px; margin-top:10px; margin-bottom:4px; }
+.wallet-root .wit-gate-box .wg-icon {
+  width:40px; height:40px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  margin:0 auto 10px; font-size:1.1rem;
+}
+.wallet-root .wit-gate-box .wg-title {
+  font-size:.82rem; font-weight:800; color:var(--t1);
+  text-align:center; margin-bottom:4px; font-family: var(--heading);
+}
+.wallet-root .wit-gate-box .wg-desc {
+  font-size:.68rem; color:var(--t3);
+  text-align:center; line-height:1.5; margin-bottom:10px;
+}
+.wallet-root .wit-gate-btns { display:flex; gap:8px; margin-top:10px; }
+.wallet-root .wit-gate-btns button {
+  flex:1; padding:8px 14px; border-radius:8px; border:none;
+  font-size:.72rem; font-weight:800; cursor:pointer;
+  transition: all .2s; font-family: var(--sans);
+  display:inline-flex; align-items:center; justify-content:center; gap:6px;
+}
+.wallet-root .wgb-yes {
+  background: linear-gradient(135deg, var(--accent-light), var(--accent), var(--accent-dark));
+  color:#07080c;
+  box-shadow: inset 0 1px 2px rgba(255,255,255,.25);
+}
+.wallet-root .wgb-no {
+  background: rgba(255,255,255,.05);
+  color: var(--t2);
+  border:1px solid rgba(255,255,255,.08) !important;
+}
+.wallet-root .wgb-no:hover { background: rgba(255,255,255,.08); }
+
 /* HISTORY */
 .wallet-root .hist-section { margin-top:32px; }
 .wallet-root .hist-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap:10px; }
