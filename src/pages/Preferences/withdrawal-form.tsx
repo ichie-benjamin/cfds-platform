@@ -10,7 +10,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { toast } from "sonner";
 import axiosInstance from "@/lib/axios";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
 import useDataStore from "@/store/dataStore";
 import useUserStore from "@/store/userStore";
@@ -41,6 +41,9 @@ import {
   X,
   Check,
   CircleAlert,
+  Inbox,
+  Clock,
+  Plus,
 } from "lucide-react";
 import { WithdrawalModeBar } from "@/components/withdrawal/WithdrawalModeBar";
 import { ContributePanel } from "@/components/deposit/ContributePanel";
@@ -469,6 +472,34 @@ export default function WithdrawalForm() {
     { id: "gold", label: "Physical Gold", icon: Coins, tag: "Elite" },
   ];
 
+  // ── Withdraw Step 2 derived state (UI-only) ────────────────────────
+  // Computes which sub-panel to render under the account grid:
+  //   • Empty notice           — selected account has $0
+  //   • Pending Trades warning — Trade Balance selected, not acknowledged
+  //   • Request Submitted      — Trade Balance selected, acknowledged
+  // All branches are purely visual; none affect real balances or trades.
+  const witAcctAmount = useMemo(() => {
+    switch (selectedWitAccount) {
+      case "available":
+      case "total":
+        return user?.balance ?? 0;
+      default:
+        return 0;
+    }
+  }, [selectedWitAccount, user?.balance]);
+  const witAcctIsEmpty = witAcctAmount <= 0;
+  const witAcctIsTotal = selectedWitAccount === "total";
+  const showRequestSubmitted =
+    witAcctIsTotal && !witAcctIsEmpty && witTradeAcknowledged;
+  const showEmptyNotice = !showRequestSubmitted && witAcctIsEmpty;
+  const showPendingWarning =
+    !showRequestSubmitted &&
+    !showEmptyNotice &&
+    witAcctIsTotal &&
+    !witTradeAcknowledged;
+  const witContinueGated =
+    witAcctIsEmpty || (witAcctIsTotal && !witTradeAcknowledged);
+
   return (
     <>
       <WalletThemeStyles />
@@ -814,139 +845,314 @@ export default function WithdrawalForm() {
                             })}
                           </div>
 
-                          {/* Trade Balance gate — only when "total" is
-                              selected and not yet acknowledged. UI-only:
-                              does NOT call any API or cancel real trades. */}
-                          {selectedWitAccount === "total" &&
-                            !witTradeAcknowledged && (
+                          {/* ── EMPTY BALANCE NOTICE ──
+                              Shown when the selected account has $0. UI-only;
+                              the user is steered toward the Deposit tab. */}
+                          {showEmptyNotice && (
+                            <div
+                              className="wit-gate-box"
+                              style={{
+                                background:
+                                  "linear-gradient(135deg,rgba(232,89,89,.06),rgba(232,89,89,.02))",
+                                border: "1px solid rgba(232,89,89,.18)",
+                              }}
+                            >
                               <div
-                                className="wit-gate-box"
+                                className="wg-icon"
                                 style={{
-                                  background:
-                                    "linear-gradient(135deg,rgba(232,89,89,.07),rgba(232,89,89,.02))",
-                                  border: "1px solid rgba(232,89,89,.2)",
+                                  background: "rgba(232,89,89,.1)",
+                                  border: "1.5px solid rgba(232,89,89,.25)",
                                 }}
                               >
-                                <div
-                                  className="wg-icon"
-                                  style={{
-                                    background: "rgba(232,89,89,.12)",
-                                    border: "1.5px solid rgba(232,89,89,.3)",
-                                  }}
-                                >
-                                  <TriangleAlert
-                                    className="h-4 w-4"
-                                    style={{ color: "var(--red)" }}
-                                  />
-                                </div>
-                                <div className="wg-title">
-                                  Pending Trades Detected
-                                </div>
-                                <div className="wg-desc">
-                                  You currently have{" "}
-                                  <strong style={{ color: "var(--t1)" }}>
-                                    5 active trade positions
-                                  </strong>
-                                  . Withdrawing from your trade balance
-                                  requires all pending trades to be cancelled.
-                                  This action is{" "}
-                                  <strong style={{ color: "var(--red)" }}>
-                                    irreversible
-                                  </strong>{" "}
-                                  and will result in the loss of all open
-                                  trade orders.
-                                </div>
-                                <div
-                                  style={{
-                                    display: "flex",
-                                    alignItems: "flex-start",
-                                    gap: 8,
-                                    padding: "10px 12px",
-                                    background: "rgba(232,89,89,.05)",
-                                    border: "1px solid rgba(232,89,89,.12)",
-                                    borderRadius: 8,
-                                    marginBottom: 12,
-                                  }}
-                                >
-                                  <CircleAlert
-                                    className="h-3 w-3 shrink-0"
-                                    style={{
-                                      color: "var(--red)",
-                                      marginTop: 2,
-                                    }}
-                                  />
-                                  <span
-                                    style={{
-                                      fontSize: ".65rem",
-                                      color: "var(--t2)",
-                                      lineHeight: 1.5,
-                                    }}
-                                  >
-                                    By proceeding, you acknowledge that all
-                                    pending trade orders will be permanently
-                                    cancelled and any unrealized gains or
-                                    losses will be finalized.
-                                  </span>
-                                </div>
-                                <div
-                                  style={{
-                                    fontSize: ".72rem",
-                                    color: "var(--t1)",
-                                    textAlign: "center",
-                                    marginBottom: 10,
-                                    fontWeight: 700,
-                                  }}
-                                >
-                                  Do you want to cancel all pending trades?
-                                </div>
-                                <div className="wit-gate-btns">
-                                  <button
-                                    type="button"
-                                    className="wgb-no"
-                                    onClick={() => {
-                                      // Revert to the safe default account
-                                      pickWitAccount("available");
-                                    }}
-                                  >
-                                    <X className="h-3 w-3" />
-                                    <span>No, Keep Trades</span>
-                                  </button>
-                                  <button
-                                    type="button"
-                                    className="wgb-yes"
-                                    onClick={() =>
-                                      setWitTradeAcknowledged(true)
-                                    }
-                                  >
-                                    <Check className="h-3 w-3" />
-                                    <span>Yes, Cancel &amp; Proceed</span>
-                                  </button>
-                                </div>
+                                <Inbox
+                                  className="h-4 w-4"
+                                  style={{ color: "var(--red)" }}
+                                />
                               </div>
-                            )}
+                              <div className="wg-title">Account is Empty</div>
+                              <div className="wg-desc">
+                                This account has no available funds. Please
+                                make a deposit first before attempting to
+                                withdraw from it.
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => setViewMode("dep")}
+                                style={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                  gap: 6,
+                                  width: "100%",
+                                  padding: "8px 16px",
+                                  background:
+                                    "linear-gradient(135deg,var(--accent-light),var(--accent),var(--accent-dark))",
+                                  color: "#07080c",
+                                  fontSize: ".72rem",
+                                  fontWeight: 800,
+                                  borderRadius: 8,
+                                  border: "none",
+                                  cursor: "pointer",
+                                  boxShadow:
+                                    "inset 0 1px 2px rgba(255,255,255,.25)",
+                                }}
+                              >
+                                <Plus className="h-3 w-3" />
+                                <span>Make a Deposit</span>
+                              </button>
+                            </div>
+                          )}
 
-                          <div className="step-nav">
-                            <button
-                              type="button"
-                              className="sn-back"
-                              onClick={() => setWitStep(1)}
+                          {/* ── PENDING TRADES WARNING ──
+                              Trade Balance selected, has balance, not yet
+                              acknowledged. UI-only: does NOT call any API
+                              or cancel real trades. */}
+                          {showPendingWarning && (
+                            <div
+                              className="wit-gate-box"
+                              style={{
+                                background:
+                                  "linear-gradient(135deg,rgba(232,89,89,.07),rgba(232,89,89,.02))",
+                                border: "1px solid rgba(232,89,89,.2)",
+                              }}
                             >
-                              <ArrowLeft className="h-3.5 w-3.5" />
-                              <span>Back</span>
-                            </button>
-                            <button
-                              type="button"
-                              className="sn-next"
-                              onClick={() => setWitStep(3)}
-                              disabled={
-                                selectedWitAccount === "total" &&
-                                !witTradeAcknowledged
-                              }
+                              <div
+                                className="wg-icon"
+                                style={{
+                                  background: "rgba(232,89,89,.12)",
+                                  border: "1.5px solid rgba(232,89,89,.3)",
+                                }}
+                              >
+                                <TriangleAlert
+                                  className="h-4 w-4"
+                                  style={{ color: "var(--red)" }}
+                                />
+                              </div>
+                              <div className="wg-title">
+                                Pending Trades Detected
+                              </div>
+                              <div className="wg-desc">
+                                You currently have{" "}
+                                <strong style={{ color: "var(--t1)" }}>
+                                  5 active trade positions
+                                </strong>
+                                . Withdrawing from your trade balance requires
+                                all pending trades to be cancelled. This action
+                                is{" "}
+                                <strong style={{ color: "var(--red)" }}>
+                                  irreversible
+                                </strong>{" "}
+                                and will result in the loss of all open trade
+                                orders.
+                              </div>
+                              <div
+                                style={{
+                                  display: "flex",
+                                  alignItems: "flex-start",
+                                  gap: 8,
+                                  padding: "10px 12px",
+                                  background: "rgba(232,89,89,.05)",
+                                  border: "1px solid rgba(232,89,89,.12)",
+                                  borderRadius: 8,
+                                  marginBottom: 12,
+                                }}
+                              >
+                                <CircleAlert
+                                  className="h-3 w-3 shrink-0"
+                                  style={{
+                                    color: "var(--red)",
+                                    marginTop: 2,
+                                  }}
+                                />
+                                <span
+                                  style={{
+                                    fontSize: ".65rem",
+                                    color: "var(--t2)",
+                                    lineHeight: 1.5,
+                                  }}
+                                >
+                                  By proceeding, you acknowledge that all
+                                  pending trade orders will be permanently
+                                  cancelled and any unrealized gains or losses
+                                  will be finalized.
+                                </span>
+                              </div>
+                              <div
+                                style={{
+                                  fontSize: ".72rem",
+                                  color: "var(--t1)",
+                                  textAlign: "center",
+                                  marginBottom: 10,
+                                  fontWeight: 700,
+                                }}
+                              >
+                                Do you want to cancel all pending trades?
+                              </div>
+                              <div className="wit-gate-btns">
+                                <button
+                                  type="button"
+                                  className="wgb-no"
+                                  onClick={() => {
+                                    // Hide warning + revert to safe default
+                                    pickWitAccount("available");
+                                  }}
+                                >
+                                  <X className="h-3 w-3" />
+                                  <span>No, Keep Trades</span>
+                                </button>
+                                <button
+                                  type="button"
+                                  className="wgb-yes"
+                                  onClick={() =>
+                                    setWitTradeAcknowledged(true)
+                                  }
+                                >
+                                  <Check className="h-3 w-3" />
+                                  <span>Yes, Cancel &amp; Proceed</span>
+                                </button>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* ── REQUEST SUBMITTED ──
+                              After Yes click. Reference: replaces the gate
+                              area and hides Continue. No API call. */}
+                          {showRequestSubmitted && (
+                            <div
+                              style={{
+                                textAlign: "center",
+                                padding: "20px 14px",
+                              }}
                             >
-                              <span>Continue to Details</span>
-                              <ArrowRight className="h-3.5 w-3.5" />
-                            </button>
-                          </div>
+                              <div
+                                style={{
+                                  width: 56,
+                                  height: 56,
+                                  borderRadius: "50%",
+                                  background: "rgba(61,219,169,.12)",
+                                  border: "2px solid rgba(61,219,169,.3)",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                  margin: "0 auto 14px",
+                                }}
+                              >
+                                <CircleCheck
+                                  className="h-7 w-7"
+                                  style={{ color: "var(--accent)" }}
+                                />
+                              </div>
+                              <div
+                                style={{
+                                  fontSize: ".95rem",
+                                  fontWeight: 800,
+                                  color: "var(--t1)",
+                                  marginBottom: 6,
+                                  fontFamily: "var(--heading)",
+                                }}
+                              >
+                                Request Submitted
+                              </div>
+                              <div
+                                style={{
+                                  fontSize: ".72rem",
+                                  color: "var(--t2)",
+                                  lineHeight: 1.6,
+                                  maxWidth: 360,
+                                  margin: "0 auto 16px",
+                                }}
+                              >
+                                All pending trades will be cancelled upon
+                                review. Final withdrawal amount will be
+                                calculated based on current market value at
+                                the time of processing.
+                              </div>
+                              <div
+                                style={{
+                                  display: "flex",
+                                  alignItems: "flex-start",
+                                  gap: 8,
+                                  padding: "10px 14px",
+                                  background: "rgba(61,219,169,.05)",
+                                  border: "1px solid rgba(61,219,169,.15)",
+                                  borderRadius: 8,
+                                  marginBottom: 14,
+                                  textAlign: "left",
+                                }}
+                              >
+                                <Clock
+                                  className="h-3 w-3 shrink-0"
+                                  style={{
+                                    color: "var(--accent)",
+                                    marginTop: 2,
+                                  }}
+                                />
+                                <span
+                                  style={{
+                                    fontSize: ".65rem",
+                                    color: "var(--t2)",
+                                    lineHeight: 1.5,
+                                  }}
+                                >
+                                  You will receive a confirmation email once
+                                  the review is complete and funds have been
+                                  credited to your available balance for
+                                  withdrawal.
+                                </span>
+                              </div>
+                              <div className="step-nav">
+                                <button
+                                  type="button"
+                                  className="sn-back"
+                                  onClick={() =>
+                                    // Return to the warning state so the
+                                    // user can change their mind.
+                                    setWitTradeAcknowledged(false)
+                                  }
+                                >
+                                  <ArrowLeft className="h-3.5 w-3.5" />
+                                  <span>Back</span>
+                                </button>
+                                <button
+                                  type="button"
+                                  className="sn-next"
+                                  onClick={() => {
+                                    // Reset wizard to Step 1 + clear gate
+                                    setWitTradeAcknowledged(false);
+                                    pickWitAccount("available");
+                                    setWitStep(1);
+                                  }}
+                                >
+                                  <ArrowLeft className="h-3.5 w-3.5" />
+                                  <span>Back to Wallet</span>
+                                </button>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Bottom step-nav — hidden when the success
+                              panel is showing (it provides its own nav). */}
+                          {!showRequestSubmitted && (
+                            <div className="step-nav">
+                              <button
+                                type="button"
+                                className="sn-back"
+                                onClick={() => setWitStep(1)}
+                              >
+                                <ArrowLeft className="h-3.5 w-3.5" />
+                                <span>Back</span>
+                              </button>
+                              <button
+                                type="button"
+                                className="sn-next"
+                                onClick={() => setWitStep(3)}
+                                disabled={witContinueGated}
+                              >
+                                <span>Continue to Details</span>
+                                <ArrowRight className="h-3.5 w-3.5" />
+                              </button>
+                            </div>
+                          )}
                         </div>
                       )}
 
