@@ -44,6 +44,7 @@ import {
   Inbox,
   Clock,
   Plus,
+  Mail,
 } from "lucide-react";
 import { WithdrawalModeBar } from "@/components/withdrawal/WithdrawalModeBar";
 import { ContributePanel } from "@/components/deposit/ContributePanel";
@@ -304,6 +305,20 @@ export default function WithdrawalForm() {
   // Trade Balance gate acknowledgement — UI-only. Mirrors `witAcctApproved`
   // in the reference. Does NOT cancel real trades or call any API.
   const [witTradeAcknowledged, setWitTradeAcknowledged] = useState(false);
+
+  // Snapshot of a successful withdrawal submission. When set, Step 3
+  // renders the reference "Withdrawal Submitted" confirmation card
+  // instead of the form. UI-only — captured AFTER the existing
+  // submitWithdrawal API call succeeds; never replaces or fakes it.
+  type WitSubmittedSnapshot = {
+    coin: string;
+    network: string;
+    amount: string;
+    address: string;
+    fee: number;
+  };
+  const [witSubmittedSnapshot, setWitSubmittedSnapshot] =
+    useState<WitSubmittedSnapshot | null>(null);
   // Wrapper that resets the acknowledgement on any account change
   const pickWitAccount = (id: WitAccount) => {
     setSelectedWitAccount(id);
@@ -372,6 +387,7 @@ export default function WithdrawalForm() {
     if (viewMode === "wit") {
       setWitStep(1);
       setWitTradeAcknowledged(false);
+      setWitSubmittedSnapshot(null);
     }
   }, [viewMode]);
 
@@ -393,6 +409,18 @@ export default function WithdrawalForm() {
       setIsSubmitting(true);
       await axiosInstance.post("/user/withdrawal/store", values);
       toast.success("Withdrawal request submitted successfully");
+
+      // Capture a snapshot for the confirmation panel BEFORE resetting the
+      // form. UI-only — no extra API call, no fake processing.
+      const meta = WIT_COIN_META[selectedCoin];
+      setWitSubmittedSnapshot({
+        coin: selectedCoin,
+        network: selectedNetwork || values.network || "",
+        amount: String(values.amount ?? "0"),
+        address: String(values.wallet_address ?? ""),
+        fee: meta?.fee ?? 0.00005,
+      });
+
       form.reset();
       setRefreshTrigger((prev) => prev + 1);
     } catch (error: unknown) {
@@ -1156,8 +1184,320 @@ export default function WithdrawalForm() {
                         </div>
                       )}
 
-                      {/* STEP 3: Withdrawal Details */}
-                      {witStep === 3 && (
+                      {/* STEP 3: Withdrawal Details (or confirmation panel
+                          after successful submit) */}
+                      {witStep === 3 && witSubmittedSnapshot && (
+                        <div className="scard">
+                          <div
+                            style={{
+                              textAlign: "center",
+                              padding: "24px 16px",
+                            }}
+                          >
+                            <div
+                              style={{
+                                width: 72,
+                                height: 72,
+                                borderRadius: "50%",
+                                background: "rgba(61,219,169,.12)",
+                                border: "2px solid rgba(61,219,169,.3)",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                margin: "0 auto 16px",
+                              }}
+                            >
+                              <CircleCheck
+                                className="h-9 w-9"
+                                style={{ color: "var(--accent)" }}
+                              />
+                            </div>
+                            <div
+                              style={{
+                                fontSize: "1.15rem",
+                                fontWeight: 800,
+                                color: "var(--t1)",
+                                marginBottom: 6,
+                                fontFamily: "var(--heading)",
+                              }}
+                            >
+                              Withdrawal Submitted
+                            </div>
+                            <div
+                              style={{
+                                fontSize: ".82rem",
+                                color: "var(--t3)",
+                                lineHeight: 1.6,
+                                maxWidth: 400,
+                                margin: "0 auto 20px",
+                              }}
+                            >
+                              Your withdrawal request has been submitted
+                              successfully. Please check your email for a
+                              confirmation link to finalize the transaction.
+                            </div>
+
+                            {/* Summary */}
+                            <div
+                              style={{
+                                background: "var(--bg2)",
+                                border: "1px solid rgba(255,255,255,.06)",
+                                borderRadius: 12,
+                                padding: "14px 18px",
+                                marginBottom: 20,
+                                textAlign: "left",
+                              }}
+                            >
+                              {[
+                                {
+                                  label: "Asset",
+                                  value: witSubmittedSnapshot.coin,
+                                  mono: true,
+                                  color: "var(--t1)",
+                                },
+                                {
+                                  label: "Network",
+                                  value: witSubmittedSnapshot.network || "—",
+                                  mono: false,
+                                  color: "var(--t1)",
+                                },
+                                {
+                                  label: "Amount",
+                                  value: `${(
+                                    parseFloat(
+                                      witSubmittedSnapshot.amount,
+                                    ) || 0
+                                  ).toFixed(6)} ${witSubmittedSnapshot.coin}`,
+                                  mono: true,
+                                  color: "var(--accent)",
+                                },
+                              ].map((row) => (
+                                <div
+                                  key={row.label}
+                                  style={{
+                                    display: "flex",
+                                    justifyContent: "space-between",
+                                    alignItems: "center",
+                                    marginBottom: 10,
+                                  }}
+                                >
+                                  <span
+                                    style={{
+                                      fontSize: ".72rem",
+                                      color: "var(--t3)",
+                                      fontWeight: 600,
+                                    }}
+                                  >
+                                    {row.label}
+                                  </span>
+                                  <span
+                                    style={{
+                                      fontSize: ".82rem",
+                                      color: row.color,
+                                      fontWeight: 700,
+                                      fontFamily: row.mono
+                                        ? "var(--mono)"
+                                        : undefined,
+                                    }}
+                                  >
+                                    {row.value}
+                                  </span>
+                                </div>
+                              ))}
+
+                              {/* Recipient (truncated) */}
+                              <div
+                                style={{
+                                  display: "flex",
+                                  justifyContent: "space-between",
+                                  alignItems: "center",
+                                  marginBottom: 10,
+                                }}
+                              >
+                                <span
+                                  style={{
+                                    fontSize: ".72rem",
+                                    color: "var(--t3)",
+                                    fontWeight: 600,
+                                  }}
+                                >
+                                  Recipient
+                                </span>
+                                <span
+                                  className="truncate"
+                                  style={{
+                                    fontSize: ".75rem",
+                                    color: "var(--t2)",
+                                    fontWeight: 600,
+                                    fontFamily: "var(--mono)",
+                                    maxWidth: 200,
+                                  }}
+                                  title={witSubmittedSnapshot.address}
+                                >
+                                  {witSubmittedSnapshot.address || "—"}
+                                </span>
+                              </div>
+
+                              {/* Network Fee */}
+                              <div
+                                style={{
+                                  display: "flex",
+                                  justifyContent: "space-between",
+                                  alignItems: "center",
+                                  marginBottom: 10,
+                                }}
+                              >
+                                <span
+                                  style={{
+                                    fontSize: ".72rem",
+                                    color: "var(--t3)",
+                                    fontWeight: 600,
+                                  }}
+                                >
+                                  Network Fee
+                                </span>
+                                <span
+                                  style={{
+                                    fontSize: ".82rem",
+                                    color: "var(--t2)",
+                                    fontWeight: 700,
+                                    fontFamily: "var(--mono)",
+                                  }}
+                                >
+                                  {witSubmittedSnapshot.fee}{" "}
+                                  {witSubmittedSnapshot.coin}
+                                </span>
+                              </div>
+
+                              {/* Status — pulsing green dot */}
+                              <div
+                                style={{
+                                  display: "flex",
+                                  justifyContent: "space-between",
+                                  alignItems: "center",
+                                  borderTop:
+                                    "1px solid rgba(255,255,255,.06)",
+                                  paddingTop: 10,
+                                }}
+                              >
+                                <span
+                                  style={{
+                                    fontSize: ".72rem",
+                                    color: "var(--t3)",
+                                    fontWeight: 600,
+                                  }}
+                                >
+                                  Status
+                                </span>
+                                <span
+                                  style={{
+                                    display: "inline-flex",
+                                    alignItems: "center",
+                                    gap: 5,
+                                    fontSize: ".72rem",
+                                    fontWeight: 800,
+                                    color: "var(--accent)",
+                                  }}
+                                >
+                                  <span
+                                    className="animate-pulse"
+                                    style={{
+                                      width: 6,
+                                      height: 6,
+                                      borderRadius: "50%",
+                                      background: "var(--accent)",
+                                    }}
+                                  />
+                                  Processing
+                                </span>
+                              </div>
+                            </div>
+
+                            {/* Email alert */}
+                            <div
+                              style={{
+                                display: "flex",
+                                gap: 8,
+                                alignItems: "center",
+                                justifyContent: "center",
+                                padding: "10px 16px",
+                                background: "rgba(61,219,169,.06)",
+                                border: "1px solid rgba(61,219,169,.15)",
+                                borderRadius: 10,
+                                marginBottom: 20,
+                              }}
+                            >
+                              <Mail
+                                className="h-3.5 w-3.5"
+                                style={{ color: "var(--accent)" }}
+                              />
+                              <span
+                                style={{
+                                  fontSize: ".75rem",
+                                  color: "var(--t2)",
+                                  fontWeight: 600,
+                                }}
+                              >
+                                A confirmation email has been sent to your
+                                registered address
+                              </span>
+                            </div>
+
+                            {/* Estimated processing */}
+                            <div
+                              style={{
+                                display: "flex",
+                                gap: 8,
+                                alignItems: "center",
+                                justifyContent: "center",
+                                padding: "10px 16px",
+                                background: "rgba(255,255,255,.03)",
+                                border: "1px solid rgba(255,255,255,.06)",
+                                borderRadius: 10,
+                                marginBottom: 20,
+                              }}
+                            >
+                              <Clock
+                                className="h-3.5 w-3.5"
+                                style={{ color: "var(--t3)" }}
+                              />
+                              <span
+                                style={{
+                                  fontSize: ".75rem",
+                                  color: "var(--t3)",
+                                  fontWeight: 600,
+                                }}
+                              >
+                                Estimated processing:{" "}
+                                <strong style={{ color: "var(--t1)" }}>
+                                  15 - 60 minutes
+                                </strong>
+                              </span>
+                            </div>
+
+                            {/* Make Another Withdrawal */}
+                            <div className="step-nav">
+                              <button
+                                type="button"
+                                className="sn-next"
+                                style={{ flex: 1 }}
+                                onClick={() => {
+                                  setWitSubmittedSnapshot(null);
+                                  setWitTradeAcknowledged(false);
+                                  setWitStep(1);
+                                }}
+                              >
+                                <Plus className="h-3.5 w-3.5" />
+                                <span>Make Another Withdrawal</span>
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* STEP 3: Withdrawal Details — form (hidden once
+                          submission succeeds) */}
+                      {witStep === 3 && !witSubmittedSnapshot && (
                         <div className="scard">
                           <div className="scard-title">
                             <span className="scard-step">3</span>
