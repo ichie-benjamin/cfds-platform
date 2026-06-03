@@ -23,8 +23,8 @@ import { QRCodeSVG } from "qrcode.react";
 import useSiteSettingsStore from "@/store/siteSettingStore";
 import useDataStore, { type DepositCryptoWallet, type Wallet as WalletData } from "@/store/dataStore";
 import useAssetStore from "@/store/assetStore";
-import CardFunding from "@/components/deposit-funds/CardFunding";
 import { ExchangePartners } from "@/components/deposit/ExchangePartners";
+import { CardPlatforms } from "@/components/deposit/CardPlatforms";
 
 type DepositMethod = "crypto" | "bank-wire" | "card" | null;
 type CryptoStep = 1 | 2 | 3;
@@ -357,12 +357,6 @@ export function ContributePanel({ onDepositSuccess }: ContributePanelProps) {
   const cardEnabled =
     deposit_config?.credit_card?.enabled !== false && settings?.credit_card_deposit;
 
-  const url = typeof window !== "undefined" ? window.location.href.toLowerCase() : "";
-  const stepsCount: 3 | 4 =
-    url.includes("fincapitalmarkets.org") || url.includes("equitymarketspro.com")
-      ? 4
-      : 3;
-
   /* ── Method switching resets local flow state ────────────── */
   const handleMethodSelect = (method: DepositMethod) => {
     setSelectedMethod(method);
@@ -411,18 +405,7 @@ export function ContributePanel({ onDepositSuccess }: ContributePanelProps) {
   /* Bank-wire / card sub-forms */
   if (showFundingForm && selectedMethod && selectedMethod !== "crypto") {
     if (selectedMethod === "bank-wire") return <ExchangePartners onBack={handleBack} />;
-    return (
-      <div className="scard">
-        <div className='[&_[class*="bg-card"]]:!bg-transparent [&_[class*="bg-muted"]]:!bg-white/[0.04]'>
-          <CardFunding
-            onChangeMethod={handleBack}
-            onClose={onDepositSuccess}
-            onDepositSuccess={onDepositSuccess}
-            stepsCount={stepsCount}
-          />
-        </div>
-      </div>
-    );
+    if (selectedMethod === "card") return <CardPlatforms onBack={handleBack} />;
   }
 
   /* ── Step dot indicators per method ──────────────────────── */
