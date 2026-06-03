@@ -71,58 +71,69 @@ const DepositHistory: React.FC = () => {
 
   return (
     <div className="">
-      <h2 className="text-lg font-medium mb-6">Deposit History</h2>
+      <h2 className="mb-6 text-[0.95rem] font-extrabold text-[#eef2f7]">
+        Deposit History
+      </h2>
 
       {isLoading ? (
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-white mx-auto"></div>
-          <p>Loading deposit history...</p>
+        <div className="text-center text-[#8b97a8]">
+          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#00dfa2] mx-auto"></div>
+          <p className="mt-3 text-[0.78rem]">Loading deposit history...</p>
         </div>
       ) : error ? (
-        <div className="text-center text-destructive">{error}</div>
+        <div className="text-center text-[#f43f5e]">{error}</div>
       ) : transactions.length === 0 ? (
-        <div className="text-center text-muted-foreground">
+        <div className="text-center text-[0.78rem] text-[#8b97a8]">
           No deposit history found
         </div>
       ) : (
         <>
           {/* Desktop Table View */}
-          <div className="hidden md:block rounded-md border border-border/40 overflow-hidden">
+          <div className="hidden md:block overflow-hidden rounded-[10px] border border-[rgba(255,255,255,0.05)] bg-[rgba(255,255,255,0.02)]">
             <Table>
               <TableHeader>
-                <TableRow className="bg-card hover:bg-card">
-                  <TableHead className="text-foreground font-bold">
+                <TableRow className="border-b border-[rgba(255,255,255,0.05)] bg-[rgba(255,255,255,0.03)] hover:bg-[rgba(255,255,255,0.03)]">
+                  <TableHead className="text-[0.65rem] font-bold uppercase tracking-[0.06em] text-[#4a5468]">
                     DATE
                   </TableHead>
-                  <TableHead className="text-foreground font-bold">
+                  <TableHead className="text-[0.65rem] font-bold uppercase tracking-[0.06em] text-[#4a5468]">
                     AMOUNT
                   </TableHead>
-                  <TableHead className="text-foreground font-bold">
+                  <TableHead className="text-[0.65rem] font-bold uppercase tracking-[0.06em] text-[#4a5468]">
                     TYPE
                   </TableHead>
-                  <TableHead className="text-foreground font-bold">
+                  <TableHead className="text-[0.65rem] font-bold uppercase tracking-[0.06em] text-[#4a5468]">
                     ACCOUNT
                   </TableHead>
-                  <TableHead className="text-foreground font-bold">
+                  <TableHead className="text-[0.65rem] font-bold uppercase tracking-[0.06em] text-[#4a5468]">
                     DETAILS
                   </TableHead>
-                  <TableHead className="text-foreground font-bold">
+                  <TableHead className="text-[0.65rem] font-bold uppercase tracking-[0.06em] text-[#4a5468]">
                     STATUS
                   </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {transactions.map((tx) => (
-                  <TableRow key={tx.id} className="bg-card/50 hover:bg-card">
-                    <TableCell>{tx.date}</TableCell>
-                    <TableCell>{tx.amount}</TableCell>
-                    <TableCell className="capitalize">{tx.type}</TableCell>
-                    <TableCell className="capitalize">{tx.account}</TableCell>
+                  <TableRow
+                    key={tx.id}
+                    className="border-b border-[rgba(255,255,255,0.04)] bg-transparent text-[0.78rem] text-[#eef2f7] transition-colors hover:bg-[rgba(255,255,255,0.04)]"
+                  >
+                    <TableCell className="text-[#8b97a8]">{tx.date}</TableCell>
+                    <TableCell className="font-mono font-semibold text-[#eef2f7]">
+                      {tx.amount}
+                    </TableCell>
+                    <TableCell className="capitalize text-[#eef2f7]">
+                      {tx.type}
+                    </TableCell>
+                    <TableCell className="capitalize text-[#8b97a8]">
+                      {tx.account}
+                    </TableCell>
                     <TableCell>
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="flex items-center gap-1 text-muted-foreground hover:text-foreground"
+                        className="flex items-center gap-1 text-[#8b97a8] hover:bg-[rgba(255,255,255,0.05)] hover:text-[#eef2f7]"
                         onClick={() => {
                           setSelectedTransaction(tx);
                           setIsDetailsOpen(true);
@@ -157,12 +168,14 @@ const DepositHistory: React.FC = () => {
             {transactions.map((tx) => (
               <div
                 key={tx.id}
-                className="rounded-lg border border-border/40 bg-card/50 p-4 space-y-3"
+                className="space-y-3 rounded-[10px] border border-[rgba(255,255,255,0.05)] bg-[rgba(255,255,255,0.02)] p-4"
               >
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-xs text-muted-foreground">Date</p>
-                    <p className="text-sm font-medium text-foreground">
+                    <p className="text-[0.6rem] font-bold uppercase tracking-[0.06em] text-[#4a5468]">
+                      Date
+                    </p>
+                    <p className="text-[0.78rem] font-medium text-[#eef2f7]">
                       {tx.date}
                     </p>
                   </div>
@@ -180,24 +193,30 @@ const DepositHistory: React.FC = () => {
                   </span>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3 py-2 border-t border-b border-border/20">
+                <div className="grid grid-cols-2 gap-3 border-y border-[rgba(255,255,255,0.04)] py-2">
                   <div>
-                    <p className="text-xs text-muted-foreground">Amount</p>
-                    <p className="text-sm font-semibold text-foreground">
+                    <p className="text-[0.6rem] font-bold uppercase tracking-[0.06em] text-[#4a5468]">
+                      Amount
+                    </p>
+                    <p className="text-[0.82rem] font-semibold text-[#eef2f7]">
                       {tx.amount}
                     </p>
                   </div>
                   <div>
-                    <p className="text-xs text-muted-foreground">Type</p>
-                    <p className="text-sm font-medium capitalize text-foreground">
+                    <p className="text-[0.6rem] font-bold uppercase tracking-[0.06em] text-[#4a5468]">
+                      Type
+                    </p>
+                    <p className="text-[0.78rem] font-medium capitalize text-[#eef2f7]">
                       {tx.type}
                     </p>
                   </div>
                 </div>
 
                 <div>
-                  <p className="text-xs text-muted-foreground mb-1">Account</p>
-                  <p className="text-sm capitalize text-foreground">
+                  <p className="mb-1 text-[0.6rem] font-bold uppercase tracking-[0.06em] text-[#4a5468]">
+                    Account
+                  </p>
+                  <p className="text-[0.78rem] capitalize text-[#eef2f7]">
                     {tx.account}
                   </p>
                 </div>
@@ -205,7 +224,7 @@ const DepositHistory: React.FC = () => {
                 <Button
                   variant="outline"
                   size="sm"
-                  className="w-full flex items-center justify-center gap-2 text-muted-foreground hover:text-foreground"
+                  className="flex w-full items-center justify-center gap-2 border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.02)] text-[#8b97a8] hover:bg-[rgba(255,255,255,0.05)] hover:text-[#eef2f7]"
                   onClick={() => {
                     setSelectedTransaction(tx);
                     setIsDetailsOpen(true);
