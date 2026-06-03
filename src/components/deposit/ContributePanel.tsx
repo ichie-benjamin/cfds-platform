@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import {
   ArrowDownToLine,
   Wallet,
@@ -18,6 +19,7 @@ import {
   Network,
   CircleDollarSign,
   Info,
+  X,
 } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import useSiteSettingsStore from "@/store/siteSettingStore";
@@ -248,6 +250,7 @@ export function ContributePanel({ onDepositSuccess }: ContributePanelProps) {
   const [depositAmountUsd, setDepositAmountUsd] = useState<string>("");
   const [coinDropdownOpen, setCoinDropdownOpen] = useState(false);
   const [addressCopied, setAddressCopied] = useState(false);
+  const [addressPopupOpen, setAddressPopupOpen] = useState(false);
 
   /* ── Bank-wire / Card configure-purchase local state ─────── */
   const [purchaseAmount, setPurchaseAmount] = useState<string>("");
@@ -378,12 +381,18 @@ export function ContributePanel({ onDepositSuccess }: ContributePanelProps) {
   const goToAddress = () => {
     if (!selectedAssetCode || !selectedNetwork) return;
     setCryptoStep(2);
+    setAddressPopupOpen(true);
   };
-  const backToAsset = () => setCryptoStep(1);
+  const closeAddressPopup = () => setAddressPopupOpen(false);
+  const backToAsset = () => {
+    setCryptoStep(1);
+    setAddressPopupOpen(false);
+  };
   const confirmSent = () => setCryptoStep(3);
   const resetCrypto = () => {
     setCryptoStep(1);
     setAddressCopied(false);
+    setAddressPopupOpen(false);
     onDepositSuccess?.();
   };
 
@@ -1054,7 +1063,226 @@ export function ContributePanel({ onDepositSuccess }: ContributePanelProps) {
           />
         </div>
       )}
+
+      {/* ─── Crypto Deposit address popup ─── */}
+      {selectedMethod === "crypto" &&
+        cryptoStep === 2 &&
+        addressPopupOpen && (
+          <CryptoAddressPopup
+            symbol={coinMeta.symbol}
+            color={coinMeta.color}
+            glyph={coinMeta.glyph}
+            network={selectedNetwork}
+            address={displayAddress}
+            isReference={addressIsReference}
+            copied={addressCopied}
+            onCopy={handleCopyAddress}
+            onClose={closeAddressPopup}
+          />
+        )}
     </>
+  );
+}
+
+/* Full-screen blurred popup shown only after the user clicks
+ * "Generate Deposit Address" in Step 1. Closing it reveals the
+ * existing Step 2 "Your Deposit Address" section beneath. */
+function CryptoAddressPopup({
+  symbol,
+  color,
+  glyph,
+  network,
+  address,
+  isReference,
+  copied,
+  onCopy,
+  onClose,
+}: {
+  symbol: string;
+  color: string;
+  glyph: string;
+  network: string;
+  address: string | null;
+  isReference: boolean;
+  copied: boolean;
+  onCopy: () => void;
+  onClose: () => void;
+}) {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", onKey);
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [onClose]);
+
+  return createPortal(
+    <div
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="crypto-address-popup-title"
+      className="fixed inset-0 z-[9999] flex items-center justify-center p-5"
+      style={{
+        background: "rgba(0,0,0,.72)",
+        backdropFilter: "blur(10px)",
+        WebkitBackdropFilter: "blur(10px)",
+      }}
+    >
+      <div
+        className="relative w-full overflow-hidden rounded-2xl border border-white/[0.08] shadow-[0_24px_48px_rgba(0,0,0,0.6)]"
+        style={{
+          background:
+            "linear-gradient(145deg,rgba(255,255,255,.04),rgba(255,255,255,.015)) , #0f1220",
+          maxWidth: 460,
+        }}
+      >
+        {/* Header */}
+        <div
+          className="flex items-center justify-between px-5 py-4"
+          style={{ borderBottom: "1px solid rgba(255,255,255,.06)" }}
+        >
+          <div
+            id="crypto-address-popup-title"
+            className="flex items-center gap-2 text-[0.95rem] font-extrabold text-[#eef2f7]"
+          >
+            <span
+              className="grid h-7 w-7 place-items-center rounded-full text-[0.85rem] font-extrabold"
+              style={{
+                background: `${color}1f`,
+                color,
+                border: `1px solid ${color}55`,
+              }}
+            >
+              {glyph}
+            </span>
+            Your Deposit Address
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close"
+            className="rounded-md p-1.5 text-[#8898B8] hover:bg-white/[0.04] hover:text-[#eef2f7]"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+
+        <div className="flex flex-col items-center gap-4 px-5 py-5">
+          {/* QR */}
+          <div
+            className="relative flex h-[180px] w-[180px] items-center justify-center rounded-[14px] bg-white p-2.5"
+            style={{
+              boxShadow: `0 0 0 2px ${color}80, 0 0 32px ${color}30`,
+            }}
+          >
+            {address ? (
+              <QRCodeSVG
+                value={address}
+                size={156}
+                level="M"
+                bgColor="#FFFFFF"
+                fgColor="#0E1529"
+              />
+            ) : (
+              <div className="flex h-[156px] w-[156px] items-center justify-center rounded-[6px] border border-dashed border-[#0E1529]/30 text-center text-[0.66rem] font-bold uppercase tracking-[0.06em] text-[#0E1529]/55">
+                QR pending
+                <br />
+                configuration
+              </div>
+            )}
+            <div
+              className="absolute -bottom-3.5 left-1/2 flex h-8 w-8 -translate-x-1/2 items-center justify-center rounded-full border-2 border-white text-[0.8rem] font-extrabold text-white"
+              style={{ background: color }}
+            >
+              {glyph}
+            </div>
+          </div>
+
+          <div className="mt-2 text-[0.66rem] font-bold uppercase tracking-[0.08em] text-[#a3adbf]">
+            Scan to Deposit
+          </div>
+
+          {/* Address field */}
+          <div className="w-full">
+            <div className="mb-1 text-[0.62rem] font-bold uppercase tracking-[0.07em] text-[#a3adbf]">
+              Deposit Address
+            </div>
+            <div
+              className={`rounded-[10px] border border-white/[0.10] px-3.5 py-3 text-center font-mono text-[0.74rem] leading-[1.55] [word-break:break-all] ${
+                address
+                  ? "select-all text-[#eef2f7]"
+                  : "italic text-[#6b7a90]"
+              }`}
+              style={{
+                background:
+                  "linear-gradient(145deg,rgba(255,255,255,.05),rgba(255,255,255,.02))",
+              }}
+            >
+              {address ??
+                `Address pending — ${symbol} deposits on ${network || "this network"} are not yet enabled`}
+            </div>
+          </div>
+
+          {/* Copy Address */}
+          <button
+            type="button"
+            onClick={onCopy}
+            disabled={!address}
+            className="flex w-full items-center justify-center gap-2 rounded-[10px] py-2.5 text-[0.82rem] font-extrabold tracking-[0.02em] transition-all hover:-translate-y-px disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0"
+            style={{
+              background: copied
+                ? "linear-gradient(135deg,#34C77B,#28a868)"
+                : "linear-gradient(135deg,#6EECC4,#3DDBA9,#1A9E78)",
+              color: "#07080c",
+              boxShadow:
+                "inset 0 1px 2px rgba(255,255,255,.25), 0 4px 16px rgba(61,219,169,.2)",
+            }}
+          >
+            {copied ? (
+              <>
+                <CircleCheck className="h-3.5 w-3.5" />
+                Address Copied
+              </>
+            ) : (
+              <>
+                <CopyIcon className="h-3.5 w-3.5" />
+                Copy Address
+              </>
+            )}
+          </button>
+
+          {isReference && (
+            <div className="flex items-start gap-2 rounded-[10px] border border-[rgba(74,144,226,0.2)] bg-[rgba(74,144,226,0.07)] px-3 py-2 text-[0.7rem] leading-[1.4] text-[#a3adbf]">
+              <Info className="mt-[1px] h-3 w-3 shrink-0 text-[#4A90E2]" />
+              <span>
+                Reference{" "}
+                <strong className="text-[#eef2f7]">{symbol}</strong> address
+                shown for UI preview. Confirm the live deposit address with
+                support before sending real funds.
+              </span>
+            </div>
+          )}
+
+          {/* Close */}
+          <button
+            type="button"
+            onClick={onClose}
+            className="mt-1 w-full rounded-[10px] border border-white/[0.07] bg-[#0a0d15] py-2.5 text-[0.78rem] font-bold text-[#a3adbf] transition-all hover:border-white/[0.18] hover:text-[#eef2f7]"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    </div>,
+    document.body,
   );
 }
 
