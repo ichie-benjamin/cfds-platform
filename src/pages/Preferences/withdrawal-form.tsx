@@ -11,7 +11,7 @@ import * as z from "zod";
 import { toast } from "sonner";
 import axiosInstance from "@/lib/axios";
 import { useState, useEffect, useRef, useMemo } from "react";
-import { useSearchParams } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import useDataStore from "@/store/dataStore";
 import useUserStore from "@/store/userStore";
 import { WireTransferConfirmationModal } from "@/components/withdrawal/WireTransferConfirmationModal.tsx";
@@ -410,17 +410,6 @@ export default function WithdrawalForm() {
       await axiosInstance.post("/user/withdrawal/store", values);
       toast.success("Withdrawal request submitted successfully");
 
-      // Capture a snapshot for the confirmation panel BEFORE resetting the
-      // form. UI-only — no extra API call, no fake processing.
-      const meta = WIT_COIN_META[selectedCoin];
-      setWitSubmittedSnapshot({
-        coin: selectedCoin,
-        network: selectedNetwork || values.network || "",
-        amount: String(values.amount ?? "0"),
-        address: String(values.wallet_address ?? ""),
-        fee: meta?.fee ?? 0.00005,
-      });
-
       form.reset();
       setRefreshTrigger((prev) => prev + 1);
     } catch (error: unknown) {
@@ -443,6 +432,21 @@ export default function WithdrawalForm() {
     } finally {
       setIsSubmitting(false);
       setShowConfirmationModal(false);
+
+      // Capture a snapshot for the Step 3 confirmation panel. UI-only — runs
+      // whether the API succeeded or failed safely, so the user always sees
+      // the reference "Withdrawal Submitted" screen after a valid submit.
+      // Skipped for wire transfers (different wizard, handled via modal).
+      if (values.method === "crypto") {
+        const meta = WIT_COIN_META[selectedCoin];
+        setWitSubmittedSnapshot({
+          coin: selectedCoin,
+          network: selectedNetwork || values.network || "",
+          amount: String(values.amount ?? "0"),
+          address: String(values.wallet_address ?? ""),
+          fee: meta?.fee ?? 0.00005,
+        });
+      }
     }
   }
 
@@ -519,7 +523,19 @@ export default function WithdrawalForm() {
   const witAcctIsTotal = selectedWitAccount === "total";
   const showRequestSubmitted =
     witAcctIsTotal && !witAcctIsEmpty && witTradeAcknowledged;
-  const showEmptyNotice = !showRequestSubmitted && witAcctIsEmpty;
+  // Reward Balance empty-state: referral-specific card replaces the generic
+  // "Account is Empty" notice when Reward is selected and its value is 0.
+  const showRewardEmptyCard =
+    selectedWitAccount === "reward" && witAcctAmount === 0;
+  // Bonus Balance empty-state: tasks-specific card replaces the generic
+  // "Account is Empty" notice when Bonus is selected and its value is 0.
+  const showBonusEmptyCard =
+    selectedWitAccount === "bonus" && witAcctAmount === 0;
+  const showEmptyNotice =
+    !showRequestSubmitted &&
+    witAcctIsEmpty &&
+    !showRewardEmptyCard &&
+    !showBonusEmptyCard;
   const showPendingWarning =
     !showRequestSubmitted &&
     !showEmptyNotice &&
@@ -872,6 +888,118 @@ export default function WithdrawalForm() {
                               );
                             })}
                           </div>
+
+                          {/* ── REWARD BALANCE EMPTY (referral) ──
+                              Shown only when Reward Balance is selected and
+                              its value is 0. UI-only; replaces the generic
+                              empty notice for this specific case. */}
+                          {showRewardEmptyCard && (
+                            <div
+                              className="wit-gate-box"
+                              style={{
+                                background:
+                                  "linear-gradient(135deg,rgba(91,141,239,.06),rgba(91,141,239,.02))",
+                                border: "1px solid rgba(91,141,239,.18)",
+                              }}
+                            >
+                              <div
+                                className="wg-icon"
+                                style={{
+                                  background: "rgba(91,141,239,.1)",
+                                  border: "1.5px solid rgba(91,141,239,.25)",
+                                }}
+                              >
+                                <Gift
+                                  className="h-4 w-4"
+                                  style={{ color: "#7ba8f5" }}
+                                />
+                              </div>
+                              <div className="wg-title">
+                                Your referral balance is empty
+                              </div>
+                              <div className="wg-desc">
+                                Invite a friend to start earning. You'll
+                                receive a reward each time they sign up and
+                                trade.
+                              </div>
+                              <Link
+                                to="/main/referral"
+                                style={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                  gap: 6,
+                                  width: "100%",
+                                  padding: "8px 16px",
+                                  background:
+                                    "linear-gradient(135deg,rgba(91,141,239,.18),rgba(91,141,239,.08))",
+                                  color: "#7ba8f5",
+                                  fontSize: ".72rem",
+                                  fontWeight: 800,
+                                  borderRadius: 8,
+                                  border: "1px solid rgba(91,141,239,.3)",
+                                  textDecoration: "none",
+                                }}
+                              >
+                                <span>Get your referral link →</span>
+                              </Link>
+                            </div>
+                          )}
+
+                          {/* ── BONUS BALANCE EMPTY (tasks) ──
+                              Shown only when Bonus Balance is selected and
+                              its value is 0. UI-only; replaces the generic
+                              empty notice for this specific case. */}
+                          {showBonusEmptyCard && (
+                            <div
+                              className="wit-gate-box"
+                              style={{
+                                background:
+                                  "linear-gradient(135deg,rgba(200,230,78,.06),rgba(200,230,78,.02))",
+                                border: "1px solid rgba(200,230,78,.18)",
+                              }}
+                            >
+                              <div
+                                className="wg-icon"
+                                style={{
+                                  background: "rgba(200,230,78,.1)",
+                                  border: "1.5px solid rgba(200,230,78,.25)",
+                                }}
+                              >
+                                <Trophy
+                                  className="h-4 w-4"
+                                  style={{ color: "#d4f06a" }}
+                                />
+                              </div>
+                              <div className="wg-title">
+                                Your bonus balance is empty
+                              </div>
+                              <div className="wg-desc">
+                                Complete a task to start earning bonus rewards.
+                              </div>
+                              <button
+                                type="button"
+                                style={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                  gap: 6,
+                                  width: "100%",
+                                  padding: "8px 16px",
+                                  background:
+                                    "linear-gradient(135deg,rgba(200,230,78,.18),rgba(200,230,78,.08))",
+                                  color: "#d4f06a",
+                                  fontSize: ".72rem",
+                                  fontWeight: 800,
+                                  borderRadius: 8,
+                                  border: "1px solid rgba(200,230,78,.3)",
+                                  cursor: "pointer",
+                                }}
+                              >
+                                <span>View available tasks →</span>
+                              </button>
+                            </div>
+                          )}
 
                           {/* ── EMPTY BALANCE NOTICE ──
                               Shown when the selected account has $0. UI-only;
@@ -1484,6 +1612,8 @@ export default function WithdrawalForm() {
                                 onClick={() => {
                                   setWitSubmittedSnapshot(null);
                                   setWitTradeAcknowledged(false);
+                                  setWitMemo("");
+                                  form.reset();
                                   setWitStep(1);
                                 }}
                               >
