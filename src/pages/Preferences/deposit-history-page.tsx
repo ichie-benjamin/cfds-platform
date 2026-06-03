@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
-import { History } from "lucide-react";
+import { History, Menu } from "lucide-react";
 import DepositHistory from "@/components/deposit-history";
-import { WalletNav } from "@/components/wallet/WalletNav";
-import { SecuritySidebar } from "@/components/security/SecuritySidebar";
+import { TickerBar } from "@/components/dashboard/TickerBar";
+import DashboardNavbar from "@/components/nav/DashboardNavbar";
+import { MarketSidebar } from "@/components/market/MarketSidebar";
 import { HelpSupportCard } from "@/components/settings/HelpSupportCard";
 import { DepositHistoryHeroCard } from "@/components/deposit-history-ui/DepositHistoryHeroCard";
 import { DepositHistoryListCard } from "@/components/deposit-history-ui/DepositHistoryListCard";
@@ -16,7 +17,7 @@ export default function DepositHistoryPage() {
   const user = useUserStore((state) => state.user);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  // Hide MainLayout chrome while this page is mounted (matches accounts/security/settings pattern)
+  // Hide MainLayout chrome while this page is mounted (matches accounts/markets pattern)
   useEffect(() => {
     document.body.classList.add("deposit-history-active");
     return () => {
@@ -46,32 +47,52 @@ export default function DepositHistoryPage() {
           color: "#eef2f7",
         }}
       >
-        {/* Top nav (reused) */}
-        <WalletNav onToggleSidebar={() => setIsSidebarOpen(true)} />
+        {/* Top scrolling ticker bar (reused from Markets) */}
+        <TickerBar />
 
-        {/* Layout: secondary sidebar + main */}
-        <div className="grid flex-1 grid-cols-1 lg:grid-cols-[260px_1fr] min-h-0">
-          <SecuritySidebar
+        {/* Universal platform navbar (matches Markets/Dashboard) */}
+        <DashboardNavbar />
+
+        {/* Mobile-only sidebar trigger — mirrors Accounts pattern */}
+        <div className="flex items-center border-b border-[rgba(255,255,255,0.06)] bg-[rgba(7,8,12,0.75)] px-3 py-1.5 md:hidden">
+          <button
+            onClick={() => setIsSidebarOpen(true)}
+            aria-label="Toggle navigation"
+            className="flex h-9 w-9 items-center justify-center rounded-[10px] border border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.03)] text-[#8b97a8] transition-colors hover:bg-[rgba(255,255,255,0.06)] hover:text-[#eef2f7]"
+          >
+            <Menu className="h-[1.05rem] w-[1.05rem]" />
+          </button>
+        </div>
+
+        {/* Layout: 60px icon sidebar (matches Markets) + main */}
+        <div className="grid flex-1 grid-cols-1 md:grid-cols-[60px_1fr] min-h-0">
+          <MarketSidebar
             isOpen={isSidebarOpen}
             onClose={() => setIsSidebarOpen(false)}
           />
 
           <main
-            className="overflow-y-auto p-5 md:p-9"
+            className="overflow-y-auto px-4 py-7 md:px-8"
             style={{ maxHeight: "100%" }}
           >
-            {/* Page header */}
-            <div className="mb-7 flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#00dfa2]/10">
-                <History className="h-5 w-5 text-[#00dfa2]" />
-              </div>
-              <div>
-                <h1 className="font-[Outfit,sans-serif] text-[1.65rem] font-extrabold tracking-[-0.03em] text-[#eef2f7]">
-                  Deposit History
-                </h1>
-                <p className="mt-0.5 text-[0.87rem] text-[#4a5468]">
-                  Review every deposit across your trading accounts
-                </p>
+            {/* Page header — same scale/spacing as Markets */}
+            <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[rgba(0,223,162,0.1)] text-[#00dfa2]">
+                  <History className="h-[1.1rem] w-[1.1rem]" />
+                </div>
+                <div>
+                  <h1 className="flex items-center gap-2 font-[Outfit,sans-serif] text-[1.4rem] font-extrabold tracking-[-0.02em] text-[#eef2f7] sm:text-[1.65rem]">
+                    Deposit History
+                    <span className="relative flex h-2 w-2">
+                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#00dfa2]/75" />
+                      <span className="relative inline-flex h-2 w-2 rounded-full bg-[#00dfa2]" />
+                    </span>
+                  </h1>
+                  <p className="mt-0.5 text-[0.78rem] text-[#4a5468]">
+                    Review every deposit across your trading accounts
+                  </p>
+                </div>
               </div>
             </div>
 
