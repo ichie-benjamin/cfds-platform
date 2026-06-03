@@ -46,16 +46,20 @@ type CoinMeta = {
   glyph: string;
   min: string;
   confs: string;
+  /* Reference / sample address from html_files/wallet (2).html — used
+   * ONLY for the UI-flow preview in Step 2 when no real backend wallet
+   * is configured. Never represents a real deposit address. */
+  refAddress?: string;
 };
 
 const COIN_META: Record<string, CoinMeta> = {
-  BTC:   { symbol: "BTC",   name: "Bitcoin",       color: "#F7931A", bg: "rgba(247,147,26,0.13)",  glyph: "₿", min: "0.001 BTC", confs: "3–6 confirmations" },
-  ETH:   { symbol: "ETH",   name: "Ethereum",      color: "#627EEA", bg: "rgba(98,126,234,0.13)",  glyph: "Ξ", min: "0.01 ETH",  confs: "12 confirmations" },
-  USDT:  { symbol: "USDT",  name: "Tether USD",    color: "#26A17B", bg: "rgba(38,161,123,0.13)",  glyph: "₮", min: "10 USDT",   confs: "12 confirmations" },
+  BTC:   { symbol: "BTC",   name: "Bitcoin",       color: "#F7931A", bg: "rgba(247,147,26,0.13)",  glyph: "₿", min: "0.001 BTC", confs: "3–6 confirmations", refAddress: "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh" },
+  ETH:   { symbol: "ETH",   name: "Ethereum",      color: "#627EEA", bg: "rgba(98,126,234,0.13)",  glyph: "Ξ", min: "0.01 ETH",  confs: "12 confirmations", refAddress: "0xD8dA6BF26964aF9D7eEd9e03E53415D37aA96045" },
+  USDT:  { symbol: "USDT",  name: "Tether USD",    color: "#26A17B", bg: "rgba(38,161,123,0.13)",  glyph: "₮", min: "10 USDT",   confs: "12 confirmations", refAddress: "0xD8dA6BF26964aF9D7eEd9e03E53415D37aA96045" },
   USDC:  { symbol: "USDC",  name: "USD Coin",      color: "#2775CA", bg: "rgba(39,117,202,0.13)",  glyph: "$", min: "10 USDC",   confs: "12 confirmations" },
-  BNB:   { symbol: "BNB",   name: "BNB Chain",     color: "#F3BA2F", bg: "rgba(243,186,47,0.13)",  glyph: "B", min: "0.01 BNB",  confs: "15 confirmations" },
-  SOL:   { symbol: "SOL",   name: "Solana",        color: "#9945FF", bg: "rgba(153,69,255,0.13)",  glyph: "◎", min: "0.1 SOL",   confs: "32 confirmations" },
-  XRP:   { symbol: "XRP",   name: "Ripple XRP",    color: "#00AAE4", bg: "rgba(0,170,228,0.13)",   glyph: "✕", min: "10 XRP",    confs: "—" },
+  BNB:   { symbol: "BNB",   name: "BNB Chain",     color: "#F3BA2F", bg: "rgba(243,186,47,0.13)",  glyph: "B", min: "0.01 BNB",  confs: "15 confirmations", refAddress: "bnb1grpf0955h0ykzq3ar5nmum7y6gdfl6lxfn46h2" },
+  SOL:   { symbol: "SOL",   name: "Solana",        color: "#9945FF", bg: "rgba(153,69,255,0.13)",  glyph: "◎", min: "0.1 SOL",   confs: "32 confirmations", refAddress: "7EcDhSYGxXyscszYEp35KHN8vvw3svAuLKTzXwCFLtV" },
+  XRP:   { symbol: "XRP",   name: "Ripple XRP",    color: "#00AAE4", bg: "rgba(0,170,228,0.13)",   glyph: "✕", min: "10 XRP",    confs: "—", refAddress: "rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh" },
   ADA:   { symbol: "ADA",   name: "Cardano",       color: "#0033AD", bg: "rgba(0,51,173,0.13)",    glyph: "A", min: "5 ADA",     confs: "10 confirmations" },
   DOGE:  { symbol: "DOGE",  name: "Dogecoin",      color: "#BA9F33", bg: "rgba(186,159,51,0.13)",  glyph: "Ð", min: "20 DOGE",   confs: "6 confirmations" },
   MATIC: { symbol: "MATIC", name: "Polygon",       color: "#8247E5", bg: "rgba(130,71,229,0.13)",  glyph: "M", min: "1 MATIC",   confs: "30 confirmations" },
@@ -260,9 +264,14 @@ export function ContributePanel({ onDepositSuccess }: ContributePanelProps) {
     return real.length > 0 ? real : FALLBACK_PRESENTATION_ASSETS;
   }, [deposit_config]);
 
-  /* Initialise selection once data arrives */
+  /* Initialise selection once data arrives — also recovers if the
+   * previously selected code disappears after deposit_config loads. */
   useEffect(() => {
-    if (availableAssets.length && !selectedAssetCode) {
+    if (!availableAssets.length) return;
+    const stillExists = selectedAssetCode
+      ? availableAssets.some((a) => a.code === selectedAssetCode)
+      : false;
+    if (!stillExists) {
       const def = availableAssets.find((a) => a.default) ?? availableAssets[0];
       setSelectedAssetCode(def.code);
       if (def.networks?.length) setSelectedNetwork(def.networks[0]);
@@ -307,6 +316,14 @@ export function ContributePanel({ onDepositSuccess }: ContributePanelProps) {
     [wallets, selectedAssetCode, selectedNetwork],
   );
   const hasRealAddress = Boolean(realWallet?.address);
+
+  /* Address shown in Step 2: real backend address if configured, otherwise
+   * the reference sample address from html_files/wallet (2).html for UI
+   * preview parity. addressIsReference is true when the displayed address
+   * is the sample (not a real backend wallet) so we surface a tiny notice. */
+  const displayAddress: string | null =
+    realWallet?.address ?? coinMeta.refAddress ?? null;
+  const addressIsReference = !hasRealAddress && Boolean(coinMeta.refAddress);
 
   /* Live price for amount preview (presentational only) */
   const livePrice = useMemo(() => {
@@ -377,10 +394,10 @@ export function ContributePanel({ onDepositSuccess }: ContributePanelProps) {
   };
 
   const handleCopyAddress = () => {
-    if (!realWallet?.address) return;
+    if (!displayAddress) return;
     if (typeof navigator !== "undefined" && navigator.clipboard) {
       navigator.clipboard
-        .writeText(realWallet.address)
+        .writeText(displayAddress)
         .then(() => {
           setAddressCopied(true);
           window.setTimeout(() => setAddressCopied(false), 2000);
@@ -739,145 +756,176 @@ export function ContributePanel({ onDepositSuccess }: ContributePanelProps) {
                 </div>
               </div>
 
-              {hasRealAddress && realWallet ? (
-                <>
-                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-[160px_1fr] items-start mb-3">
-                    {/* QR */}
-                    <div className="flex flex-col items-center gap-2">
-                      <div
-                        className="relative flex h-[150px] w-[150px] items-center justify-center rounded-[12px] bg-white p-2 transition-shadow"
-                        style={{
-                          boxShadow: `0 0 0 2px ${coinMeta.color}80, 0 0 28px ${coinMeta.color}30`,
-                        }}
-                      >
-                        <QRCodeSVG
-                          value={realWallet.address}
-                          size={134}
-                          level="M"
-                          bgColor="#FFFFFF"
-                          fgColor="#0E1529"
-                        />
-                        <div
-                          className="absolute -bottom-3.5 left-1/2 flex h-7 w-7 -translate-x-1/2 items-center justify-center rounded-full border-2 border-white text-[0.75rem] font-extrabold text-white"
-                          style={{ background: coinMeta.color }}
-                        >
-                          {coinMeta.glyph}
-                        </div>
-                      </div>
-                      <div className="mt-4 text-[0.65rem] font-bold uppercase tracking-[0.07em] text-[#a3adbf]">
-                        Scan to Deposit
-                      </div>
-                    </div>
-
-                    {/* Address + chips */}
-                    <div className="flex flex-col gap-2.5">
-                      {depositAmountUsd && cryptoAmountFromUsd && (
-                        <div>
-                          <span className="inline-flex items-center gap-1.5 rounded-[8px] border border-[rgba(61,219,169,0.25)] bg-[rgba(61,219,169,0.08)] px-3 py-1.5 font-mono text-[0.73rem] font-bold text-[#3DDBA9]">
-                            <CircleDollarSign className="h-3 w-3" />$
-                            {parseFloat(depositAmountUsd).toFixed(2)} ≈{" "}
-                            {cryptoAmountFromUsd} {coinMeta.symbol}
-                          </span>
-                        </div>
-                      )}
-
-                      <div>
-                        <div className="mb-1 text-[0.65rem] font-bold uppercase tracking-[0.07em] text-[#a3adbf]">
-                          Deposit Address
-                        </div>
-                        <div
-                          className="select-all rounded-[10px] border border-white/[0.10] px-3.5 py-3 font-mono text-[0.75rem] leading-[1.55] text-[#eef2f7] [word-break:break-all]"
-                          style={{
-                            background:
-                              "linear-gradient(145deg,rgba(255,255,255,.05),rgba(255,255,255,.02))",
-                          }}
-                        >
-                          {realWallet.address}
-                        </div>
-                      </div>
-
-                      <button
-                        type="button"
-                        onClick={handleCopyAddress}
-                        className={`flex items-center justify-center gap-2 rounded-[10px] py-2.5 text-[0.8rem] font-extrabold tracking-[0.02em] transition-all hover:-translate-y-px ${
-                          addressCopied ? "" : ""
-                        }`}
-                        style={{
-                          background: addressCopied
-                            ? "linear-gradient(135deg,#34C77B,#28a868)"
-                            : "linear-gradient(135deg,#6EECC4,#3DDBA9,#1A9E78)",
-                          color: "#07080c",
-                          boxShadow:
-                            "inset 0 1px 2px rgba(255,255,255,.25), 0 4px 16px rgba(61,219,169,.2)",
-                        }}
-                      >
-                        {addressCopied ? (
-                          <>
-                            <CircleCheck className="h-3.5 w-3.5" />
-                            Address Copied
-                          </>
-                        ) : (
-                          <>
-                            <CopyIcon className="h-3.5 w-3.5" />
-                            Copy Address
-                          </>
-                        )}
-                      </button>
-
-                      <div className="flex flex-col gap-[7px]">
-                        <InfoChip
-                          icon={<Network className="h-3 w-3" />}
-                          label="Network"
-                          value={selectedNetwork}
-                        />
-                        <InfoChip
-                          icon={<ArrowDownToLine className="h-3 w-3" />}
-                          label="Min. Deposit"
-                          value={coinMeta.min}
-                        />
-                        <InfoChip
-                          icon={<CircleCheck className="h-3 w-3" />}
-                          label="Confirmations"
-                          value={coinMeta.confs}
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Warning notice */}
-                  <div
-                    className="mt-2.5 flex items-start gap-2.5 rounded-[10px] px-4 py-3 text-[0.75rem] leading-[1.5] text-[#a3adbf]"
-                    style={{
-                      background: "rgba(232,169,77,0.07)",
-                      border: "1px solid rgba(232,169,77,0.2)",
-                    }}
-                  >
-                    <TriangleAlert className="mt-[1px] h-3.5 w-3.5 shrink-0 text-[#FF9800]" />
-                    <span>
-                      Only send{" "}
-                      <strong className="text-[#eef2f7]">
-                        {coinMeta.symbol}
-                      </strong>{" "}
-                      on the correct network. Sending wrong assets results in{" "}
-                      <strong className="text-[#eef2f7]">permanent loss</strong>.
-                    </span>
-                  </div>
-                </>
-              ) : (
+              {addressIsReference && (
                 <div
-                  className="my-2 flex items-start gap-3 rounded-[10px] px-4 py-3.5 text-[0.78rem] leading-[1.55] text-[#a3adbf]"
+                  className="mb-3 flex items-start gap-3 rounded-[10px] px-4 py-3 text-[0.74rem] leading-[1.5] text-[#a3adbf]"
                   style={{
                     background: "rgba(74,144,226,0.07)",
                     border: "1px solid rgba(74,144,226,0.2)",
                   }}
                 >
-                  <Info className="mt-[1px] h-4 w-4 shrink-0 text-[#4A90E2]" />
+                  <Info className="mt-[1px] h-3.5 w-3.5 shrink-0 text-[#4A90E2]" />
                   <span>
-                    This asset is not yet enabled for deposits on this platform.
-                    Please choose a different asset or network.
+                    Reference{" "}
+                    <strong className="text-[#eef2f7]">
+                      {coinMeta.symbol}
+                    </strong>{" "}
+                    address shown for UI preview. Confirm the live deposit
+                    address with support before sending real funds.
                   </span>
                 </div>
               )}
+              {!displayAddress && (
+                <div
+                  className="mb-3 flex items-start gap-3 rounded-[10px] px-4 py-3 text-[0.74rem] leading-[1.5] text-[#a3adbf]"
+                  style={{
+                    background: "rgba(74,144,226,0.07)",
+                    border: "1px solid rgba(74,144,226,0.2)",
+                  }}
+                >
+                  <Info className="mt-[1px] h-3.5 w-3.5 shrink-0 text-[#4A90E2]" />
+                  <span>
+                    A live{" "}
+                    <strong className="text-[#eef2f7]">
+                      {coinMeta.symbol}
+                    </strong>{" "}
+                    deposit address has not yet been configured for this
+                    network. Please contact support to enable deposits.
+                  </span>
+                </div>
+              )}
+
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-[160px_1fr] items-start mb-3">
+                {/* QR */}
+                <div className="flex flex-col items-center gap-2">
+                  <div
+                    className="relative flex h-[150px] w-[150px] items-center justify-center rounded-[12px] bg-white p-2 transition-shadow"
+                    style={{
+                      boxShadow: `0 0 0 2px ${coinMeta.color}80, 0 0 28px ${coinMeta.color}30`,
+                    }}
+                  >
+                    {displayAddress ? (
+                      <QRCodeSVG
+                        value={displayAddress}
+                        size={134}
+                        level="M"
+                        bgColor="#FFFFFF"
+                        fgColor="#0E1529"
+                      />
+                    ) : (
+                      <div className="flex h-[134px] w-[134px] items-center justify-center rounded-[6px] border border-dashed border-[#0E1529]/30 text-center text-[0.62rem] font-bold uppercase tracking-[0.06em] text-[#0E1529]/55">
+                        QR pending
+                        <br />
+                        configuration
+                      </div>
+                    )}
+                    <div
+                      className="absolute -bottom-3.5 left-1/2 flex h-7 w-7 -translate-x-1/2 items-center justify-center rounded-full border-2 border-white text-[0.75rem] font-extrabold text-white"
+                      style={{ background: coinMeta.color }}
+                    >
+                      {coinMeta.glyph}
+                    </div>
+                  </div>
+                  <div className="mt-4 text-[0.65rem] font-bold uppercase tracking-[0.07em] text-[#a3adbf]">
+                    Scan to Deposit
+                  </div>
+                </div>
+
+                {/* Address + chips */}
+                <div className="flex flex-col gap-2.5">
+                  {depositAmountUsd && cryptoAmountFromUsd && (
+                    <div>
+                      <span className="inline-flex items-center gap-1.5 rounded-[8px] border border-[rgba(61,219,169,0.25)] bg-[rgba(61,219,169,0.08)] px-3 py-1.5 font-mono text-[0.73rem] font-bold text-[#3DDBA9]">
+                        <CircleDollarSign className="h-3 w-3" />$
+                        {parseFloat(depositAmountUsd).toFixed(2)} ≈{" "}
+                        {cryptoAmountFromUsd} {coinMeta.symbol}
+                      </span>
+                    </div>
+                  )}
+
+                  <div>
+                    <div className="mb-1 text-[0.65rem] font-bold uppercase tracking-[0.07em] text-[#a3adbf]">
+                      Deposit Address
+                    </div>
+                    <div
+                      className={`rounded-[10px] border border-white/[0.10] px-3.5 py-3 font-mono text-[0.75rem] leading-[1.55] [word-break:break-all] ${
+                        displayAddress
+                          ? "select-all text-[#eef2f7]"
+                          : "text-[#6b7a90] italic"
+                      }`}
+                      style={{
+                        background:
+                          "linear-gradient(145deg,rgba(255,255,255,.05),rgba(255,255,255,.02))",
+                      }}
+                    >
+                      {displayAddress ??
+                        `Address pending — ${coinMeta.symbol} deposits on ${selectedNetwork || "this network"} are not yet enabled`}
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={handleCopyAddress}
+                    disabled={!displayAddress}
+                    className="flex items-center justify-center gap-2 rounded-[10px] py-2.5 text-[0.8rem] font-extrabold tracking-[0.02em] transition-all hover:-translate-y-px disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0"
+                    style={{
+                      background: addressCopied
+                        ? "linear-gradient(135deg,#34C77B,#28a868)"
+                        : "linear-gradient(135deg,#6EECC4,#3DDBA9,#1A9E78)",
+                      color: "#07080c",
+                      boxShadow:
+                        "inset 0 1px 2px rgba(255,255,255,.25), 0 4px 16px rgba(61,219,169,.2)",
+                    }}
+                  >
+                    {addressCopied ? (
+                      <>
+                        <CircleCheck className="h-3.5 w-3.5" />
+                        Address Copied
+                      </>
+                    ) : (
+                      <>
+                        <CopyIcon className="h-3.5 w-3.5" />
+                        Copy Address
+                      </>
+                    )}
+                  </button>
+
+                  <div className="flex flex-col gap-[7px]">
+                    <InfoChip
+                      icon={<Network className="h-3 w-3" />}
+                      label="Network"
+                      value={selectedNetwork || "—"}
+                    />
+                    <InfoChip
+                      icon={<ArrowDownToLine className="h-3 w-3" />}
+                      label="Min. Deposit"
+                      value={coinMeta.min}
+                    />
+                    <InfoChip
+                      icon={<CircleCheck className="h-3 w-3" />}
+                      label="Confirmations"
+                      value={coinMeta.confs}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Warning notice */}
+              <div
+                className="mt-2.5 flex items-start gap-2.5 rounded-[10px] px-4 py-3 text-[0.75rem] leading-[1.5] text-[#a3adbf]"
+                style={{
+                  background: "rgba(232,169,77,0.07)",
+                  border: "1px solid rgba(232,169,77,0.2)",
+                }}
+              >
+                <TriangleAlert className="mt-[1px] h-3.5 w-3.5 shrink-0 text-[#FF9800]" />
+                <span>
+                  Only send{" "}
+                  <strong className="text-[#eef2f7]">{coinMeta.symbol}</strong>{" "}
+                  on the correct network. Sending wrong assets results in{" "}
+                  <strong className="text-[#eef2f7]">permanent loss</strong>.
+                </span>
+              </div>
 
               {/* Action row */}
               <div className="mt-3 flex items-center gap-2">
@@ -892,8 +940,7 @@ export function ContributePanel({ onDepositSuccess }: ContributePanelProps) {
                 <button
                   type="button"
                   onClick={confirmSent}
-                  disabled={!hasRealAddress}
-                  className="flex flex-[2] items-center justify-center gap-1.5 rounded-[8px] py-2.5 text-[0.78rem] font-extrabold text-[#07080c] transition-all hover:-translate-y-px disabled:cursor-not-allowed disabled:opacity-50"
+                  className="flex flex-[2] items-center justify-center gap-1.5 rounded-[8px] py-2.5 text-[0.78rem] font-extrabold text-[#07080c] transition-all hover:-translate-y-px"
                   style={{
                     background: "linear-gradient(135deg,#6EECC4,#3DDBA9,#1A9E78)",
                     boxShadow:
