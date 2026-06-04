@@ -38,8 +38,13 @@ export function useCurrency() {
                 maximumFractionDigits: 2
             })}`;
 
+            // Sanitize an unwanted leading "A" the API sometimes prefixes to "$"
+            // (e.g. "A$" arriving for USD). Only strips a single leading "A"
+            // directly before "$"; all other symbols pass through untouched.
+            const symbol = selectedCurrency.symbol.replace(/^A(?=\$)/, "");
+
             // Format with the appropriate symbol and thousands separators
-            return `${selectedCurrency.symbol}${amount.toLocaleString(undefined, {
+            return `${symbol}${amount.toLocaleString(undefined, {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2
             })}`;
