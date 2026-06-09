@@ -82,6 +82,9 @@ const RewardsPage = lazy(
 const MemeExplorerPage = lazy(
   () => import("./pages/meme-explorer/meme-explorer-page"),
 );
+const SupportCenterPage = lazy(
+  () => import("./pages/Preferences/support-center-page"),
+);
 const TradingPlatformLight = lazy(() =>
   import("./components/mt4-light/trading-platform-light").then((module) => ({
     default: module.TradingPlatformLight,
@@ -236,6 +239,10 @@ const App = () => {
                     <Route
                       path="/main/meme-explorer"
                       element={<MemeExplorerPage />}
+                    />
+                    <Route
+                      path="/main/support-tickets"
+                      element={<SupportCenterPage />}
                     />
                     <Route path="/main/test" element={<Test />} />
                   </Route>
